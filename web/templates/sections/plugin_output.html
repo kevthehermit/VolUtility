@@ -1,0 +1,20 @@
+{% load template_dict %}
+
+<table id="resultsTable" class="table table-striped table-bordered table-hover resultsTable long-line">
+    <thead>
+    <tr>
+        {% for col in plugin_results.columns %}
+        <th>{{ col }}</th>
+        {% endfor %}
+    </thead>
+
+    <tbody>
+        {%  for row in plugin_results.rows %}
+        <tr>
+            {% for cell in row %}
+            <td>{{ cell|safe }}</td>
+            {%  endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

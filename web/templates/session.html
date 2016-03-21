@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% load template_dict %}
+
+{% block title %}VolUI{% endblock %}
+
+
+{% block content %}
+
+{% if error_line %}
+
+<!-- Error Line -->
+<div class="alert alert-danger alert-dismissible" role="alert">
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+  <strong>Doh!</strong> {{error_line}}.
+</div>
+{% endif %}
+<div id="alertTarget"></div>
+
+
+
+<div class="container-fluid">
+<div class="row">
+    <div class="col-lg-6">
+        <div class="row">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Session Information</h3>
+                </div>
+
+                <table class="table table-striped table-bordered table-hover">
+                    <tr>
+                        <th>Session Name</th>
+                        <td>{{session_details.session_name}}</td>
+                    </tr>
+                    <tr>
+                        <th>Session ID</th>
+                        <td id="sessionID">{{session_details|get:"_id"}}</td>
+                    </tr>
+                    <tr>
+                        <th>Memory File</th>
+                        <td>{{session_details.session_path}}</td>
+                    </tr>
+                    <tr>
+                        <th>Memory Profile</th>
+                        <td>{{session_details.session_profile}}</td>
+                    </tr>
+                    <tr>
+                        <th>Session Created</th>
+                        <td>{{session_details.created|date:"M m y H:i:s"}}</td>
+                    </tr>
+                    <tr>
+                        <th>Session Modified</th>
+                        <td>{{session_details.modified|date:"M m y H:i:s"}}</td>
+                    </tr>
+                    <tr>
+                        <th>Versions</th>
+                        <td>Python: {{version_info.python}} | Volatility: {{ version_info.volatility }} | VolUtility: {{ version_info.volutility }}</td>
+                    </tr>
+                    <tr>
+                        <th>Description</th>
+                        <td>{{session_details.session_description}}</td>
+                    </tr>
+
+                </table>
+
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="col-lg-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Image Information</h3>
+            </div>
+
+            <table class="table table-striped table-bordered table-hover">
+
+                {% for key, value in session_details.image_info.items %}
+
+                <tr>
+                    <th>{{ key }}</th>
+                    <td>{{value}}</td>
+                </tr>
+
+                {% endfor %}
+
+            </table>
+
+        </div>
+    </div>
+
+ </div>
+</div>
+
+
+<!--
+
+This is a mid level nav bar to hold tool links
+
+-->
+
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">Tools Bar</a>
+    </div>
+
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-2">
+      <ul class="nav navbar-nav">
+        <li><a href="#" data-toggle="modal" data-target="#memoryModal">View Raw Memory</a></li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Dropdown <span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="#">Action</a></li>
+            <li><a href="#">Another action</a></li>
+            <li><a href="#">Something else here</a></li>
+            <li class="divider"></li>
+            <li><a href="#">Separated link</a></li>
+            <li class="divider"></li>
+            <li><a href="#">One more separated link</a></li>
+          </ul>
+        </li>
+        <li><a href="#" data-toggle="modal" data-target="#memoryModal">Yara Scan Memory</a></li>
+        <li><a href="#" data-toggle="modal" data-target="#commentsModal">Comments <span class="badge">{{ comments|length }}</span></a></li>
+      </ul>
+
+      <ul class="nav navbar-nav navbar-right">
+
+      <form class="navbar-form navbar-left" role="search">
+
+        <div class="form-group">
+            <label for="compression">Search Type</label>
+            <select class="form-control" id="search_type" name="SearchType">
+              <option value="plugin">plugin output</option>
+              <option value="hash">Hash</option>
+              <option value="registry">Registry Key</option>
+              <option value="vol">Vol Command Line</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <input class="form-control" placeholder="Search" type="text" id="search_text" size="40">
+        </div>
+        <a href="#" onclick="ajaxHandler('searchbar', {'session_id':'{{session_details|get:"_id"}}'}, true )" class="btn" role="button">Submit</a>
+      </form>
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- End Tool Bar -->
+
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">Plugin Results</h3>
+        <span class="pull-right clickable"> <a class="text-success" href="#" onclick="ajaxHandler('pollplugins', {'session_id':'{{session_details|get:"_id"}}'}, false ); return false"><span class="glyphicon glyphicon-refresh gly-spin"></span></a> </span>
+    </div>
+
+    <div class="panel-body">
+
+        <div class="row">
+            <div class="col-lg-3">
+                <table class="table table-striped table-bordered table-hover">
+                    <input id="pluginfilter" type="text" class="form-control" placeholder="Filter Plugins">
+
+                    <thead>
+                    <tr>
+                        <th>Plugin Command</th>
+                        <th>Date Completed</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+
+                    <tbody id="pluginTable" class="pluginsearch">
+
+                    {% include "plugin_poll.html" %}
+
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-lg-9"><div id="resultsTarget"></div></div>
+        </div>
+    </div>
+
+</div>
+
+<div id="fileModalDiv"></div>
+<div id="hiveModalDiv"></div>
+
+{% include "raw_memory_modal.html" %}
+
+<div class="comment-modal">
+{% include "comments_modal.html" %}
+</div>
+{% endblock %}

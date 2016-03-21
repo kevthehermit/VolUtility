@@ -1,0 +1,37 @@
+{% load template_dict %}
+<div class="modal fade" id="commentsModal" tabindex="-1" role="dialog" aria-labelledby="commentsModal" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="commentsModal">Comments</h4>
+            </div>
+            <div class="modal-body">
+
+                <div id="comment-block">
+                    {% for comment in comments %}
+                        <pre>{{ comment.comment_text }}</pre>
+                    {% endfor %}
+                </div>
+
+                <hr>
+
+                <form>
+                    <div class="form-group">
+                      <div class="col-lg-10">
+                        <textarea class="form-control" rows="3" id="commentText" placeholder="Add New Comment"></textarea>
+                      </div>
+                    </div>
+
+                    <div class="form-group">
+                        <a href="#" onclick="ajaxHandler('addcomment', {'session_id':'{{session_details|get:"_id"}}', 'target_div':'comment-modal'}, false )" class="btn" role="button">Submit</a>
+                    </div>
+                </form>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

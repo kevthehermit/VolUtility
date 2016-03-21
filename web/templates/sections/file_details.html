@@ -1,0 +1,134 @@
+ {% load template_dict %}
+
+
+
+<div class="modal fade" id="fileModal" tabindex="-1" role="dialog" aria-labelledby="fileModal" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="fileModal">File Details</h4>
+            </div>
+            <div class="modal-body">
+
+  <ul class="nav nav-pills">
+    <li class="active"><a data-toggle="pill" href="#home">Details</a></li>
+    <li><a data-toggle="pill" href="#menu1">VirusTotal</a></li>
+    <li><a data-toggle="pill" href="#menu2">Strings</a></li>
+    <li><a data-toggle="pill" href="#menu3">Yara</a></li>
+  </ul>
+
+  <div class="tab-content">
+    <div id="home" class="tab-pane fade in active">
+      <h3>Details</h3>
+
+            <table class="table table-striped table-bordered table-hover">
+                <tr>
+                    <th>FileName</th>
+                    <td>{{file_details.filename}}</td>
+                </tr>
+                <tr>
+                    <th>FileSize</th>
+                    <td>{{file_details.length}} bytes</td>
+                </tr>
+                <tr>
+                    <th>MD5</th>
+                    <td id="sessionID">{{ file_details.md5}}</td>
+                </tr>
+                <tr>
+                    <th>SHA256</th>
+                    <td>{{file_details.sha256}}</td>
+                </tr>
+                <tr>
+                    <th>Download</th>
+                    <td><a href="/download/file/{{file_id}}">Download</a></td>
+                </tr>
+            </table>
+    </div>
+
+
+    <div id="menu1" class="tab-pane fade">
+      <h3>VirusTotal</h3>
+        <div id="vt-out">
+            {% if file_datastore.vt %}
+                <table class="table table-striped table-bordered table-hover">
+                    <tr>
+                        <th>PermaLink</th>
+                        <td><a href="{{file_datastore.vt.permalink}}">Link to Report</a></td>
+                    </tr>
+                    <tr>
+                        <th>ScanDate</th>
+                        <td>{{ file_datastore.vt.scandate}}</td>
+                    </tr>
+                    <tr>
+                        <th>Results</th>
+                        <td>{{file_datastore.vt.positives}} / {{ file_datastore.vt.total }}</td>
+                    </tr>
+
+                </table>
+            {% else %}
+            <a href="#" onclick="ajaxHandler('virustotal', {'file_id':'{{file_id}}', 'target_div':'vt-out'}, false ); return false" class="btn btn-info" role="button">Search VirusTotal</a>
+
+            {%  endif %}
+
+        </div>
+    </div>
+
+
+    <div id="menu2" class="tab-pane fade">
+      <h3>Strings</h3>
+        <div id="strings-out">
+            {% if file_datastore.string_list %}
+            <pre>
+            {% for strings in file_datastore.string_list %}
+{{strings}}
+            {% endfor %}
+            </pre>
+            {% else %}
+            <a href="#" onclick="ajaxHandler('strings', {'file_id':'{{file_id}}', 'target_div':'strings-out'}, false ); return false" class="btn btn-info" role="button">Extract Strings</a>
+
+            {%  endif %}
+        </div>
+
+    </div>
+
+
+    <div id="menu3" class="tab-pane fade">
+      <h3>Yara</h3>
+        <div id="yara-out">
+            {% if file_datastore.yara %}
+            <table class="table table-striped table-bordered table-hover">
+                <tr>
+                    <th>Rule</th>
+                    <th>Offset</th>
+                    <th>String</th>
+                </tr>
+                {% for row in file_datastore.yara %}
+                <tr>
+                    <td>{{row.rule}}</td>
+                    <td>{{row.offset}}</td>
+                    <td>{{row.string}}</td>
+                </tr>
+                {% endfor %}
+            </table>
+                <input type="hidden" class="form-control" id="rule_file" placeholder="Full path to Yara Rules">
+            {% else %}
+            <div class="form-group">
+                <input type="text" class="form-control" id="rule_file" placeholder="Full path to Yara Rules">
+            <a href="#" onclick="ajaxHandler('yara', {'file_id':'{{file_id}}', 'target_div':'yara-out'}, false ); return false" class="btn btn-info" role="button">Yara Scan</a>
+
+            </div>
+            {%  endif %}
+        </div>
+    </div>
+
+
+  </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

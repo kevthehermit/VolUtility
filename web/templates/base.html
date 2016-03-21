@@ -1,0 +1,102 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>VolUtility - {% block title %}{% endblock %}</title>
+<meta charset="UTF-8">
+<meta name="description" content="Volutility">
+<meta name="keywords" content="yara,rules">
+<link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+<link href="{% static 'css/style.css' %}" rel="stylesheet">
+<link href="{% static 'css/datatables.min.css' %}" rel="stylesheet">
+
+<!-- include libries(jQuery, bootstrap, fileview) -->
+<script src="{% static 'js/jquery.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.js' %}"></script>
+<script src="{% static 'js/bootstrap-filestyle.min.js' %}"></script>
+<script src="{% static 'js/pagination.js' %}"></script>
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script src="{% static 'js/volutility.js' %}"></script>
+
+
+
+</head>
+ 
+<body>
+
+<!-- Nav Bar -->
+
+<nav class="navbar" role="navigation">
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a href="/" class="navbar-brand"><img class="logo" src="{% static 'img/VolUtility.png' %}" height="60"></a>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav">
+        <li class="active"></li>
+      </ul>
+
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#" data-toggle="modal" data-target="#pluginModal">Add Plugins</a></li>
+        <li><a href="/search/">Search</a></li>
+        <li><a href="#" data-toggle="modal" data-target="#aboutModal">About</a></li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Help <span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="https://github.com/kevthehermit/VolUtility">Docs</a></li>
+            <li><a href="https://github.com/kevthehermit/VolUtility/issues">Issues</a></li>
+            <li class="divider"></li>
+            <li><a href="#" data-toggle="modal" data-target="#aboutModal">About</a></li>
+            <li><a href="#" onclick="spinnerControl('open', 'Cats Loading Stuffs')">Loading page</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- End Nav -->
+
+<div class="container-fluid">
+    <!-- End Header  -->
+    {% block content %}{% endblock %}
+</div>
+
+<div id="spinnerdiv" class="spinner">
+    <a href="javascript:void(0)" class="closebtn" onclick="spinnerControl('close')">&times;</a>
+  <!-- Overlay content -->
+  <div class="spinner-content">
+      <h2 id="loadingtext"></h2>
+    <img src="{% static 'img/loading.gif' %}">
+
+  </div>
+</div>
+
+
+  
+<div class="footer">
+    <div class="container">
+        <div align="center">
+            <p class="muted credit"><a href="https://github.com/kevthehermit/VolUtility">VolUtility</a> Copyright &copy; 2016. Created by <a href="http://techanarchy.net/">Kevin Breen</a>.</p>
+        </div>
+    </div>
+</div>
+
+
+
+
+{% include 'about_modal.html' %}
+
+
+
+</body>
+</html>

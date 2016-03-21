@@ -1,0 +1,52 @@
+<div class="modal fade" id="sessionModal" tabindex="-1" role="dialog" aria-labelledby="addSession" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="addSession">Add Session</h4>
+            </div>
+            <div class="modal-body">
+
+
+            <form role="form" action="/createsession/" enctype="multipart/form-data" method="post" onsubmit="sessionCreate()">
+                {% csrf_token %}
+                <div class="form-group">
+                    <input type="text" class="form-control" name="sess_name" placeholder="Session Name">
+                </div>
+
+                <div class="form-group">
+                    <input type="text" class="form-control" name="sess_path" placeholder="Full path to memory dump">
+                </div>
+
+                <div class="form-group">
+                    <h5><strong>Extra Plugin Dirs: </strong>{{ plugin_dirs }}</h5>
+                    <p>Add more plugins from the Main Menu Bar.</p>
+                </div>
+
+              <div class="form-group">
+                  <label for="profile">Profile</label>
+                  <select class="form-control" name="profile" id="profile">
+                    {% for profile in profile_list %}
+                    <option value="{{profile}}">{{profile}}</option>
+                    {% endfor %}
+
+                </select>
+              </div>
+
+                <div class="form-group">
+                    <textarea class="form-control" rows="3" name="description" placeholder="Description"></textarea>
+                </div>
+
+
+                <button type="submit" class="btn btn-default" name="new" value="New">Submit</button>
+
+            </form>
+                <div id="loading"></div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

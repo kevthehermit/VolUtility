@@ -1,0 +1,36 @@
+ {% load template_dict %}
+        {% for row in plugin_output %}
+        <tr id="{{row|get:"_id"}}">
+            <td data-toggle="tooltip" data-placement="right" title="{{ row.help_string }}">{{row.plugin_name}}</td>
+            <td>{{row.created|date:"m M y H:i:s"}}</td>
+
+            {% if row.status == None %}
+
+            <td>
+                <span class="clickable" data-toggle="tooltip" data-placement="right" title="Run Plugin"> <a class="text-success" href="#" onclick="ajaxHandler('runplugin', {'plugin_id':'{{row|get:"_id"}}', 'session_id':'{{row.session_id}}', 'plugin_name':'{{ row.plugin_name }}'}, false ); return false"><span id="{{ row.plugin_name }}_glyph" class="glyphicon glyphicon-play-circle"></span></a></span>
+            </td>
+            {% elif row.status == 'processing' %}
+            <td>
+                <span class="clickable" data-toggle="tooltip" data-placement="right" title="Processing"> <a class="text-info" href="#" onclick="ajaxHandler('dropplugin', {'plugin_id':'{{row|get:"_id"}}'}, false ); return false">  <span class="glyphicon glyphicon-repeat gly-spin"></span></a></span>
+            </td>
+
+
+            {% elif row.status == 'error' %}
+            <td>
+                <span class="clickable" data-toggle="tooltip" data-placement="right" title="Error"> <a class="text-warning" href="#" onclick="ajaxHandler('dropplugin', {'plugin_id':'{{row|get:"_id"}}'}, false ); return false">  <span class="glyphicon glyphicon-warning-sign"></span></a></span>
+            </td>
+
+
+            {% else %}
+
+            <td>
+                <span class="clickable" data-toggle="tooltip" data-placement="right" title="View Output"> <a class="text-success" href="#" onclick="ajaxHandler('pluginresults', {'plugin_id':'{{row|get:"_id"}}'}, false ); return false"><span class="glyphicon glyphicon-eye-open"> | </span></a></span>
+                <span class="clickable" data-toggle="tooltip" data-placement="right" title="Export Output"> <a class="text-success" href="/download/plugin/{{row|get:"_id"}}" >  <span class="glyphicon glyphicon-download"> | </span></a></span>
+                <span class="clickable" data-toggle="tooltip" data-placement="right" title="Delete Output"> <a class="text-danger" href="#" onclick="ajaxHandler('dropplugin', {'plugin_id':'{{row|get:"_id"}}'}, false ); return false">  <span class="glyphicon glyphicon-trash"></span></a></span>
+            </td>
+
+
+            {% endif %}
+
+        </tr>
+        {% endfor %}

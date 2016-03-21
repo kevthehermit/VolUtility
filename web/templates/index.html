@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load template_dict %}
+
+{% block title %}VolUI{% endblock %}
+
+
+{% block content %}
+
+{% if error_line %}
+
+<!-- Error Line -->
+<div class="alert alert-danger alert-dismissible" role="alert">
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+  <strong>Doh!</strong> {{error_line}}.
+</div>
+{% endif %}
+
+
+<!-- List Sessions -->
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">Showing {{ session_counts.1 }} to {{ session_counts.0 }} of {{ session_counts.2 }} Sessions</h3>
+        <span class="pull-right clickable"> <a class="text-success" href="#" data-toggle="modal" data-target="#sessionModal"><span class="glyphicon glyphicon-plus">New</span></a> </span>
+    </div>
+
+    <table class="table table-striped table-bordered table-hover">
+        <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Profile</th>
+            <th>Created</th>
+            <th>Modified</th>
+            <th>Delete</th>
+        </tr>
+        {% for row in session_list %}
+        <tr>
+            <td class="clickable" onclick="document.location = '/session/{{row|get:"_id"}}/';">{{row|get:"_id"}}</td>
+            <td class="clickable" onclick="document.location = '/session/{{row|get:"_id"}}/';"><a href="/session/{{row|get:"_id"}}/">{{row.session_name}}</a></td>
+            <td class="clickable" onclick="document.location = '/session/{{row|get:"_id"}}/';">{{row.session_profile}}</td>
+            <td class="clickable" onclick="document.location = '/session/{{row|get:"_id"}}/';">{{row.created|date:"m M y H:i:s"}}</td>
+            <td class="clickable" onclick="document.location = '/session/{{row|get:"_id"}}/';">{{row.modified|date:"m M y H:i:s"}}</td>
+            <td><span class="clickable"> <a class="text-danger" href="#" onclick="ajaxHandler('dropsession', {'session_id':'{{row|get:"_id"}}'}, false )">  <span class="glyphicon glyphicon-trash"></span></a></span></td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+
+<div class="text-center">
+    <nav>
+        <ul class="pagination">
+            {% if config_list.has_previous %}
+            <li><a href="?page={{ config_list.previous_page_number }}">&laquo;</a></li>
+            {% else %}
+            <li class="disabled"><span><span aria-hidden="true">&laquo;</span></span></li>
+            {% endif %}
+
+            {% for page in config_list.paginator.page_range %}
+            {% spaceless %}
+            <li
+            {% if page == config_list.number %}
+            class="active"
+            {% endif %}
+            ><a href="?page={{ page }}">{{ page }}</a></li>
+            {% endspaceless %}
+            {% endfor %}
+
+            {% if config_list.has_next %}
+            <li><a href="?page={{ config_list.next_page_number }}">&raquo;</a></li>
+            {% else %}
+            <li class="disabled"><span><span aria-hidden="true">&raquo;</span></span></li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+
+{% include "add_session_modal.html" %}
+{% include "add_plugin_modal.html" %}
+
+{% endblock %}
