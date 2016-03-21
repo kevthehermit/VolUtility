@@ -3,7 +3,13 @@ Web Interface for Volatility Memory Analysis framework
 
 
 ## Overview
-This does some things
+Runs plugins and stores the output in a mongo database. 
+Extracts files from plugins (that support dump-dir) and stores them in the database
+Search across all plugins and file content with string search and yara rules.
+Allows you to work on multiple images in one database
+
+Video Demo showing some of the features.
+https://www.youtube.com
 
 ## Installation
 Tested on Ubuntu 14.04 LTS
@@ -94,7 +100,15 @@ exit
     - sessions
   - More support for other plugins  
   - Better Error handling for vol plugins
+  - Memory Threat Score. Use signature based analysis on plugins as they run to generate a threat score for the image. 
+  - Add extra features to file sections, like PE info etc.
+  - Global Search across all sessions.
   
   
 ## Help
 
+## Thanks
+Volatility Foundation for writing Volatility - http://www.volatilityfoundation.org/
+Alissa Torres for teaching me memory via SANS FOR526 - https://twitter.com/sibertor
+Using volatility as a library - http://dsocon.blogspot.co.uk/2012/08/using-volatility-framework-as-library.html
+James Habben's origional eVolve concept - https://github.com/JamesHabben/evolve
