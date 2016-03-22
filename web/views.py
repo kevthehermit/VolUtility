@@ -5,17 +5,19 @@ import contextlib
 import tempfile
 import shutil
 import hashlib
-import yara
 import string
-import subprocess
+from datetime import datetime
 
 try:
     from subprocess import getoutput
 except ImportError:
     from commands import getoutput
 
-from datetime import datetime
-from bson.objectid import ObjectId
+try:
+    from bson.objectid import ObjectId
+except ImportError:
+    print "Unable to import pymongo"
+    sys.exit()
 
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, Http404, JsonResponse, HttpResponseServerError
@@ -30,6 +32,13 @@ except ImportError:
     print "Unable to import API Library"
 
 try:
+    import yara
+    YARA = True
+except ImportError:
+    YARA = False
+    print "Error Importing Yara"
+
+try:
     from vt_key import API_KEY
     VT_KEY = True
 except ImportError:
@@ -39,8 +48,11 @@ except ImportError:
 import vol_interface
 from vol_interface import RunVol
 
-from web.database import Database
-db = Database()
+try:
+    from web.database import Database
+    db = Database()
+except Exception as e:
+    print "Unable to access mongo database: {0}".format(e)
 
 ##
 # Helpers
