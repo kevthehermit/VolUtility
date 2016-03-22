@@ -15,21 +15,21 @@ import volatility.utils as utils
 import logging
 logger = logging.getLogger(__name__)
 
+
 ##
 # Patch the volatility debug to prevent sys.exit calls
 ##
-
 def new_error(msg):
     raise Exception(msg)
 
 debug.error = new_error
-
 
 plugin_filters = {
     "drop": ['crashdump', 'crashinfo', 'volshell', 'chromecookies', 'poolpeek', 'impscan', 'hivedump']
 }
 
 vol_version = constants.VERSION
+
 
 def profile_list():
     prof_list = ['AutoDetect']
@@ -40,11 +40,9 @@ def profile_list():
 
 
 class RunVol:
-    def __init__(self, profile, mem_path, plugin_path=None):
+    def __init__(self, profile, mem_path):
         # Setup Vol Debugger
         debug.setup()
-
-
 
         registry.PluginImporter()
         self.memdump = mem_path
@@ -52,7 +50,6 @@ class RunVol:
         self.config = None
         self.addr_space = None
         self.init_config()
-
 
     def init_config(self):
         """Creates a volatility configuration."""
@@ -93,7 +90,6 @@ class RunVol:
         for key, value in base_conf.items():
             self.config.update(key, value)
 
-
         self.plugins = registry.get_plugin_classes(commands.Command, lower=True)
 
         return self.config
@@ -104,7 +100,6 @@ class RunVol:
         for profile in profs.iterkeys():
             prof_list.append(profile)
         return sorted(prof_list)
-
 
     def list_plugins(self):
         plugin_list = []
@@ -121,7 +116,6 @@ class RunVol:
             if command.is_valid_profile(profile):
                 plugin_list.append([cmdname, helpline])
         return plugin_list
-
 
     def get_json(self, plugin_class):
         strio = StringIO.StringIO()
@@ -141,8 +135,6 @@ class RunVol:
 
     def run_plugin(self, plugin_name, pid=None, dump_dir=None, plugin_options=None, hive_offset=None, output_style="json"):
 
-        print output_style
-
         # Get Valid commands
         cmds = registry.get_plugin_classes(commands.Command, lower=True)
 
@@ -156,12 +148,10 @@ class RunVol:
 
             self.config.hive_offset = hive_offset
 
-
             # Add any other options
             if plugin_options:
                 for option, value in plugin_options.iteritems():
                     self.config.update(option, value)
-
 
             # Just for imageinfo as it occasionally throws unicode errors at me
 
