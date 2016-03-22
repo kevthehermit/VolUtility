@@ -113,8 +113,7 @@ def temp_dumpdir():
 # Page Views
 ##
 
-def main_page(request):
-    error_line = False
+def main_page(request, error_line=False):
 
     # Check Vol Version
     if float(vol_interface.vol_version) < 2.5:
@@ -207,7 +206,8 @@ def create_session(request):
 
     # Check for mem file
     if not os.path.exists(new_session['session_path']):
-        return HttpResponse('File Not There')
+        logger.error('Unable to find an image file at {0}'.format(request.POST['sess_path']))
+        return main_page(request, error_line='Unable to find an image file at {0}'.format(request.POST['sess_path']))
 
     # Get a list of plugins we can use. and prepopulate the list.
 
