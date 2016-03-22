@@ -118,7 +118,7 @@ def main_page(request):
 
     # Check Vol Version
     if float(vol_interface.vol_version) < 2.5:
-        error_line = 'UNSUPPORTED VOLATILITY VERSION INSTALLED. REQUIRES 2.5 FOUND {0}'.format(vol_interface.vol_version)
+        error_line = 'UNSUPPORTED VOLATILITY VERSION. REQUIRES 2.5 FOUND {0}'.format(vol_interface.vol_version)
 
     # Set Pagination
     page = request.GET.get('page')
@@ -166,6 +166,12 @@ def main_page(request):
 
 
 def session_page(request, sess_id):
+    error_line = False
+
+    # Check Vol Version
+    if float(vol_interface.vol_version) < 2.5:
+        error_line = 'UNSUPPORTED VOLATILITY VERSION. REQUIRES 2.5 FOUND {0}'.format(vol_interface.vol_version)
+
     # Get the session
     session_id = ObjectId(sess_id)
     session_details = db.get_session(session_id)
@@ -181,6 +187,7 @@ def session_page(request, sess_id):
                                             'plugin_list': plugin_list,
                                             'plugin_output': plugin_text,
                                             'comments': comments,
+                                            'error_line': error_line,
                                             'version_info': version_info})
 
 
