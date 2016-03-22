@@ -66,3 +66,5 @@ target/
 .idea/
 
 vt_key.py
+
+test.py

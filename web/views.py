@@ -785,11 +785,20 @@ def ajax_handler(request, command):
                     results['rows'].append([row['plugin_name'], '<a href="#" onclick="ajaxHandler(\'pluginresults\', {{\'plugin_id\':\'{0}\'}}, false ); return false">View Output</a>'.format(row['_id'])])
                 return render(request, 'plugin_output.html', {'plugin_results': results})
 
-            elif search_type == 'hash':
+            if search_type == 'hash':
                 pass
-            elif search_type == 'registry':
-                pass
-            elif search_type == 'vol':
+            if search_type == 'registry':
+
+                logger.debug('Registry Search')
+                try:
+                    session = db.get_session(ObjectId(session_id))
+                    vol_int = RunVol(session['session_profile'], session['session_path'])
+                    results = vol_int.run_plugin('printkey', output_style='json', plugin_options={'KEY': search_text})
+                    return render(request, 'plugin_output.html', {'plugin_results': results})
+                except Exception as error:
+                    logger.error(error)
+
+            if search_type == 'vol':
                 # Run a vol command and get the output
 
                 vol_output = getoutput('vol.py {0}'.format(search_text))
@@ -800,8 +809,8 @@ def ajax_handler(request, command):
 
 
                 return render(request, 'plugin_output.html', {'plugin_results': results})
-            else:
-                return HttpResponse('No valid search query found.')
+
+            return HttpResponse('No valid search query found.')
 
     if command == 'pluginresults':
         if 'plugin_id' in request.POST:
