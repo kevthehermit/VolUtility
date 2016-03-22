@@ -5,20 +5,25 @@ import contextlib
 import tempfile
 import shutil
 import hashlib
-import yara
 import string
-import subprocess
+from datetime import datetime
+
+import logging
+logger = logging.getLogger(__name__)
 
 try:
     from subprocess import getoutput
 except ImportError:
     from commands import getoutput
 
-from datetime import datetime
-from bson.objectid import ObjectId
+try:
+    from bson.objectid import ObjectId
+except ImportError:
+    logger.error('Unable to import pymongo')
+    sys.exit()
 
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, Http404, JsonResponse, HttpResponseServerError
+from django.http import HttpResponse, HttpResponseServerError
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
 
@@ -27,20 +32,35 @@ try:
     VT_LIB = True
 except ImportError:
     VT_LIB = False
-    print "Unable to import API Library"
+    logger.error("Unable to import API Library")
+
+try:
+    import yara
+    YARA = True
+except ImportError:
+    YARA = False
+    logger.error("Unable to import Yara")
 
 try:
     from vt_key import API_KEY
     VT_KEY = True
 except ImportError:
     VT_KEY = False
-    print "Unable to import API KEY from vt_key.py"
+    logger.error("Unable to import API Key from vt_key.py")
 
+##
+# Import The volatility Interface and DB Class
+##
 import vol_interface
 from vol_interface import RunVol
 
-from web.database import Database
-db = Database()
+try:
+    from web.database import Database
+    db = Database()
+except Exception as e:
+    logger.error("Unable to access mongo database: {0}".format(e))
+
+
 
 ##
 # Helpers
@@ -94,6 +114,11 @@ def temp_dumpdir():
 ##
 
 def main_page(request):
+    error_line = False
+
+    # Check Vol Version
+    if float(vol_interface.vol_version) < 2.5:
+        error_line = 'UNSUPPORTED VOLATILITY VERSION. REQUIRES 2.5 FOUND {0}'.format(vol_interface.vol_version)
 
     # Set Pagination
     page = request.GET.get('page')
@@ -135,11 +160,18 @@ def main_page(request):
     return render(request, 'index.html', {'session_list': sessions,
                                           'session_counts': [session_count, first_session, last_session],
                                           'profile_list': profile_list,
-                                          'plugin_dirs': plugin_dirs
+                                          'plugin_dirs': plugin_dirs,
+                                          'error_line': error_line
                                           })
 
 
 def session_page(request, sess_id):
+    error_line = False
+
+    # Check Vol Version
+    if float(vol_interface.vol_version) < 2.5:
+        error_line = 'UNSUPPORTED VOLATILITY VERSION. REQUIRES 2.5 FOUND {0}'.format(vol_interface.vol_version)
+
     # Get the session
     session_id = ObjectId(sess_id)
     session_details = db.get_session(session_id)
@@ -155,6 +187,7 @@ def session_page(request, sess_id):
                                             'plugin_list': plugin_list,
                                             'plugin_output': plugin_text,
                                             'comments': comments,
+                                            'error_line': error_line,
                                             'version_info': version_info})
 
 
@@ -260,9 +293,7 @@ def plugin_output(plugin_id):
                 for row in plugin_data['plugin_output']['rows']:
                     row[row_loc] = hex(row[row_loc])
     except Exception as e:
-        print 'Error converting hex a: {0}'.format(e)
-        pass
-
+        logger.error('Error converting hex a: {0}'.format(e))
 
     return plugin_data['plugin_output']
 
@@ -285,7 +316,7 @@ def run_plugin(session_id, plugin_id):
 
         plugin_name = plugin_row['plugin_name'].lower()
 
-        print "Running plugin", plugin_name
+        logger.debug('Running Plugin: {0}'.format(plugin_name))
 
         # Set plugin status
         new_values = {'status': 'processing'}
@@ -297,37 +328,43 @@ def run_plugin(session_id, plugin_id):
         # Run the plugin with json as normal
         output_style = 'json'
         try:
-            print "Testing Json"
             results = vol_int.run_plugin(plugin_name, output_style=output_style)
         except Exception as error:
-            print "Json Output Error: ", error
+            results = False
+            logger.error('Json Output error, {0}'.format(error))
 
         if 'unified output format has not been implemented' in str(error) or 'JSON output for trees' in str(error):
             output_style = 'text'
             try:
-                print "Testing Text"
                 results = vol_int.run_plugin(plugin_name, output_style=output_style)
                 error = None
-            except Exception as e:
-                print "Unified Output Error: {0}".format(error)
-                # Set plugin status
-                new_values = {'status': 'error'}
-                db.update_plugin(ObjectId(plugin_id), new_values)
-                return 'Error: Unable to run plugin - {0}'.format(error)
+            except Exception as error:
+                logger.error('Json Output error, {0}'.format(error))
+                results = False
+
 
         # If we need a DumpDir
         if '--dump-dir' in str(error) or 'specify a dump directory' in str(error):
             # Create Temp Dir
-            print "Creating Dump"
+            logger.debug('Creating Temp Directory')
             temp_dir = tempfile.mkdtemp()
             dump_dir = temp_dir
             try:
                 results = vol_int.run_plugin(plugin_name, dump_dir=dump_dir, output_style=output_style)
             except Exception as error:
+                results = False
                 # Set plugin status
                 new_values = {'status': 'error'}
                 db.update_plugin(ObjectId(plugin_id), new_values)
-                return 'Error: Unable to run plugin - {0}'.format(error)
+                logger.error('Error: Unable to run plugin - {0}'.format(error))
+
+
+        # Check for result set
+        if not results:
+            # Set plugin status
+            new_values = {'status': 'error'}
+            db.update_plugin(ObjectId(plugin_id), new_values)
+            return 'Error: Unable to run plugin - {0}'.format(error)
 
 
 
@@ -360,8 +397,8 @@ def run_plugin(session_id, plugin_id):
                                   'onclick="ajaxHandler(\'filedetails\', {\'file_id\':\'' + str(file_id) + '\'}, false ); return false">' \
                                   'File Details</a>'
 
-                    except Exception as e:
-                        row[-1] = 'Not Stored: {0}'.format(e)
+                    except Exception as error:
+                        row[-1] = 'Not Stored: {0}'.format(error)
 
             if plugin_row['plugin_name'] in ['procdump', 'dlldump']:
                 # Add new column
@@ -440,10 +477,11 @@ def run_plugin(session_id, plugin_id):
 
             return plugin_row['plugin_name']
 
-        except Exception as e:
+        except Exception as error:
             # Set plugin status
             new_values = {'status': 'error'}
             db.update_plugin(ObjectId(plugin_id), new_values)
+            logger.error('Error: Unable to Store Output - {0}'.format(error))
             return 'Error: Unable to Store Output - {0}'.format(e)
 
 
@@ -470,9 +508,8 @@ def file_download(request, query_type, object_id):
 
                     for row in plugin_data['rows']:
                         row[row_loc] = str(hex(row[row_loc])).rstrip('L')
-        except Exception as e:
-            print "Error Converting to hex b: {0}".format(e)
-            pass
+        except Exception as error:
+            logger.error("Error Converting to hex b: {0}".format(error))
 
         file_data = ""
         file_data += ",".join(plugin_data['columns'])
@@ -542,7 +579,7 @@ def ajax_handler(request, command):
             file_id = request.POST['file_id']
             file_object = db.get_filebyid(ObjectId(file_id))
             file_datastore = db.search_datastore({'file_id': ObjectId(file_id)})
-            file_meta = {}
+            file_meta = {'vt': None, 'string_list': None, 'yara': None }
             for row in file_datastore:
 
                 if 'vt' in row:
@@ -631,7 +668,7 @@ def ajax_handler(request, command):
             rule_file = request.POST['rule_file']
 
 
-        if rule_file and file_id:
+        if rule_file and file_id and YARA:
             file_object = db.get_filebyid(ObjectId(file_id))
             file_data = file_object.read()
 
@@ -717,7 +754,7 @@ def ajax_handler(request, command):
                     response['Content-Disposition'] = 'attachment; filename="{0}-{1}.bin"'.format(start_offset, end_offset)
                     return response
                 except Exception as e:
-                    print 'Error Getting hex dump: {0}'.format(e)
+                    logger.error('Error Getting hex dump: {0}'.format(e))
 
     if command == 'addcomment':
         html_resp = ''
@@ -771,6 +808,5 @@ def ajax_handler(request, command):
             plugin_id = ObjectId(request.POST['plugin_id'])
             plugin_results = plugin_output(plugin_id)
             return render(request, 'plugin_output.html', {'plugin_results': plugin_results})
-
 
     return HttpResponse('No valid search query found.')

@@ -6,16 +6,6 @@
 
 {% block content %}
 
-{% if error_line %}
-
-<!-- Error Line -->
-<div class="alert alert-danger alert-dismissible" role="alert">
-  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-  <strong>Doh!</strong> {{error_line}}.
-</div>
-{% endif %}
-
-
 <!-- List Sessions -->
 
 <div class="panel panel-default">
@@ -50,24 +40,24 @@
 <div class="text-center">
     <nav>
         <ul class="pagination">
-            {% if config_list.has_previous %}
-            <li><a href="?page={{ config_list.previous_page_number }}">&laquo;</a></li>
+            {% if session_list.has_previous %}
+            <li><a href="?page={{ session_list.previous_page_number }}">&laquo;</a></li>
             {% else %}
             <li class="disabled"><span><span aria-hidden="true">&laquo;</span></span></li>
             {% endif %}
 
-            {% for page in config_list.paginator.page_range %}
+            {% for page in session_list.paginator.page_range %}
             {% spaceless %}
             <li
-            {% if page == config_list.number %}
+            {% if page == session_list.number %}
             class="active"
             {% endif %}
             ><a href="?page={{ page }}">{{ page }}</a></li>
             {% endspaceless %}
             {% endfor %}
 
-            {% if config_list.has_next %}
-            <li><a href="?page={{ config_list.next_page_number }}">&raquo;</a></li>
+            {% if session_list.has_next %}
+            <li><a href="?page={{ session_list.next_page_number }}">&raquo;</a></li>
             {% else %}
             <li class="disabled"><span><span aria-hidden="true">&raquo;</span></span></li>
             {% endif %}
