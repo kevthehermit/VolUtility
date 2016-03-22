@@ -115,6 +115,11 @@ def temp_dumpdir():
 
 def main_page(request):
     error_line = False
+
+    # Check Vol Version
+    if float(vol_interface.vol_version) < 2.5:
+        error_line = 'UNSUPPORTED VOLATILITY VERSION INSTALLED. REQUIRES 2.5 FOUND {0}'.format(vol_interface.vol_version)
+
     # Set Pagination
     page = request.GET.get('page')
     if not page:
