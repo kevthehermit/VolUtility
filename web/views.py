@@ -113,8 +113,7 @@ def temp_dumpdir():
 # Page Views
 ##
 
-def main_page(request):
-    error_line = False
+def main_page(request, error_line=False):
 
     # Check Vol Version
     if float(vol_interface.vol_version) < 2.5:
@@ -207,7 +206,8 @@ def create_session(request):
 
     # Check for mem file
     if not os.path.exists(new_session['session_path']):
-        return HttpResponse('File Not There')
+        logger.error('Unable to find an image file at {0}'.format(request.POST['sess_path']))
+        return main_page(request, error_line='Unable to find an image file at {0}'.format(request.POST['sess_path']))
 
     # Get a list of plugins we can use. and prepopulate the list.
 
@@ -331,7 +331,7 @@ def run_plugin(session_id, plugin_id):
             results = vol_int.run_plugin(plugin_name, output_style=output_style)
         except Exception as error:
             results = False
-            logger.error('Json Output error, {0}'.format(error))
+            logger.error('Json Output error in {0} - {1}'.format(plugin_name, error))
 
         if 'unified output format has not been implemented' in str(error) or 'JSON output for trees' in str(error):
             output_style = 'text'
@@ -339,14 +339,14 @@ def run_plugin(session_id, plugin_id):
                 results = vol_int.run_plugin(plugin_name, output_style=output_style)
                 error = None
             except Exception as error:
-                logger.error('Json Output error, {0}'.format(error))
+                logger.error('Json Output error in {0}, {1}'.format(plugin_name, error))
                 results = False
 
 
         # If we need a DumpDir
         if '--dump-dir' in str(error) or 'specify a dump directory' in str(error):
             # Create Temp Dir
-            logger.debug('Creating Temp Directory')
+            logger.debug('{0} - Creating Temp Directory'.format(plugin_name))
             temp_dir = tempfile.mkdtemp()
             dump_dir = temp_dir
             try:
@@ -356,7 +356,7 @@ def run_plugin(session_id, plugin_id):
                 # Set plugin status
                 new_values = {'status': 'error'}
                 db.update_plugin(ObjectId(plugin_id), new_values)
-                logger.error('Error: Unable to run plugin - {0}'.format(error))
+                logger.error('Error: Unable to run plugin {0} - {1}'.format(plugin_name, error))
 
 
         # Check for result set
@@ -364,7 +364,7 @@ def run_plugin(session_id, plugin_id):
             # Set plugin status
             new_values = {'status': 'error'}
             db.update_plugin(ObjectId(plugin_id), new_values)
-            return 'Error: Unable to run plugin - {0}'.format(error)
+            return 'Error: Unable to run plugin {0} - {1}'.format(plugin_name, error)
 
 
 
@@ -481,8 +481,8 @@ def run_plugin(session_id, plugin_id):
             # Set plugin status
             new_values = {'status': 'error'}
             db.update_plugin(ObjectId(plugin_id), new_values)
-            logger.error('Error: Unable to Store Output - {0}'.format(error))
-            return 'Error: Unable to Store Output - {0}'.format(e)
+            logger.error('Error: Unable to Store Output for {0} - {1}'.format(plugin_name, error))
+            return 'Error: Unable to Store Output for {0}- {1}'.format(plugin_name, error)
 
 
 def file_download(request, query_type, object_id):
@@ -785,11 +785,20 @@ def ajax_handler(request, command):
                     results['rows'].append([row['plugin_name'], '<a href="#" onclick="ajaxHandler(\'pluginresults\', {{\'plugin_id\':\'{0}\'}}, false ); return false">View Output</a>'.format(row['_id'])])
                 return render(request, 'plugin_output.html', {'plugin_results': results})
 
-            elif search_type == 'hash':
+            if search_type == 'hash':
                 pass
-            elif search_type == 'registry':
-                pass
-            elif search_type == 'vol':
+            if search_type == 'registry':
+
+                logger.debug('Registry Search')
+                try:
+                    session = db.get_session(ObjectId(session_id))
+                    vol_int = RunVol(session['session_profile'], session['session_path'])
+                    results = vol_int.run_plugin('printkey', output_style='json', plugin_options={'KEY': search_text})
+                    return render(request, 'plugin_output.html', {'plugin_results': results})
+                except Exception as error:
+                    logger.error(error)
+
+            if search_type == 'vol':
                 # Run a vol command and get the output
 
                 vol_output = getoutput('vol.py {0}'.format(search_text))
@@ -800,8 +809,8 @@ def ajax_handler(request, command):
 
 
                 return render(request, 'plugin_output.html', {'plugin_results': results})
-            else:
-                return HttpResponse('No valid search query found.')
+
+            return HttpResponse('No valid search query found.')
 
     if command == 'pluginresults':
         if 'plugin_id' in request.POST:
