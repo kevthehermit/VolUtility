@@ -9,7 +9,7 @@ Search across all plugins and file content with string search and yara rules.
 Allows you to work on multiple images in one database
 
 Video Demo showing some of the features.
-https://www.youtube.com
+https://www.youtube.com/watch?v=ruEj94Zhn6I
 
 ## Installation
 Tested on Ubuntu 14.04 LTS
