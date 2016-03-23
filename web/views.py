@@ -221,30 +221,33 @@ def create_session(request):
             profile = None
 
     vol_int = RunVol(profile, new_session['session_path'])
-    imageinfo = vol_int.run_plugin('imageinfo')
-
-    imageinfo_text = imageinfo['rows'][0][0]
-
-    # ImageInfo tends to error with json so parse text manually.
 
     image_info = {}
-    for line in imageinfo_text.split('\n'):
-        try:
-            key, value = line.split(' : ')
-            image_info[key.strip()] = value.strip()
-        except Exception as e:
-            print 'Error Getting imageinfo: {0}'.format(e)
 
     if not profile:
+
+        imageinfo = vol_int.run_plugin('imageinfo')
+
+        imageinfo_text = imageinfo['rows'][0][0]
+
+        # ImageInfo tends to error with json so parse text manually.
+
+        image_info = {}
+        for line in imageinfo_text.split('\n'):
+            try:
+                key, value = line.split(' : ')
+                image_info[key.strip()] = value.strip()
+            except Exception as e:
+                print 'Error Getting imageinfo: {0}'.format(e)
+
         profile = image_info['Suggested Profile(s)'].split(',')[0]
 
-    # Re initialize with correct profile
-    vol_int = RunVol(profile, new_session['session_path'])
+        # Re initialize with correct profile
+        vol_int = RunVol(profile, new_session['session_path'])
 
     # Get compatible plugins
 
     plugin_list = vol_int.list_plugins()
-
 
     new_session['session_profile'] = profile
 
