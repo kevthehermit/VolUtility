@@ -102,7 +102,11 @@ This is a mid level nav bar to hold tool links
         <li><a href="#" data-toggle="modal" data-target="#memoryModal">View Raw Memory</a></li>
         <li><a href="#" data-toggle="modal" data-target="#">Yara Scan Memory</a></li>
         <li><a href="#" data-toggle="modal" data-target="#commentsModal">Comments <span class="badge">{{ comments|length }}</span></a></li>
+
       </ul>
+
+
+
 
       <ul class="nav navbar-nav navbar-right">
 
@@ -123,6 +127,27 @@ This is a mid level nav bar to hold tool links
         </div>
         <a href="#" onclick="ajaxHandler('searchbar', {'session_id':'{{session_details|get:"_id"}}'}, true )" class="btn" role="button">Submit</a>
       </form>
+
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="badge text-success" id="successcount">0</span><span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu" id="notifysuccess">
+            <li><a href="#" onclick="notifications('success', false, '', 'Clear All'); return false">Clear All</a></li>
+          </ul>
+        </li>
+
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="badge text-warning" id="warncount">0</span><span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu" id="notifywarn">
+            <li><a href="#" onclick="notifications('warning', false, '', 'Clear All'); return false">Clear All</a></li>
+          </ul>
+        </li>
+
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="badge text-danger" id="errorcount">0</span><span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu" id="notifyerror">
+            <li><a href="#" onclick="notifications('error', false, '', 'Clear All'); return false">Clear All</a></li>
+          </ul>
+        </li>
 
       </ul>
     </div>
@@ -174,4 +199,7 @@ This is a mid level nav bar to hold tool links
 <div class="comment-modal">
 {% include "comments_modal.html" %}
 </div>
+
+
+
 {% endblock %}

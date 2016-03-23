@@ -90,6 +90,64 @@ function alertBar(alertType, strong, message){
 }
 
 
+/*
+Notification Handler
+add or remove notifications
+
+Params:
+    command: str = name of command
+    postFields: str(json) = json string of POST options
+    spinner: Bool = Overlay a loading spinner or not.'
+ */
+
+function notifications(notifyType, add, plugin_id, msg){
+    if (add){
+        if (notifyType == 'success'){
+            // Increment the success counter
+            var counter = parseInt($('#successcount').html());
+            $('#successcount').html( counter+1);
+            // Add the new li element
+
+            var new_li = '<li><a href="#" onclick="ajaxHandler(\'pluginresults\', {\'plugin_id\':\'' + plugin_id + '\'}, false ); return false">'+ msg +'</a></li>';
+
+            $('#notifysuccess').append(new_li)
+        }
+        if (notifyType == 'warning'){
+            // Increment the success counter
+            var counter = parseInt($('#warncount').html());
+            $('#warncount').html( counter+1);
+            // Add the new li element
+
+            $('#notifywarn').append('<li><a href="#">'+ msg +'</a></li>');
+        }
+        if (notifyType == 'error'){
+            // Increment the success counter
+            var counter = parseInt($('#errorcount').html());
+            $('#errorcount').html( counter+1);
+            // Add the new li element
+            $('#notifyerror').append('<li><a href="#">'+ msg +'</a></li>');
+        }
+    }else {
+        if (notifyType == 'success'){
+            // Reset
+             $('#successcount').html(0);
+            $('#notifysuccess').html('<li><a href="#" onclick="notifications(\'success\', false, \'\', \'Clear All\'); return false">Clear All</a></li>');
+        }
+        if (notifyType == 'warning'){
+            // Reset
+             $('#warncount').html(0);
+            $('#notifywarn').html('<li><a href="#" onclick="notifications(\'warning\', false, \'\', \'Clear All\'); return false">Clear All</a></li>');
+        }
+            // Reset
+             $('#errorcount').html(0);
+            $('#notifyerror').html('<li><a href="#" onclick="notifications(\'error\', false, \'\', \'Clear All\'); return false">Clear All</a></li>');
+        }
+    var session_id = $('#sessionID').html();
+    ajaxHandler('pollplugins', {'session_id':session_id}, false );
+    }
+
+
+
 
 /*
 New Ajax Handler
@@ -158,18 +216,17 @@ function ajaxHandler(command, postFields, spinner) {
 
             // DROP PLUGINS
             } else if (command == "dropplugin"){
-                alertBar('warning', 'Dropped!', 'You have successfully deleted the plugin data');
+                notifications('warning', true, postOptions['plugin_id'], 'Plugin Deleted');
 
             // Run Plugin
             } else if (command == 'runplugin') {
                 if (data.substring(0,5) == 'Error'){
-                     alertBar('danger', 'Spaghetti-Os!', data)
+                     notifications('error', true, postOptions['plugin_id'], 'View '+ data+ ' Output');
                 } else if (data.substring(0,5) == 'Hmmmm') {
-                    alertBar('warning', 'Hiccup!', data)
+                    notifications('error', true, postOptions['plugin_id'], 'View '+ data+ ' Output');
                 }else {
 
-                var message = 'Plugin ' + data + ' completed you can see the results now. <a href="#" onclick="ajaxHandler(&quot;pluginresults&quot;, {&quot;plugin_id&quot;:&quot;' + postOptions["plugin_id"]+ '&quot;}, false ); return false")">View Output</a>';
-                alertBar('success', 'Woot!', message);
+                notifications('success', true, postOptions['plugin_id'], 'View '+ data+ ' Output');
                 }
 
 
