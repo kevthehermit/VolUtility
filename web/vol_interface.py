@@ -153,10 +153,14 @@ class RunVol:
                 for option, value in plugin_options.iteritems():
                     self.config.update(option, value)
 
-            # Just for imageinfo as it occasionally throws unicode errors at me
+            # Just for imageinfo as i want it formatted for another table
 
             if plugin_name == 'imageinfo':
                 output_data = self.get_text(command)
+
+
+
+
                 return output_data
 
             # All other plugins

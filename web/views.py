@@ -225,22 +225,26 @@ def create_session(request):
     image_info = {}
 
     if not profile:
+        logger.debug()
+        # kdbg scan to get a profile suggestion
 
-        imageinfo = vol_int.run_plugin('imageinfo')
+        # Doesnt support json at the moment
+        kdbg_results = vol_int.run_plugin('kdbgscan', output_style='text')
 
-        imageinfo_text = imageinfo['rows'][0][0]
+        lines = kdbg_results['rows'][0][0]
 
-        # ImageInfo tends to error with json so parse text manually.
+        profiles = []
 
-        image_info = {}
-        for line in imageinfo_text.split('\n'):
-            try:
-                key, value = line.split(' : ')
-                image_info[key.strip()] = value.strip()
-            except Exception as e:
-                print 'Error Getting imageinfo: {0}'.format(e)
+        for line in lines.split('\n'):
+            print line
+            if 'Profile suggestion' in line:
+                profiles.append(line.split(':')[1].strip())
 
-        profile = image_info['Suggested Profile(s)'].split(',')[0]
+        if len(profiles) == 0:
+            logger.error('Unable to find a valid profile with kdbg scan')
+            return main_page(request, error_line='Unable to find a valid profile with kdbg scan')
+
+        profile = profiles[0]
 
         # Re initialize with correct profile
         vol_int = RunVol(profile, new_session['session_path'])
@@ -465,6 +469,19 @@ def run_plugin(session_id, plugin_id):
                 ajax_string = "onclick=\"ajaxHandler('hivedetails', {'plugin_id':'"+ str(plugin_id) +"', 'rowid':'"+ str(counter) +"'}, true )\"; return false"
                 row.append('<a class="text-success" href="#" '+ ajax_string +'>View Hive Keys</a>')
 
+
+        # Image Info
+        image_info = False
+        if plugin_name == 'imageinfo':
+            imageinfo_text = results['rows'][0][0]
+            image_info = {}
+            for line in imageinfo_text.split('\n'):
+                try:
+                    key, value = line.split(' : ')
+                    image_info[key.strip()] = value.strip()
+                except Exception as e:
+                    print 'Error Getting imageinfo: {0}'.format(e)
+
         # update the plugin
         new_values = {}
         new_values['created'] = datetime.now()
@@ -476,6 +493,8 @@ def run_plugin(session_id, plugin_id):
             # Update the session
             new_sess = {}
             new_sess['modified'] = datetime.now()
+            if image_info:
+                new_sess['image_info'] = image_info
             db.update_session(sess_id, new_sess)
 
             return plugin_row['plugin_name']
