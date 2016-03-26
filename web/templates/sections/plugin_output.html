@@ -1,8 +1,9 @@
 {% load template_dict %}
 
-<table id="resultsTable" class="table table-striped table-bordered table-hover resultsTable long-line">
+<table id="resultsTable" class="table table-striped table-bordered table-hover resultsTable">
     <thead>
     <tr>
+        <th>#</th>
         {% for col in plugin_results.columns %}
         <th>{{ col }}</th>
         {% endfor %}
@@ -10,7 +11,13 @@
 
     <tbody>
         {%  for row in plugin_results.rows %}
-        <tr>
+            {% if forloop.counter in bookmarks %}
+                <tr class="success">
+            {% else %}
+                <tr>
+            {% endif %}
+
+            <td data-rowid="{{ plugin_id }}_{{ forloop.counter }}">{{ forloop.counter }}</td>
             {% for cell in row %}
             <td>{{ cell|safe }}</td>
             {%  endfor %}

@@ -799,6 +799,8 @@ def ajax_handler(request, command):
             search_text = request.POST['search_text']
             session_id = request.POST['session_id']
 
+            logger.debug('{0} search for {1}'.format(search_type, search_text))
+
             if search_type == 'plugin':
                 results = {'rows':[]}
                 results['columns'] = ['Plugin Name', 'View Results']
@@ -838,6 +840,37 @@ def ajax_handler(request, command):
         if 'plugin_id' in request.POST:
             plugin_id = ObjectId(request.POST['plugin_id'])
             plugin_results = plugin_output(plugin_id)
-            return render(request, 'plugin_output.html', {'plugin_results': plugin_results})
+
+            try:
+                bookmarks = db.get_pluginbyid(plugin_id)['bookmarks']
+            except:
+                bookmarks = []
+
+            return render(request, 'plugin_output.html', {'plugin_results': plugin_results,
+                                                          'plugin_id': plugin_id,
+                                                          'bookmarks': bookmarks})
+
+    if command == 'bookmark':
+        if 'row_id' in request.POST:
+            plugin_id, row_id = request.POST['row_id'].split('_')
+            plugin_id = ObjectId(plugin_id)
+            row_id = int(row_id)
+            # Get Bookmarks for plugin
+            try:
+                bookmarks = db.get_pluginbyid(plugin_id)['bookmarks']
+            except:
+                bookmarks = []
+            # Update bookmarks
+            if row_id in bookmarks:
+                bookmarks.remove(row_id)
+                bookmarked = 'remove'
+            else:
+                bookmarks.append(row_id)
+                bookmarked = 'add'
+
+            # Update Plugins
+            new_values = {'bookmarks': bookmarks}
+            db.update_plugin(ObjectId(plugin_id), new_values)
+            return HttpResponse(bookmarked)
 
     return HttpResponse('No valid search query found.')
