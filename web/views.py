@@ -225,6 +225,7 @@ def create_session(request):
     image_info = {}
 
     if not profile:
+        logger.debug('AutoDetecting Profile')
         # kdbg scan to get a profile suggestion
 
         # Doesnt support json at the moment

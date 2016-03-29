@@ -1,3 +1,4 @@
+import sys
 import pymongo
 from bson.objectid import ObjectId
 from gridfs import GridFS
@@ -6,6 +7,12 @@ class Database():
     def __init__(self):
         # Create the connection
         connection = pymongo.MongoClient('localhost')
+
+        # Version Check
+        server_version = connection.server_info()['version']
+        if int(server_version[0]) < 3:
+            raise UserWarning('Incompatible MongoDB Version detected. Requires 3 or higher. Found {0}'.format(server_version))
+            sys.exit()
 
         # Connect to Databases.
         voldb = connection['voldb']
