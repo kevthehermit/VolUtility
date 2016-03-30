@@ -12,7 +12,6 @@ from volatility.plugins import imageinfo
 import volatility.debug as debug
 import volatility.utils as utils
 
-import logging
 logger = logging.getLogger(__name__)
 
 
