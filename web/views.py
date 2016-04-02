@@ -20,7 +20,6 @@ try:
     from bson.objectid import ObjectId
 except ImportError:
     logger.error('Unable to import pymongo')
-    sys.exit()
 
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseServerError
