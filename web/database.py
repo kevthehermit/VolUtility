@@ -6,6 +6,7 @@ from gridfs import GridFS
 class Database():
     def __init__(self):
         # Create the connection
+
         connection = pymongo.MongoClient('localhost')
 
         # Version Check

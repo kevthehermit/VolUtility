@@ -59,6 +59,7 @@ try:
     db = Database()
 except Exception as e:
     logger.error("Unable to access mongo database: {0}".format(e))
+    sys.exit()
 
 
 
