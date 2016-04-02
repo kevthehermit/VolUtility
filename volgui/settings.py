@@ -140,15 +140,20 @@ LOGGING = {
             'filename': 'VolUtility.log',
             'formatter': 'verbose'
         },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
     },
     'loggers': {
         'django': {
-            'handlers':['file'],
+            'handlers':['file', 'console'],
             'propagate': True,
             'level':'DEBUG',
         },
         'web': {
-            'handlers': ['file'],
+            'handlers': ['file', 'console'],
             'level': 'DEBUG',
         },
     }
