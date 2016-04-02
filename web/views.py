@@ -32,21 +32,21 @@ try:
     VT_LIB = True
 except ImportError:
     VT_LIB = False
-    logger.error("Unable to import API Library")
+    logger.warning("Unable to import VirusTotal API Library")
 
 try:
     import yara
     YARA = True
 except ImportError:
     YARA = False
-    logger.error("Unable to import Yara")
+    logger.warning("Unable to import Yara")
 
 try:
     from vt_key import API_KEY
     VT_KEY = True
 except ImportError:
     VT_KEY = False
-    logger.error("Unable to import API Key from vt_key.py")
+    logger.warning("Unable to import VirusTotal API Key from vt_key.py")
 
 ##
 # Import The volatility Interface and DB Class
