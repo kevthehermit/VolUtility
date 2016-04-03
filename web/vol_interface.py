@@ -158,9 +158,6 @@ class RunVol:
             if plugin_name == 'imageinfo':
                 output_data = self.get_text(command)
 
-
-
-
                 return output_data
 
             # All other plugins

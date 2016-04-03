@@ -298,7 +298,7 @@ def plugin_output(plugin_id):
 
     try:
 
-        for x in ['Offset', 'Offset(V)', 'Offset(P)', 'Process(V)', 'ImageBase', 'Base']:
+        for x in ['Offset', 'Offset(V)', 'Offset(P)', 'Process(V)', 'ImageBase', 'Base', 'Address']:
 
             if x in plugin_data['plugin_output']['columns']:
                 row_loc = plugin_data['plugin_output']['columns'].index(x)
@@ -529,7 +529,7 @@ def file_download(request, query_type, object_id):
         # Convert Int to Hex Here instead of plugin for now.
         try:
 
-            for x in ['Offset', 'Offset(V)', 'Offset(P)', 'Process(V)', 'ImageBase', 'Base']:
+            for x in ['Offset', 'Offset(V)', 'Offset(P)', 'Process(V)', 'ImageBase', 'Base', 'Address']:
 
                 if x in plugin_data['columns']:
                     row_loc = plugin_data['columns'].index(x)
@@ -817,6 +817,16 @@ def ajax_handler(request, command):
 
             if search_type == 'hash':
                 pass
+            if search_type == 'string':
+                logger.debug('yarascan for string')
+                try:
+                    session = db.get_session(ObjectId(session_id))
+                    vol_int = RunVol(session['session_profile'], session['session_path'])
+                    results = vol_int.run_plugin('yarascan', output_style='json', plugin_options={'YARA_RULES': search_text})
+                    return render(request, 'plugin_output.html', {'plugin_results': results})
+                except Exception as error:
+                    logger.error(error)
+
             if search_type == 'registry':
 
                 logger.debug('Registry Search')
