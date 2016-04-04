@@ -688,6 +688,73 @@ def ajax_handler(request, command):
 
             return render(request, 'file_details_vt.html', {'vt_results': vt_fields})
 
+    if command == 'yara-string':
+
+        print request.POST
+
+
+        session_id = request.POST['session_id']
+        yara_string = request.POST['yara-string']
+
+        yara_hex = request.POST['yara-hex']
+        if yara_hex != '':
+            yara_hex = int(yara_hex)
+        else:
+            yara_hex = 256
+
+        yara_reverse = request.POST['yara-reverse']
+        if yara_reverse != '':
+            yara_reverse = int(yara_reverse)
+        else:
+            yara_reverse = 0
+
+        yara_case = request.POST['yara-case']
+        if yara_case == 'true':
+            yara_case = True
+        else:
+            yara_case = None
+
+        yara_kernel = request.POST['yara-kernel']
+        if yara_kernel == 'true':
+            yara_kernel = True
+        else:
+            yara_kernel = None
+
+        yara_wide = request.POST['yara-wide']
+        if yara_wide == 'true':
+            yara_wide = True
+        else:
+            yara_wide = None
+
+        logger.debug('Yara String Scanner')
+
+        try:
+            session = db.get_session(ObjectId(session_id))
+            vol_int = RunVol(session['session_profile'], session['session_path'])
+            results = vol_int.run_plugin('yarascan', output_style='json', plugin_options={'YARA_RULES': yara_string,
+                                                                                          'CASE': yara_case,
+                                                                                          'ALL': yara_kernel,
+                                                                                          'WIDE': yara_wide,
+                                                                                          'SIZE': yara_hex,
+                                                                                          'REVERSE': yara_reverse})
+
+
+
+            if 'Data' in results['columns']:
+                row_loc = results['columns'].index('Data')
+
+                for row in results['rows']:
+                    try:
+                        row[row_loc] = string_clean_hex(row[row_loc].decode('hex'))
+                    except Exception as e:
+                        logger.warning('Error converting hex to str: {0}'.format(e))
+
+
+            return render(request, 'plugin_output.html', {'plugin_results': results})
+            #return HttpResponse(results)
+        except Exception as error:
+            logger.error(error)
+
     if command == 'yara':
         if 'file_id' in request.POST:
             file_id = request.POST['file_id']

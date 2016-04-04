@@ -1,6 +1,6 @@
 {% load template_dict %}
 <div class="modal fade" id="yaraModal" tabindex="-1" role="dialog" aria-labelledby="yaraModal" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
 
 
@@ -39,7 +39,7 @@
 
                           <div class="checkbox">
                             <label>
-                              <input type="checkbox" id="yara-kernal"> Scan Kernel Modules
+                              <input type="checkbox" id="yara-kernel"> Scan Kernel Modules
                             </label>
                           </div>
 
@@ -51,7 +51,7 @@
 
 
 
-                            <a href="#" onclick="ajaxHandler('memhex', {'session_id':'{{session_details|get:"_id"}}', 'target_div':'hex-out'}, false )" class="btn" role="button btn-info">Scan for Strings</a>
+                            <a href="#" onclick="ajaxHandler('yara-string', {'session_id':'{{session_details|get:"_id"}}', 'target_div':'yara-out'}, false )" class="btn btn-info" role="button">Scan for Strings</a>
                         </form>
                     </div>
 

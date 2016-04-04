@@ -178,6 +178,15 @@ function ajaxHandler(command, postFields, spinner) {
         postOptions['rule_file'] = $('#rule_file').val();
     }
 
+    if (command == 'yara-string'){
+        postOptions['yara-string'] = $('#yara-string').val();
+        postOptions['yara-hex'] = $('#yara-hex').val();
+        postOptions['yara-reverse'] = $('#yara-reverse').val();
+        postOptions['yara-case'] = $('#yara-case').prop('checked');
+        postOptions['yara-kernel'] = $('#yara-kernel').prop('checked');
+        postOptions['yara-wide'] = $('#yara-wide').prop('checked');
+    }
+
     if (command == 'memhex' || command == 'memhexdump'){
         postOptions['start_offset'] = $('#start_offset').val();
         postOptions['end_offset'] = $('#end_offset').val();
@@ -249,7 +258,7 @@ function ajaxHandler(command, postFields, spinner) {
                 jQuery.noConflict();
                 $('#hiveTable').DataTable();
 
-            }else if (command == "virustotal" || command == "yara" || command == "strings") {
+            }else if (command == "virustotal" || command == "yara" || command == "strings" || command == "yara-string") {
                 $('#'+postOptions["target_div"]).html(data);
 
             }else if (command == "dropsession") {
