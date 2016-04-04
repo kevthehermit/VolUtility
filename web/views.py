@@ -819,13 +819,26 @@ def ajax_handler(request, command):
                 pass
             if search_type == 'string':
                 logger.debug('yarascan for string')
-                try:
-                    session = db.get_session(ObjectId(session_id))
-                    vol_int = RunVol(session['session_profile'], session['session_path'])
-                    results = vol_int.run_plugin('yarascan', output_style='json', plugin_options={'YARA_RULES': search_text})
-                    return render(request, 'plugin_output.html', {'plugin_results': results})
-                except Exception as error:
-                    logger.error(error)
+                # If search string ends with .yar assume a yara rule
+                if any(ext in search_text for ext in ['.yar', '.yara']):
+                    if os.path.exists(search_text):
+                        try:
+                            session = db.get_session(ObjectId(session_id))
+                            vol_int = RunVol(session['session_profile'], session['session_path'])
+                            results = vol_int.run_plugin('yarascan', output_style='json', plugin_options={'YARA_FILE': search_text})
+                            return render(request, 'plugin_output.html', {'plugin_results': results})
+                        except Exception as error:
+                            logger.error(error)
+                    else:
+                        logger.error('No Yara Rule Found')
+                else:
+                    try:
+                        session = db.get_session(ObjectId(session_id))
+                        vol_int = RunVol(session['session_profile'], session['session_path'])
+                        results = vol_int.run_plugin('yarascan', output_style='json', plugin_options={'YARA_RULES': search_text})
+                        return render(request, 'plugin_output.html', {'plugin_results': results})
+                    except Exception as error:
+                        logger.error(error)
 
             if search_type == 'registry':
 
