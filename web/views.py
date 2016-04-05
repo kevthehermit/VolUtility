@@ -182,6 +182,7 @@ def session_page(request, sess_id):
     session_details = db.get_session(session_id)
     comments = db.get_commentbysession(session_id)
     plugin_list = []
+    yara_list = os.listdir('yararules')
     plugin_text = db.get_pluginbysession(ObjectId(sess_id))
     version_info = {'python': str(sys.version).split()[0],
                     'volatility': vol_interface.vol_version,
@@ -193,7 +194,8 @@ def session_page(request, sess_id):
                                             'plugin_output': plugin_text,
                                             'comments': comments,
                                             'error_line': error_line,
-                                            'version_info': version_info})
+                                            'version_info': version_info,
+                                            'yara_list': yara_list})
 
 
 # Post Handlers
@@ -242,7 +244,6 @@ def create_session(request):
         profiles = []
 
         for line in lines.split('\n'):
-            print line
             if 'Profile suggestion' in line:
                 profiles.append(line.split(':')[1].strip())
 
@@ -690,11 +691,15 @@ def ajax_handler(request, command):
 
     if command == 'yara-string':
 
-        print request.POST
-
-
         session_id = request.POST['session_id']
-        yara_string = request.POST['yara-string']
+
+        if request.POST['yara-string'] != '':
+            yara_string = request.POST['yara-string']
+        else:
+            yara_string = False
+
+        if request.POST['yara-file'] != '':
+            yara_file = os.path.join('yararules', request.POST['yara-file'])
 
         yara_hex = request.POST['yara-hex']
         if yara_hex != '':
@@ -731,12 +736,25 @@ def ajax_handler(request, command):
         try:
             session = db.get_session(ObjectId(session_id))
             vol_int = RunVol(session['session_profile'], session['session_path'])
-            results = vol_int.run_plugin('yarascan', output_style='json', plugin_options={'YARA_RULES': yara_string,
+
+            if yara_string:
+                results = vol_int.run_plugin('yarascan', output_style='json', plugin_options={'YARA_RULES': yara_string,
                                                                                           'CASE': yara_case,
                                                                                           'ALL': yara_kernel,
                                                                                           'WIDE': yara_wide,
                                                                                           'SIZE': yara_hex,
                                                                                           'REVERSE': yara_reverse})
+
+            elif yara_file:
+                results = vol_int.run_plugin('yarascan', output_style='json', plugin_options={'YARA_FILE': yara_file,
+                                                                                          'CASE': yara_case,
+                                                                                          'ALL': yara_kernel,
+                                                                                          'WIDE': yara_wide,
+                                                                                          'SIZE': yara_hex,
+                                                                                          'REVERSE': yara_reverse})
+
+            else:
+                return
 
 
 
@@ -750,7 +768,9 @@ def ajax_handler(request, command):
                         logger.warning('Error converting hex to str: {0}'.format(e))
 
 
-            return render(request, 'plugin_output.html', {'plugin_results': results})
+            return render(request, 'plugin_output.html', {'plugin_results': results,
+                                                          'plugin_id': None,
+                                                          'bookmarks': []})
             #return HttpResponse(results)
         except Exception as error:
             logger.error(error)

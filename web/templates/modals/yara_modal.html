@@ -6,61 +6,55 @@
 
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                <h4 class="modal-title">Add Session</h4>
+                <h4 class="modal-title">Yara Scanner</h4>
             </div>
 
             <div class="modal-body">
 
+                <form class="form">
+                  <div class="form-group">
+                    <input type="text" class="form-control" id="yara-string" placeholder="Search for a String">
+                  </div>
+                  <div class="form-group">
+                      <select class="form-control" id="yara-file">
+                          <option class="text-muted">OR Select a Yara File</option>
+                          {% for rulefile in yara_list %}
+                            <option value="{{rulefile}}">{{rulefile}}</option>
+                          {% endfor %}
+                      </select>
+                  </div>
+                  <div class="form-group">
+                    <input type="text" class="form-control" id="yara-hex" placeholder="Size of hexdump preview (256b)">
+                  </div>
+                  <div class="form-group">
+                    <input type="text" class="form-control" id="yara-reverse" placeholder="Reverse this many bytes">
+                  </div>
 
-                <ul class="nav nav-pills">
-                    <li class="active"><a data-toggle="pill" href="#yarastrings">Manual Rule</a></li>
-                    <li><a data-toggle="pill" href="#rulefile">Rule File</a></li>
-                </ul>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" id="yara-case"> Case Insensative
+                    </label>
+                  </div>
 
-                <div class="tab-content">
-                    <div id="yarastrings" class="tab-pane fade in active">
-                        <h4>Yara Strings</h4>
-                        <form class="form">
-                          <div class="form-group">
-                            <input type="text" class="form-control" id="yara-string" placeholder="Search String">
-                          </div>
-                          <div class="form-group">
-                            <input type="text" class="form-control" id="yara-hex" placeholder="Size of hexdump preview (256b)">
-                          </div>
-                          <div class="form-group">
-                            <input type="text" class="form-control" id="yara-reverse" placeholder="Reverse this many bytes">
-                          </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" id="yara-kernel"> Scan Kernel Modules
+                    </label>
+                  </div>
 
-                          <div class="checkbox">
-                            <label>
-                              <input type="checkbox" id="yara-case"> Case Insensative
-                            </label>
-                          </div>
-
-                          <div class="checkbox">
-                            <label>
-                              <input type="checkbox" id="yara-kernel"> Scan Kernel Modules
-                            </label>
-                          </div>
-
-                          <div class="checkbox">
-                            <label>
-                              <input type="checkbox" id="yara-wide"> Match Unicode Strings (Wide)
-                            </label>
-                          </div>
-
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" id="yara-wide"> Match Unicode Strings (Wide)
+                    </label>
+                  </div>
 
 
-                            <a href="#" onclick="ajaxHandler('yara-string', {'session_id':'{{session_details|get:"_id"}}', 'target_div':'yara-out'}, false )" class="btn btn-info" role="button">Scan for Strings</a>
-                        </form>
-                    </div>
+
+                    <a href="#" onclick="ajaxHandler('yara-string', {'session_id':'{{session_details|get:"_id"}}', 'target_div':'yara-out'}, false )" class="btn btn-info" role="button">Scan for Strings</a>
+                </form>
 
 
-                    <div id="rulefile" class="tab-pane fade">
-                        <h4>VirusTotal</h4>
-                    </div>
-                </div>
-
+                <hr>
 
                 <div id="yara-out"></div>
 
