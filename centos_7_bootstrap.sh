@@ -34,11 +34,12 @@ sudo cd yara-python
 sudo python setup.py install
 sudo ldconfig
 
-# Configure Firewall
+# Configure services
 # Change the port as necessary
 sudo firewall-cmd --permanent --add-port=8000/tcp
 sudo firewall-cmd --reload
+sudo systemctl start mongod
 
-# Finally, the install
+# Finally, start the app
 sudo cd /opt/tools/VolUtility/
 sudo ./manage.py runserver 0.0.0.0:8000
