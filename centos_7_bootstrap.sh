@@ -6,17 +6,9 @@
 sudo mkdir -p /opt/tools/
 sudo rpm -iUvh http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm
 sudo yum -y update && sudo yum -y upgrade
-sudo cat <<EOT>> /etc/yum.repos.d/mongodb-org.repo
-[mongodb-org-3.2]
-name=MongoDB Repository
-baseurl=https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/3.2/x86_64/
-gpgcheck=1
-enabled=1
-gpgkey=https://www.mongodb.org/static/pgp/server-3.2.asc
-EOT
-
+sudo yum -y install http://www.percona.com/downloads/percona-release/redhat/0.1-3/percona-release-0.1-3.noarch.rpm 
 # Build process
-sudo yum -y install python-devel python-pip git gcc mongodb-org automake libtool
+sudo yum -y install python-devel python-pip git gcc Percona-Server-MongoDB automake libtool
 sudo pip install django distorm3 pymongo pycrypto
 sudo git clone https://github.com/volatilityfoundation/volatility /opt/tools/
 sudo cd /opt/tools/volatility
