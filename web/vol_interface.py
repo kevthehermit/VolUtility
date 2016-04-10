@@ -7,10 +7,7 @@ import volatility.registry as registry
 import volatility.commands as commands
 import volatility.addrspace as addrspace
 import volatility.constants as constants
-import volatility.exceptions as volexc
-from volatility.plugins import imageinfo
 import volatility.debug as debug
-import volatility.utils as utils
 
 logger = logging.getLogger(__name__)
 
