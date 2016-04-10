@@ -113,6 +113,12 @@ class RunVol:
                 plugin_list.append([cmdname, helpline])
         return plugin_list
 
+    def get_dot(self, plugin_class):
+        strio = StringIO.StringIO()
+        plugin = plugin_class(copy.deepcopy(self.config))
+        plugin.render_dot(strio, plugin.calculate())
+        return strio.getvalue()
+
     def get_json(self, plugin_class):
         strio = StringIO.StringIO()
         plugin = plugin_class(copy.deepcopy(self.config))
@@ -148,6 +154,11 @@ class RunVol:
             if plugin_options:
                 for option, value in plugin_options.iteritems():
                     self.config.update(option, value)
+
+            if plugin_name == 'pstree':
+                output_data = self.get_dot(command)
+
+                return output_data
 
             # Just for imageinfo as i want it formatted for another table
 

@@ -99,14 +99,11 @@ This is a mid level nav bar to hold tool links
 
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-2">
       <ul class="nav navbar-nav">
+        <li><a href="#" onclick="ajaxHandler('dottree', {'session_id':'{{session_details|get:"_id"}}','target_div':'dotimage'}, true )" >Process map</a></li>
         <li><a href="#" data-toggle="modal" data-target="#memoryModal">View Raw Memory</a></li>
         <li><a href="#" data-toggle="modal" data-target="#yaraModal">Yara Scan Memory</a></li>
         <li><a href="#" data-toggle="modal" data-target="#commentsModal">Comments <span class="badge">{{ comments|length }}</span></a></li>
-
       </ul>
-
-
-
 
       <ul class="nav navbar-nav navbar-right">
 
@@ -210,5 +207,9 @@ This is a mid level nav bar to hold tool links
     <li><a tabindex="-1" href="#">Export Table</a></li>
 
 </ul>
+
+
+    <div id="dotimage"></div>
+
 
 {% endblock %}

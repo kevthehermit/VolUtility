@@ -262,6 +262,13 @@ function ajaxHandler(command, postFields, spinner) {
             }else if (command == "virustotal" || command == "yara" || command == "strings" || command == "yara-string") {
                 $('#'+postOptions["target_div"]).html(data);
 
+            }else if (command == 'dottree') {
+                image = Viz(data, {format: "png-image-element"});
+                $(image).attr('id', 'proctree');
+                $(image).width('100%').height(500);
+                $('#resultsTarget').append(image);
+                //$('#'+postOptions["target_div"]).append(image);
+
             }else if (command == "dropsession") {
                 window.location.reload();
 

@@ -660,6 +660,15 @@ def ajax_handler(request, command):
 
             return render(request, 'hive_details.html', {'hive_details': hive_details})
 
+
+    if command == 'dottree':
+        session_id = request.POST['session_id']
+        session = db.get_session(ObjectId(session_id))
+        vol_int = RunVol(session['session_profile'], session['session_path'])
+        results = vol_int.run_plugin('pstree', output_style='dot')
+        return HttpResponse(results)
+
+
     if command == 'virustotal':
         if not VT_KEY or not VT_LIB:
             return HttpResponse("Unable to use Virus Total. No Key or Library Missing. Check the Console for details")
