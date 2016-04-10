@@ -617,10 +617,11 @@ def ajax_handler(request, command):
                     file_meta['string_list'] = row['string_list']
                 if 'yara' in row:
                     file_meta['yara'] = row['yara']
-
+            yara_list = os.listdir('yararules')
             return render(request, 'file_details.html', {'file_details': file_object,
                                                          'file_id': file_id,
-                                                         'file_datastore': file_meta
+                                                         'file_datastore': file_meta,
+                                                         'yara_list': yara_list
                                                          })
 
     if command == 'hivedetails':
@@ -776,17 +777,19 @@ def ajax_handler(request, command):
             logger.error(error)
 
     if command == 'yara':
+        print request.POST
+        file_id = rule_file = False
         if 'file_id' in request.POST:
             file_id = request.POST['file_id']
 
         if 'rule_file' in request.POST:
             rule_file = request.POST['rule_file']
 
-
         if rule_file and file_id and YARA:
             file_object = db.get_filebyid(ObjectId(file_id))
             file_data = file_object.read()
 
+            rule_file = os.path.join('yararules', rule_file)
 
             if os.path.exists(rule_file):
                 rules = yara.compile(rule_file)
