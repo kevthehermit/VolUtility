@@ -291,27 +291,6 @@ def create_session(request):
     return redirect('/session/{0}'.format(str(session_id)))
 
 
-def plugin_output(plugin_id):
-    plugin_id = ObjectId(plugin_id)
-    plugin_data = db.get_pluginbyid(plugin_id)
-
-    # Convert Int to Hex Here instead of plugin for now.
-
-    try:
-
-        for x in ['Offset', 'Offset(V)', 'Offset(P)', 'Process(V)', 'ImageBase', 'Base', 'Address']:
-
-            if x in plugin_data['plugin_output']['columns']:
-                row_loc = plugin_data['plugin_output']['columns'].index(x)
-
-                for row in plugin_data['plugin_output']['rows']:
-                    row[row_loc] = hex(row[row_loc])
-    except Exception as e:
-        logger.error('Error converting hex a: {0}'.format(e))
-
-    return plugin_data['plugin_output']
-
-
 def run_plugin(session_id, plugin_id):
 
     target_pid = None
@@ -494,7 +473,8 @@ def run_plugin(session_id, plugin_id):
         new_values['created'] = datetime.now()
         new_values['plugin_output'] = results
         new_values['status'] = 'completed'
-        db.update_plugin(ObjectId(plugin_id), new_values)
+
+
         try:
             db.update_plugin(ObjectId(plugin_id), new_values)
             # Update the session
@@ -511,7 +491,7 @@ def run_plugin(session_id, plugin_id):
             new_values = {'status': 'error'}
             db.update_plugin(ObjectId(plugin_id), new_values)
             logger.error('Error: Unable to Store Output for {0} - {1}'.format(plugin_name, error))
-            return 'Error: Unable to Store Output for {0}- {1}'.format(plugin_name, error)
+            return 'Error: Unable to Store Output for {0} - {1}'.format(plugin_name, error)
 
 
 def file_download(request, query_type, object_id):
@@ -526,19 +506,6 @@ def file_download(request, query_type, object_id):
 
         file_name = '{0}.csv'.format(plugin_object['plugin_name'])
         plugin_data = plugin_object['plugin_output']
-
-        # Convert Int to Hex Here instead of plugin for now.
-        try:
-
-            for x in ['Offset', 'Offset(V)', 'Offset(P)', 'Process(V)', 'ImageBase', 'Base', 'Address']:
-
-                if x in plugin_data['columns']:
-                    row_loc = plugin_data['columns'].index(x)
-
-                    for row in plugin_data['rows']:
-                        row[row_loc] = str(hex(row[row_loc])).rstrip('L')
-        except Exception as error:
-            logger.error("Error Converting to hex b: {0}".format(error))
 
         file_data = ""
         file_data += ",".join(plugin_data['columns'])
@@ -786,7 +753,6 @@ def ajax_handler(request, command):
             logger.error(error)
 
     if command == 'yara':
-        print request.POST
         file_id = rule_file = False
         if 'file_id' in request.POST:
             file_id = request.POST['file_id']
@@ -967,14 +933,15 @@ def ajax_handler(request, command):
     if command == 'pluginresults':
         if 'plugin_id' in request.POST:
             plugin_id = ObjectId(request.POST['plugin_id'])
-            plugin_results = plugin_output(plugin_id)
+            plugin_id = ObjectId(plugin_id)
+            plugin_results = db.get_pluginbyid(plugin_id)
 
             try:
                 bookmarks = db.get_pluginbyid(plugin_id)['bookmarks']
             except:
                 bookmarks = []
 
-            return render(request, 'plugin_output.html', {'plugin_results': plugin_results,
+            return render(request, 'plugin_output.html', {'plugin_results': plugin_results['plugin_output'],
                                                           'plugin_id': plugin_id,
                                                           'bookmarks': bookmarks})
 

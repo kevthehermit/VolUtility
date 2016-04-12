@@ -22,7 +22,6 @@ urlpatterns = [
     url(r'^$', views.main_page),
     url(r'^session/(?P<sess_id>.+)/$', views.session_page),
     url(r'createsession', views.create_session),
-    url(r'^pluginoutput/(?P<plugin_id>[0-9a-fA-F]{24})/$', views.plugin_output),
     # Download
     url(r'^download/(?P<query_type>.+)/(?P<object_id>[0-9a-fA-F]{24})/$', views.file_download),
     # AjaxHandlers

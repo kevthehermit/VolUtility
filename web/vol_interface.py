@@ -135,6 +135,27 @@ class RunVol:
         # Also going to drop in pre tags here
         return {'columns': ['Plugin Output'], 'rows': [['<pre>\n{0}\n</pre>'.format(plugin_data)]]}
 
+    def result_modifier(self, results):
+        """
+        Change the style or formatting of columns and values
+        :param results:
+        :return:
+        """
+
+        # Convert Hex ints to 0x Values
+        try:
+            for x in ['Offset', 'Offset(V)', 'Offset(P)', 'Process(V)', 'ImageBase', 'Base', 'Address']:
+
+                if x in results['columns']:
+                    row_loc = results['columns'].index(x)
+                    for row in results['rows']:
+                        row[row_loc] = hex(row[row_loc])
+        except Exception as e:
+            logger.error('Error converting hex: {0}'.format(e))
+
+        return results
+
+
     def run_plugin(self, plugin_name, pid=None, dump_dir=None, plugin_options=None, hive_offset=None, output_style="json"):
 
         # Get Valid commands
@@ -172,7 +193,7 @@ class RunVol:
 
                 if output_style == 'json':
                     output_data = self.get_json(command)
-                    return output_data
+                    return self.result_modifier(output_data)
 
                 if output_style == 'text':
                     output_data = self.get_text(command)
