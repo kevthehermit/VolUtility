@@ -69,7 +69,6 @@ target/
 # VolUtility Specific
 vt_key.py
 test.py
-plugins/overlays/*
+plugins/overlays/*.zip
 plugins/*
-!plugins/overlays/
 !plugins/overlays/__init__.py
