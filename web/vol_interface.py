@@ -17,17 +17,21 @@ logger = logging.getLogger(__name__)
 ##
 def new_error(msg):
     raise Exception(msg)
-
 debug.error = new_error
 
+# Stop these plugins being listed as we can or will not handle them
 plugin_filters = {
-    "drop": ['crashdump', 'crashinfo', 'volshell', 'chromecookies', 'poolpeek', 'impscan', 'hivedump']
+    "drop": ['crashdump', 'crashinfo', 'volshell', 'chromecookies', 'poolpeek', 'impscan', 'hivedump', 'pstree']
 }
 
 vol_version = constants.VERSION
 
 
 def profile_list():
+    """
+    Return a list of available Profiles
+    :return:
+    """
     prof_list = ['AutoDetect']
     profs = registry.get_plugin_classes(obj.Profile)
     for profile in profs.iterkeys():
@@ -37,9 +41,13 @@ def profile_list():
 
 class RunVol:
     def __init__(self, profile, mem_path):
-        # Setup Vol Debugger
+        """
+        setup base config
+        :param profile:
+        :param mem_path:
+        :return:
+        """
         debug.setup()
-
         registry.PluginImporter()
         self.memdump = mem_path
         self.osprofile = profile
@@ -87,10 +95,13 @@ class RunVol:
             self.config.update(key, value)
 
         self.plugins = registry.get_plugin_classes(commands.Command, lower=True)
-
         return self.config
 
     def profile_list(self):
+        """
+        return a list of profiles
+        :return: list
+        """
         prof_list = []
         profs = registry.get_plugin_classes(obj.Profile)
         for profile in profs.iterkeys():
@@ -98,6 +109,10 @@ class RunVol:
         return sorted(prof_list)
 
     def list_plugins(self):
+        """
+        list of plugins valid for the selected profile
+        :return:
+        """
         plugin_list = []
         cmds = registry.get_plugin_classes(commands.Command, lower=True)
         profs = registry.get_plugin_classes(obj.Profile)
@@ -114,18 +129,33 @@ class RunVol:
         return plugin_list
 
     def get_dot(self, plugin_class):
+        """
+        return dot output for a plugin
+        :param plugin_class:
+        :return:
+        """
         strio = StringIO.StringIO()
         plugin = plugin_class(copy.deepcopy(self.config))
         plugin.render_dot(strio, plugin.calculate())
         return strio.getvalue()
 
     def get_json(self, plugin_class):
+        """
+        return json output for a plugin
+        :param plugin_class:
+        :return:
+        """
         strio = StringIO.StringIO()
         plugin = plugin_class(copy.deepcopy(self.config))
         plugin.render_json(strio, plugin.calculate())
         return json.loads(strio.getvalue())
 
     def get_text(self, plugin_class):
+        """
+        return text output of a plugin in json format
+        :param plugin_class:
+        :return:
+        """
         strio = StringIO.StringIO()
         plugin = plugin_class(copy.deepcopy(self.config))
         plugin.render_text(strio, plugin.calculate())
@@ -157,40 +187,41 @@ class RunVol:
 
 
     def run_plugin(self, plugin_name, pid=None, dump_dir=None, plugin_options=None, hive_offset=None, output_style="json"):
+        """
+        run a plugin and set config options
+        :param plugin_name:
+        :param pid:
+        :param dump_dir:
+        :param plugin_options:
+        :param hive_offset:
+        :param output_style:
+        :return: json
+        """
 
         # Get Valid commands
         cmds = registry.get_plugin_classes(commands.Command, lower=True)
 
         if plugin_name in cmds.keys():
             command = cmds[plugin_name]
-
-            # Set PID
+            # Set Config options
             self.config.PID = pid
-
             self.config.DUMP_DIR = dump_dir
-
             self.config.hive_offset = hive_offset
-
-            # Add any other options
             if plugin_options:
                 for option, value in plugin_options.iteritems():
                     self.config.update(option, value)
 
+            # Plugins with specific output types
             if plugin_name == 'pstree':
                 output_data = self.get_dot(command)
-
                 return output_data
-
-            # Just for imageinfo as i want it formatted for another table
 
             if plugin_name == 'imageinfo':
                 output_data = self.get_text(command)
-
                 return output_data
 
             # All other plugins
             else:
-
                 if output_style == 'json':
                     output_data = self.get_json(command)
                     return self.result_modifier(output_data)
@@ -198,6 +229,5 @@ class RunVol:
                 if output_style == 'text':
                     output_data = self.get_text(command)
                     return output_data
-
         else:
             return 'Error: Not a valid plugin'

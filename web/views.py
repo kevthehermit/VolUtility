@@ -83,6 +83,11 @@ def string_clean_hex(line):
 
 
 def hex_dump(hex_cmd):
+    """
+    return hexdump in html formatted data
+    :param hex_cmd:
+    :return: str
+    """
     hex_string = getoutput(hex_cmd)
 
     # Format the data
@@ -101,9 +106,12 @@ def hex_dump(hex_cmd):
     return html_string
 
 
-# context manager for dump-dir
 @contextlib.contextmanager
 def temp_dumpdir():
+    """
+    Create temporary temp directories
+    :return:
+    """
     temp_dir = tempfile.mkdtemp()
     yield temp_dir
     shutil.rmtree(temp_dir)
@@ -114,6 +122,12 @@ def temp_dumpdir():
 ##
 
 def main_page(request, error_line=False):
+    """
+    Returns the main vol page
+    :param request:
+    :param error_line:
+    :return:
+    """
 
     # Check Vol Version
 
@@ -171,6 +185,12 @@ def main_page(request, error_line=False):
 
 
 def session_page(request, sess_id):
+    """
+    returns the seesion page thats used to run plugins
+    :param request:
+    :param sess_id:
+    :return:
+    """
     error_line = False
 
     # Check Vol Version
@@ -198,8 +218,12 @@ def session_page(request, sess_id):
                                             'yara_list': yara_list})
 
 
-# Post Handlers
 def create_session(request):
+    """
+    post handler to create a new session
+    :param request:
+    :return:
+    """
     # Get some vars
     new_session = {'created': datetime.now(), 'modified': datetime.now()}
 
@@ -218,8 +242,6 @@ def create_session(request):
         return main_page(request, error_line='Unable to find an image file at {0}'.format(request.POST['sess_path']))
 
     # Get a list of plugins we can use. and prepopulate the list.
-
-    # Profile
 
     if 'profile' in request.POST:
         if request.POST['profile'] != 'AutoDetect':
@@ -292,7 +314,12 @@ def create_session(request):
 
 
 def run_plugin(session_id, plugin_id):
-
+    """
+    return the results json from a plugin
+    :param session_id:
+    :param plugin_id:
+    :return:
+    """
     target_pid = None
     dump_dir = None
     dump_dir = None
@@ -358,8 +385,6 @@ def run_plugin(session_id, plugin_id):
             new_values = {'status': 'error'}
             db.update_plugin(ObjectId(plugin_id), new_values)
             return 'Error: Unable to run plugin {0} - {1}'.format(plugin_name, error)
-
-
 
         ##
         # Files that dump output to disk
@@ -495,6 +520,13 @@ def run_plugin(session_id, plugin_id):
 
 
 def file_download(request, query_type, object_id):
+    """
+    return a file from the gridfs by id
+    :param request:
+    :param query_type:
+    :param object_id:
+    :return:
+    """
 
     if query_type == 'file':
         file_object = db.get_filebyid(ObjectId(object_id))
@@ -523,6 +555,12 @@ def file_download(request, query_type, object_id):
 
 @csrf_exempt
 def ajax_handler(request, command):
+    """
+    return data requested by the ajax handler in volutility.js
+    :param request:
+    :param command:
+    :return:
+    """
 
     if command == 'pollplugins':
         if 'session_id' in request.POST:
