@@ -70,4 +70,6 @@ target/
 vt_key.py
 test.py
 plugins/overlays/*
-plugins/plugins/*
+plugins/*
+!plugins/overlays/
+!plugins/overlays/__init__.py
