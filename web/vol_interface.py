@@ -1,6 +1,33 @@
 import logging
+import sys
+import os
+import copy
+import StringIO
+import json
 
-import copy, StringIO, json
+# Need to do this before importing Volatility
+
+volrc_file = os.path.join(os.path.expanduser('~'), '.volatilityrc')
+plugin_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../plugins')
+
+# Platform PATH seperator
+seperator = ':'
+if sys.platform.startswith('win'):
+    seperator = ';'
+
+if os.path.exists(volrc_file):
+    with open(volrc_file, 'ab+') as out:
+        if plugin_dir not in out.read():
+            output = '{0}{1}'.format(seperator, plugin_dir)
+            out.write(output)
+else:
+    # Create new file.
+    with open(volrc_file, 'w') as out:
+        output = '[DEFAULT]\nPLUGINS = {0}'.format(plugin_dir)
+        out.write(output)
+
+# Then import
+
 import volatility.conf as conf
 import volatility.obj as obj
 import volatility.registry as registry
@@ -79,7 +106,7 @@ class RunVol:
             "output": None,
             "info": None,
             "location": "file://" + self.memdump,
-            "plugins": None,
+            "plugins": 'plugins',
             "debug": 4,
             "cache_dtb": True,
             "filename": None,

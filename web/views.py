@@ -1,20 +1,10 @@
 import re
 import sys
-import os
-import contextlib
-import tempfile
-import shutil
 import hashlib
-import string
 from datetime import datetime
+from web.common import *
 
-import logging
 logger = logging.getLogger(__name__)
-
-try:
-    from subprocess import getoutput
-except ImportError:
-    from commands import getoutput
 
 try:
     from bson.objectid import ObjectId
@@ -58,63 +48,6 @@ try:
     db = Database()
 except Exception as e:
     logger.error("Unable to access mongo database: {0}".format(e))
-    sys.exit()
-
-
-
-##
-# Helpers
-##
-
-volutility_version = '0.1'
-
-volrc_file = os.path.join(os.path.expanduser('~'), '.volatilityrc')
-
-
-def string_clean_hex(line):
-    line = str(line)
-    new_line = ''
-    for c in line:
-        if c in string.printable:
-            new_line += c
-        else:
-            new_line += '\\x' + c.encode('hex')
-    return new_line
-
-
-def hex_dump(hex_cmd):
-    """
-    return hexdump in html formatted data
-    :param hex_cmd:
-    :return: str
-    """
-    hex_string = getoutput(hex_cmd)
-
-    # Format the data
-    html_string = ''
-    hex_rows = hex_string.split('\n')
-    for row in hex_rows:
-        if len(row) > 9:
-            off_str = row[0:8]
-            hex_str = row[9:58]
-            asc_str = row[58:78]
-            asc_str = asc_str.replace('"', '&quot;')
-            asc_str = asc_str.replace('<', '&lt;')
-            asc_str = asc_str.replace('>', '&gt;')
-            html_string += '<div class="row"><span class="text-info mono">{0}</span> <span class="text-primary mono">{1}</span> <span class="text-success mono">{2}</span></div>'.format(off_str, hex_str, asc_str)
-    # return the data
-    return html_string
-
-
-@contextlib.contextmanager
-def temp_dumpdir():
-    """
-    Create temporary temp directories
-    :return:
-    """
-    temp_dir = tempfile.mkdtemp()
-    yield temp_dir
-    shutil.rmtree(temp_dir)
 
 
 ##
@@ -564,8 +497,60 @@ def ajax_handler(request, command):
 
     if command == 'pollplugins':
         if 'session_id' in request.POST:
+            # Get Current Session
             session_id = request.POST['session_id']
+
+            session = db.get_session(ObjectId(session_id))
+
             plugin_rows = db.get_pluginbysession(ObjectId(session_id))
+
+            # Check for new registered plugins
+
+            # Get compatible plugins
+
+
+            profile = session['session_profile']
+
+            session_path = session['session_path']
+
+            vol_int = RunVol(profile, session_path)
+
+            plugin_list = vol_int.list_plugins()
+
+
+            # Plugin Options
+            plugin_filters = vol_interface.plugin_filters
+            refresh_rows = False
+            existing_plugins = []
+            for row in plugin_rows:
+                existing_plugins.append(row['plugin_name'])
+
+            # For each plugin create the entry
+            for plugin in plugin_list:
+
+                # Ignore plugins we cant handle
+                if plugin[0] in plugin_filters['drop']:
+                    continue
+
+                if plugin[0] in existing_plugins:
+                    continue
+
+                else:
+                    print plugin[0]
+                    db_results = {}
+                    db_results['session_id'] = ObjectId(session_id)
+                    db_results['plugin_name'] = plugin[0]
+                    db_results['help_string'] = plugin[1]
+                    db_results['created'] = None
+                    db_results['plugin_output'] = None
+                    db_results['status'] = None
+                    # Write to DB
+                    db.create_plugin(db_results)
+                    refresh_rows = True
+
+            if refresh_rows:
+                plugin_rows = db.get_pluginbysession(ObjectId(session_id))
+
             return render(request, 'plugin_poll.html', {'plugin_output': plugin_rows})
         else:
             return HttpResponseServerError

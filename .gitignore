@@ -65,6 +65,9 @@ target/
 # PyCharms
 .idea/
 
-vt_key.py
 
+# VolUtility Specific
+vt_key.py
 test.py
+plugins/overlays/*
+plugins/plugins/*
