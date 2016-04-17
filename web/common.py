@@ -4,6 +4,7 @@ import logging
 import contextlib
 import tempfile
 import shutil
+import ConfigParser
 
 try:
     from subprocess import getoutput
@@ -63,3 +64,26 @@ def temp_dumpdir():
     temp_dir = tempfile.mkdtemp()
     yield temp_dir
     shutil.rmtree(temp_dir)
+
+class Config:
+    def __init__(self):
+        config = ConfigParser.ConfigParser(allow_no_value=True)
+
+        conf_file = 'volutility.conf'
+
+        if not os.path.exists('volutility.conf'):
+            conf_file = 'volutility.conf.sample'
+            logger.warning('Using default config file. Check your volutility.conf file exists')
+
+
+        valid = config.read(conf_file)
+        if len(valid) > 0:
+            self.valid = True
+            for section in config.sections():
+                for key, value in config.items(section):
+                    setattr(self, key, value)
+        else:
+            self.valid = False
+            logger.error('Unable to find a valid volutility.conf file.')
+
+

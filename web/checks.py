@@ -1,7 +1,7 @@
 from django.core.checks import Error, Warning, register
 from django.core.checks import Tags
-
 import vol_interface
+
 
 ##
 # Django System Checks
@@ -26,11 +26,6 @@ def compat_check(app_configs=None, **kwargs):
         errors.append(Warning('Unable to import virustotalapi', hint='sudo pip install virustotal'))
 
     try:
-        from vt_key import API_KEY
-    except ImportError:
-        errors.append(Warning('Unable to import virustotal key', hint='create api_key.py as per wiki'))
-
-    try:
         import yara
     except ImportError:
         errors.append(Warning('Unable to import Yara', hint='Read the Wiki or google Yara'))
@@ -48,6 +43,16 @@ def compat_check(app_configs=None, **kwargs):
             errors.append(Error('Unsupported Volatility version found. Need 2.5 or greater. Found: {0}'.format('.'.join(vol_ver))))
     except Exception as error:
         errors.append(Error('Unable to find Volatility Version Number', hint='Read the installation wiki'))
+
+    # Config
+    try:
+        from common import Config
+        config = Config()
+        if config.valid:
+            pass
+
+    except:
+        errors.append(Error('Unable to parse a volutility.conf file', hint='Copy volutiltiy.conf.sample to volutitliy.conf'))
 
 
     # Database Connection finally

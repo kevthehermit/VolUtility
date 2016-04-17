@@ -2,12 +2,18 @@ import sys
 import pymongo
 from bson.objectid import ObjectId
 from gridfs import GridFS
+from common import Config
+config = Config()
 
 class Database():
     def __init__(self):
         # Create the connection
+        if config.valid:
+            mongo_uri = config.mongo_uri
+        else:
+            mongo_uri = 'mongodb://localhost'
 
-        connection = pymongo.MongoClient('localhost')
+        connection = pymongo.MongoClient(mongo_uri)
 
         # Version Check
         server_version = connection.server_info()['version']

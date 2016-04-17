@@ -3,6 +3,9 @@ import sys
 import hashlib
 from datetime import datetime
 from web.common import *
+import multiprocessing
+from common import Config
+config = Config()
 
 logger = logging.getLogger(__name__)
 
@@ -29,13 +32,6 @@ try:
 except ImportError:
     YARA = False
     logger.warning("Unable to import Yara")
-
-try:
-    from vt_key import API_KEY
-    VT_KEY = True
-except ImportError:
-    VT_KEY = False
-    logger.warning("Unable to import VirusTotal API Key from vt_key.py")
 
 ##
 # Import The volatility Interface and DB Class
@@ -141,6 +137,11 @@ def session_page(request, sess_id):
                     'volatility': vol_interface.vol_version,
                     'volutility': volutility_version}
 
+    # Check if file still exists
+
+    if not os.path.exists(session_details['session_path']):
+        error_line = 'Memory Image can not be found at {0}'.format(session_details['session_path'])
+
 
     return render(request, 'session.html', {'session_details': session_details,
                                             'plugin_list': plugin_list,
@@ -225,6 +226,22 @@ def create_session(request):
     # Store it
     session_id = db.create_session(new_session)
 
+    # Autorun list from config
+    if config.autorun:
+        auto_list = config.plugins.split(',')
+    else:
+        auto_list = False
+
+    # Merge Autorun from manual post with config
+    if 'auto_run' in request.POST:
+        run_list = request.POST['auto_run'].split(',')
+        if not auto_list:
+            auto_list = run_list
+        else:
+            for run in run_list:
+                if run not in auto_list:
+                    auto_list.append(run)
+
     # For each plugin create the entry
     for plugin in plugin_list:
         db_results = {}
@@ -241,7 +258,11 @@ def create_session(request):
         db_results['plugin_output'] = None
         db_results['status'] = None
         # Write to DB
-        db.create_plugin(db_results)
+        plugin_id = db.create_plugin(db_results)
+
+        if auto_list:
+            if plugin_name in auto_list:
+                multiprocessing.Process(target=run_plugin, args=(session_id, plugin_id)).start()
 
     return redirect('/session/{0}'.format(str(session_id)))
 
@@ -650,7 +671,6 @@ def ajax_handler(request, command):
 
             return render(request, 'hive_details.html', {'hive_details': hive_details})
 
-
     if command == 'dottree':
         session_id = request.POST['session_id']
         session = db.get_session(ObjectId(session_id))
@@ -658,9 +678,9 @@ def ajax_handler(request, command):
         results = vol_int.run_plugin('pstree', output_style='dot')
         return HttpResponse(results)
 
-
     if command == 'virustotal':
-        if not VT_KEY or not VT_LIB:
+        if not config.api_key or not VT_LIB:
+            logger.error('No Virustotal key provided in volutitliy.conf')
             return HttpResponse("Unable to use Virus Total. No Key or Library Missing. Check the Console for details")
 
         if 'file_id' in request.POST:
@@ -668,11 +688,10 @@ def ajax_handler(request, command):
 
             file_object = db.get_filebyid(ObjectId(file_id))
             sha256 = file_object.sha256
-            vt = PublicApi(API_KEY)
+            vt = PublicApi(config.api_key)
             response = vt.get_file_report(sha256)
 
             vt_fields = {}
-
 
             if response['results']['response_code'] == 1:
                 vt_fields['permalink'] = response['results']['permalink']

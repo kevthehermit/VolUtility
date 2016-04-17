@@ -6,7 +6,7 @@
 <meta charset="UTF-8">
 <meta name="description" content="Volutility">
 <meta name="keywords" content="yara,rules">
-<link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+<link id="bootswatch" href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
 <link href="{% static 'css/style.css' %}" rel="stylesheet">
 <link href="{% static 'css/datatables.min.css' %}" rel="stylesheet">
 
@@ -56,6 +56,8 @@
             <li class="divider"></li>
             <li><a href="#" data-toggle="modal" data-target="#aboutModal">About</a></li>
             <li><a href="#" onclick="spinnerControl('open', 'Cats Loading Stuffs')">Loading page</a></li>
+            <li><a href="#" onclick="changeCSS('lumen')">Lumen Css</a></li>
+            <li><a href="#" onclick="changeCSS('flatly')">Flatly Css</a></li>
           </ul>
         </li>
       </ul>

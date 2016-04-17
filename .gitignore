@@ -72,3 +72,4 @@ test.py
 plugins/overlays/*.zip
 plugins/*
 !plugins/overlays/__init__.py
+volutility.conf

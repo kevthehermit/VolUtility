@@ -24,7 +24,10 @@ Params:
     spinner: Bool = Overlay a loading spinner or not.'
  */
 
-
+function changeCSS(cssname){
+    var newcss = '/static/css/bootstrap_' + cssname + '.min.css';
+    $('#bootswatch').attr('href', newcss);
+}
 
 
 /*
@@ -49,6 +52,7 @@ $(document).ready(function() {
     }(jQuery));
 
 });
+
 /*
 SpinnerControl opens and closes the loading page
 Not many plugins need to use this.

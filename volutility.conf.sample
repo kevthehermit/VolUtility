@@ -1,0 +1,13 @@
+[database]
+mongo_uri = mongodb://localhost
+
+[virustotal]
+api_type = public
+api_key =
+
+[autorun]
+#
+# Volutility will try to run these plugins as soon as the image is loaded.
+#
+autorun = False
+plugins = pslist,psscan
