@@ -719,6 +719,14 @@ def ajax_handler(request, command):
         results = vol_int.run_plugin('pstree', output_style='dot')
         return HttpResponse(results)
 
+    if command == 'timeline':
+        logger.debug('Running Timeline')
+        session_id = request.POST['session_id']
+        session = db.get_session(ObjectId(session_id))
+        vol_int = RunVol(session['session_profile'], session['session_path'])
+        results = vol_int.run_plugin('timeliner', output_style='dot')
+        return HttpResponse(results)
+
     if command == 'virustotal':
         if not config.api_key or not VT_LIB:
             logger.error('No Virustotal key provided in volutitliy.conf')

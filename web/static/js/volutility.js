@@ -267,7 +267,7 @@ function ajaxHandler(command, postFields, spinner) {
             }else if (command == "virustotal" || command == "yara" || command == "strings" || command == "yara-string") {
                 $('#'+postOptions["target_div"]).html(data);
 
-            }else if (command == 'dottree') {
+            }else if (command == 'dottree' || command == "timeline") {
                 image = Viz(data, {format: "png-image-element"});
                 $(image).attr('id', 'proctree');
                 $(image).width('100%').height(500);

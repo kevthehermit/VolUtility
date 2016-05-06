@@ -1,5 +1,5 @@
 {% load template_dict %}
-<h3 class="text-center text-capitalize" id="pluginName">{{plugin_name}}</h3>
+<h3 class="text-center text-capitalize" id="pluginName">{{plugin_name|default:""}}</h3>
 <table id="resultsTable" class="table table-striped table-bordered table-hover resultsTable">
     <thead>
     <tr>
@@ -19,7 +19,7 @@
 
             <td data-rowid="{{ plugin_id }}_{{ forloop.counter }}">{{ forloop.counter }}</td>
             {% for cell in row %}
-            <td>{{ cell|safe }}</td>
+            <td>{{ cell }}</td>
             {%  endfor %}
         </tr>
         {% endfor %}
