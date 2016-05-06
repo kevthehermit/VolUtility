@@ -833,7 +833,7 @@ def ajax_handler(request, command):
                         logger.warning('Error converting hex to str: {0}'.format(e))
 
 
-            return render(request, 'plugin_output.html', {'plugin_results': results,
+            return render(request, 'plugin_output_nohtml.html', {'plugin_results': results,
                                                           'plugin_id': None,
                                                           'bookmarks': []})
             #return HttpResponse(results)
