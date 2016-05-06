@@ -302,7 +302,7 @@ function ajaxHandler(command, postFields, spinner) {
                     $(row).removeClass("success");
                 }
             }else if (command == 'procmem') {
-                //pass
+                notifications('success', true, postOptions['plugin_id'], 'Check memdump plugin for your file.');
             }else {
                 alertBar('danger', 'Spaghetti-Os!', 'Unable to find a valid command')
             }
