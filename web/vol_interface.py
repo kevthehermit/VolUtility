@@ -48,7 +48,7 @@ debug.error = new_error
 
 # Stop these plugins being listed as we can or will not handle them
 plugin_filters = {
-    "drop": ['crashdump', 'crashinfo', 'volshell', 'chromecookies', 'poolpeek', 'impscan', 'hivedump', 'pstree']
+    "drop": ['crashdump', 'crashinfo', 'volshell', 'chromecookies', 'poolpeek', 'impscan', 'hivedump', 'pstree', 'yarascan']
 }
 
 vol_version = constants.VERSION
@@ -247,6 +247,10 @@ class RunVol:
                 output_data = self.get_text(command)
                 return output_data
 
+            if plugin_name == 'memdump':
+                output_data = self.get_text(command)
+                return output_data
+
             # All other plugins
             else:
                 if output_style == 'json':
@@ -255,6 +259,10 @@ class RunVol:
 
                 if output_style == 'text':
                     output_data = self.get_text(command)
+                    return output_data
+
+                if output_style == 'dot':
+                    output_data = self.get_dot(command)
                     return output_data
         else:
             return 'Error: Not a valid plugin'

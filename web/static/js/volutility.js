@@ -300,6 +300,8 @@ function ajaxHandler(command, postFields, spinner) {
                 } else {
                     $(row).removeClass("success");
                 }
+            }else if (command == 'procmem') {
+                //pass
             }else {
                 alertBar('danger', 'Spaghetti-Os!', 'Unable to find a valid command')
             }
@@ -327,7 +329,21 @@ function ajaxHandler(command, postFields, spinner) {
 
 function resultscontextmenu ($, window) {
 
-   var menus = {};
+    // Add any plugin specific rows
+    var plugin_name = $('#pluginName').html();
+
+    if (plugin_name == 'pslist') {
+
+        if ( $('#contextMenu:contains("Store Process Mem")').length ) {
+            //exists
+        } else {
+            $("#contextMenu").append('<li><a tabindex="-1" href="#">Store Process Mem</a></li>');
+        }
+
+    }
+
+
+    var menus = {};
     $.fn.contextMenu = function (settings) {
         var $menu = $(settings.menuSelector);
         $menu.data("menuSelector", settings.menuSelector);
@@ -457,6 +473,11 @@ $("#resultsTable tbody tr").contextMenu({
 
         if (menu_option == 'BookMark Row') {
             ajaxHandler('bookmark', {'row_id':row_id }, false);
+        }
+
+        if (menu_option == 'Store Process Mem') {
+            var session_id = $('#sessionID').html();
+            ajaxHandler('procmem', {'row_id':row_id, 'session_id':session_id}, false);
         }
 
 

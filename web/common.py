@@ -5,6 +5,7 @@ import contextlib
 import tempfile
 import shutil
 import ConfigParser
+import hashlib
 
 try:
     from subprocess import getoutput
@@ -65,6 +66,13 @@ def temp_dumpdir():
     yield temp_dir
     shutil.rmtree(temp_dir)
 
+def checksum_md5(file_path):
+    md5 = hashlib.md5()
+    with open(file_path,'rb') as f:
+        for chunk in iter(lambda: f.read(8192), b''):
+            md5.update(chunk)
+    return md5.digest()
+
 class Config:
     def __init__(self):
         config = ConfigParser.ConfigParser(allow_no_value=True)
@@ -85,5 +93,6 @@ class Config:
         else:
             self.valid = False
             logger.error('Unable to find a valid volutility.conf file.')
+
 
 

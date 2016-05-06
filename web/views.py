@@ -4,7 +4,7 @@ import hashlib
 from datetime import datetime
 from web.common import *
 import multiprocessing
-from common import Config
+from common import Config, checksum_md5
 config = Config()
 
 logger = logging.getLogger(__name__)
@@ -159,8 +159,9 @@ def create_session(request):
     :return:
     """
     # Get some vars
-    new_session = {'created': datetime.now(), 'modified': datetime.now()}
+    new_session = {'created': datetime.now(), 'modified': datetime.now(), 'file_hash': 'Not Selected'}
 
+    file_hash = False
     if 'sess_name' in request.POST:
         new_session['session_name'] = request.POST['sess_name']
     if 'sess_path' in request.POST:
@@ -169,11 +170,19 @@ def create_session(request):
         new_session['session_description'] = request.POST['description']
     if 'plugin_path' in request.POST:
         new_session['plugin_path'] = request.POST['plugin_path']
+    if 'file_hash' in request.POST:
+        file_hash = True
 
     # Check for mem file
     if not os.path.exists(new_session['session_path']):
         logger.error('Unable to find an image file at {0}'.format(request.POST['sess_path']))
         return main_page(request, error_line='Unable to find an image file at {0}'.format(request.POST['sess_path']))
+
+    # Generate FileHash (MD5 for now)
+    if file_hash:
+        md5_hash = checksum_md5(new_session['session_path'])
+        new_session['file_hash'] = md5_hash
+
 
     # Get a list of plugins we can use. and prepopulate the list.
 
@@ -414,6 +423,38 @@ def run_plugin(session_id, plugin_id):
                     else:
                         row.append('Not Stored')
 
+            if plugin_row['plugin_name'] in ['memdump']:
+                logger.debug('Processing Rows')
+                # Convert text to rows
+                new_results = {'rows': [], 'columns': ['Process', 'PID', 'StoredFile']}
+                base_output = results['rows'][0][0]
+                base_output = base_output.lstrip('<pre>').rstrip('</pre>')
+                #print results
+                for line in base_output.split('*'*72):
+                    if '.dmp' not in line:
+                        continue
+                    row = line.split()
+                    process = row[1]
+                    dump_file = row[-1]
+                    pid = dump_file.split('.')[0]
+
+                    if dump_file not in file_list:
+                        new_results['rows'].append([process, pid, 'Not Stored'])
+                    else:
+                        logger.debug('Store memdump file')
+                        file_data = open(os.path.join(temp_dir, dump_file), 'rb').read()
+                        sha256 = hashlib.sha256(file_data).hexdigest()
+                        file_id = db.create_file(file_data, sess_id, sha256, dump_file)
+                        row_file = '<a class="text-success" href="#" ' \
+                              'onclick="ajaxHandler(\'filedetails\', {\'file_id\':\'' + str(file_id) + '\'}, false ); return false">' \
+                              'File Details</a>'
+                        new_results['rows'].append([process, pid, row_file])
+
+                results = new_results
+
+
+
+
             # Remove the dumpdir
             shutil.rmtree(temp_dir)
 
@@ -431,8 +472,8 @@ def run_plugin(session_id, plugin_id):
                 counter += 1
                 row.insert(0, counter)
 
-                ajax_string = "onclick=\"ajaxHandler('hivedetails', {'plugin_id':'"+ str(plugin_id) +"', 'rowid':'"+ str(counter) +"'}, true )\"; return false"
-                row.append('<a class="text-success" href="#" '+ ajax_string +'>View Hive Keys</a>')
+                ajax_string = "onclick=\"ajaxHandler('hivedetails', {'plugin_id':'" + str(plugin_id) + "', 'rowid':'" + str(counter) + "'}, true )\"; return false"
+                row.append('<a class="text-success" href="#" ' + ajax_string + '>View Hive Keys</a>')
 
 
         # Image Info
@@ -985,7 +1026,8 @@ def ajax_handler(request, command):
 
             return render(request, 'plugin_output.html', {'plugin_results': plugin_results['plugin_output'],
                                                           'plugin_id': plugin_id,
-                                                          'bookmarks': bookmarks})
+                                                          'bookmarks': bookmarks,
+                                                          'plugin_name': plugin_results['plugin_name']})
 
     if command == 'bookmark':
         if 'row_id' in request.POST:
@@ -1009,5 +1051,38 @@ def ajax_handler(request, command):
             new_values = {'bookmarks': bookmarks}
             db.update_plugin(ObjectId(plugin_id), new_values)
             return HttpResponse(bookmarked)
+
+    if command == 'procmem':
+        if 'row_id' in request.POST and 'session_id' in request.POST:
+            plugin_id, row_id = request.POST['row_id'].split('_')
+            plugin_id = ObjectId(plugin_id)
+            row_id = int(row_id)
+            plugin_data = db.get_pluginbyid(ObjectId(plugin_id))['plugin_output']
+            row = plugin_data['rows'][row_id - 1]
+            pid = row[2]
+
+
+            session = db.get_session(session_id)
+            # Get details from the plugin
+            plugin_row = db.get_pluginbyid(ObjectId(plugin_id))
+
+            plugin_name = plugin_row['plugin_name'].lower()
+
+            logger.debug('Running Plugin: {0}'.format(plugin_name))
+
+            # Set plugin status
+            new_values = {'status': 'processing'}
+            db.update_plugin(ObjectId(plugin_id), new_values)
+
+            # set vol interface
+            vol_int = RunVol(session['session_profile'], session['session_path'])
+
+            # Run the plugin with json as normal
+            output_style = 'json'
+            try:
+                results = vol_int.run_plugin(plugin_name, output_style=output_style)
+            except:
+                pass
+
 
     return HttpResponse('No valid search query found.')
