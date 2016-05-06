@@ -190,6 +190,7 @@ function ajaxHandler(command, postFields, spinner) {
         postOptions['yara-kernel'] = $('#yara-kernel').prop('checked');
         postOptions['yara-wide'] = $('#yara-wide').prop('checked');
         postOptions['yara-file'] = $('#yara-file').val();
+        postOptions['yara-pid'] = $('#yara-pid').val();
     }
 
     if (command == 'memhex' || command == 'memhexdump'){

@@ -1,6 +1,5 @@
 import re
 import sys
-import hashlib
 from datetime import datetime
 from web.common import *
 import multiprocessing
@@ -759,6 +758,11 @@ def ajax_handler(request, command):
         else:
             yara_string = False
 
+        if request.POST['yara-pid'] != '':
+            yara_pid = request.POST['yara-pid']
+        else:
+            yara_pid = None
+
         if request.POST['yara-file'] != '':
             yara_file = os.path.join('yararules', request.POST['yara-file'])
 
@@ -799,7 +803,7 @@ def ajax_handler(request, command):
             vol_int = RunVol(session['session_profile'], session['session_path'])
 
             if yara_string:
-                results = vol_int.run_plugin('yarascan', output_style='json', plugin_options={'YARA_RULES': yara_string,
+                results = vol_int.run_plugin('yarascan', output_style='json', pid=yara_pid, plugin_options={'YARA_RULES': yara_string,
                                                                                           'CASE': yara_case,
                                                                                           'ALL': yara_kernel,
                                                                                           'WIDE': yara_wide,
@@ -807,7 +811,7 @@ def ajax_handler(request, command):
                                                                                           'REVERSE': yara_reverse})
 
             elif yara_file:
-                results = vol_int.run_plugin('yarascan', output_style='json', plugin_options={'YARA_FILE': yara_file,
+                results = vol_int.run_plugin('yarascan', output_style='json', pid=yara_pid, plugin_options={'YARA_FILE': yara_file,
                                                                                           'CASE': yara_case,
                                                                                           'ALL': yara_kernel,
                                                                                           'WIDE': yara_wide,
@@ -975,7 +979,7 @@ def ajax_handler(request, command):
                             session = db.get_session(ObjectId(session_id))
                             vol_int = RunVol(session['session_profile'], session['session_path'])
                             results = vol_int.run_plugin('yarascan', output_style='json', plugin_options={'YARA_FILE': search_text})
-                            return render(request, 'plugin_output.html', {'plugin_results': results})
+                            return render(request, 'plugin_output_nohtml.html', {'plugin_results': results})
                         except Exception as error:
                             logger.error(error)
                     else:
@@ -985,7 +989,7 @@ def ajax_handler(request, command):
                         session = db.get_session(ObjectId(session_id))
                         vol_int = RunVol(session['session_profile'], session['session_path'])
                         results = vol_int.run_plugin('yarascan', output_style='json', plugin_options={'YARA_RULES': search_text})
-                        return render(request, 'plugin_output.html', {'plugin_results': results})
+                        return render(request, 'plugin_output_nohtml.html', {'plugin_results': results})
                     except Exception as error:
                         logger.error(error)
 
