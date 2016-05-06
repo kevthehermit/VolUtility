@@ -71,7 +71,7 @@ def checksum_md5(file_path):
     with open(file_path,'rb') as f:
         for chunk in iter(lambda: f.read(8192), b''):
             md5.update(chunk)
-    return md5.digest()
+    return md5.hexdigest()
 
 class Config:
     def __init__(self):
