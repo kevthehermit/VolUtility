@@ -288,6 +288,8 @@ def run_plugin(session_id, plugin_id, pid=None):
     error = None
     plugin_id = ObjectId(plugin_id)
     sess_id = ObjectId(session_id)
+    if pid:
+        pid = str(pid)
 
     if sess_id and plugin_id:
         # Get details from the session
@@ -331,7 +333,7 @@ def run_plugin(session_id, plugin_id, pid=None):
             temp_dir = tempfile.mkdtemp()
             dump_dir = temp_dir
             try:
-                results = vol_int.run_plugin(plugin_name, dump_dir=dump_dir, output_style=output_style, pid=str(pid))
+                results = vol_int.run_plugin(plugin_name, dump_dir=dump_dir, output_style=output_style, pid=pid)
             except Exception as error:
                 results = False
                 # Set plugin status
@@ -668,6 +670,14 @@ def ajax_handler(request, command):
                     file_meta['string_list'] = row['string_list']
                 if 'yara' in row:
                     file_meta['yara'] = row['yara']
+
+            # New String Store
+            new_strings = db.get_strings(file_id)
+            if new_strings:
+                file_meta['string_list'] = new_strings._id
+            else:
+                file_meta['string_list'] = False
+
             yara_list = os.listdir('yararules')
             return render(request, 'file_details.html', {'file_details': file_object,
                                                          'file_id': file_id,
@@ -893,16 +903,24 @@ def ajax_handler(request, command):
             file_data = file_object.read()
             regexp = '[\x20\x30-\x39\x41-\x5a\x61-\x7a\-\.:]{4,}'
             string_list = re.findall(regexp, file_data)
+            logger.debug('Joining Strings')
+            string_list = '\n'.join(string_list)
 
+            '''
+            String lists can get larger than the 16Mb bson limit
+            Need to store in GridFS
+            '''
             # Store the list in datastore
             store_data = {}
             store_data['file_id'] = ObjectId(file_id)
             store_data['string_list'] = string_list
+            logger.debug('Store Strings in DB')
 
+            string_id = db.create_file(string_list, 'session_id', 'sha256', '{0}_strings.txt'.format(file_id))
             # Write to DB
-            db.create_datastore(store_data)
+            #db.create_datastore(store_data)
 
-            return render(request, 'file_details_strings.html', {'string_list': string_list})
+            return HttpResponse('<td><a class="btn btn-success" role="button" href="/download/file/{0}">Download</a></td>'.format(string_id))
 
     if command == 'dropsession':
         if 'session_id' in request.POST:

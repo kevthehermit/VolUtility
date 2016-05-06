@@ -134,6 +134,10 @@ class Database():
         results = self.vol_files.find({'session_id': sess_id})
         return results
 
+    def get_strings(self, file_id):
+        results = self.vol_files.find_one({'filename': '{0}_strings.txt'.format(str(file_id))})
+        return results
+
     def create_file(self, file_data, sess_id, sha256, filename, pid=None, file_meta=None):
         file_id = self.vol_files.put(file_data, filename=filename, sess_id=sess_id, sha256=sha256, pid=pid)
         return file_id

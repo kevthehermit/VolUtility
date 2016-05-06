@@ -79,13 +79,9 @@
       <h3>Strings</h3>
         <div id="strings-out">
             {% if file_datastore.string_list %}
-            <pre>
-            {% for strings in file_datastore.string_list %}
-{{strings}}
-            {% endfor %}
-            </pre>
+                <td><a class="btn btn-success" role="button" href="/download/file/{{file_datastore.string_list}}">Download</a></td>
             {% else %}
-            <a href="#" onclick="ajaxHandler('strings', {'file_id':'{{file_id}}', 'target_div':'strings-out'}, false ); return false" class="btn btn-info" role="button">Extract Strings</a>
+            <a href="#" onclick="ajaxHandler('strings', {'file_id':'{{file_id}}', 'target_div':'strings-out'}, true ); return false" class="btn btn-info" role="button">Extract Strings</a>
 
             {%  endif %}
         </div>
