@@ -180,6 +180,7 @@ def create_session(request):
 
     # Generate FileHash (MD5 for now)
     if file_hash:
+        logger.debug('Generating MD5 for Image')
         md5_hash = checksum_md5(new_session['session_path'])
         new_session['file_hash'] = md5_hash
 
