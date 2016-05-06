@@ -901,8 +901,18 @@ def ajax_handler(request, command):
             file_id = request.POST['file_id']
             file_object = db.get_filebyid(ObjectId(file_id))
             file_data = file_object.read()
-            regexp = '[\x20\x30-\x39\x41-\x5a\x61-\x7a\-\.:]{4,}'
-            string_list = re.findall(regexp, file_data)
+
+            chars = r"A-Za-z0-9/\-:.,_$%'()[\]<> "
+            shortest_run = 4
+
+            regexp = '[%s]{%d,}' % (chars, shortest_run)
+            pattern = re.compile(regexp)
+
+            string_list = pattern.findall(file_data)
+
+
+            #regexp = '[\x20\x30-\x39\x41-\x5a\x61-\x7a\-\.:]{4,}'
+            #string_list = re.findall(regexp, file_data)
             logger.debug('Joining Strings')
             string_list = '\n'.join(string_list)
 
