@@ -478,7 +478,7 @@ $("#resultsTable tbody tr").contextMenu({
 
         if (menu_option == 'Store Process Mem') {
             var session_id = $('#sessionID').html();
-            ajaxHandler('procmem', {'row_id':row_id, 'session_id':session_id}, false);
+            ajaxHandler('procmem', {'row_id':row_id, 'session_id':session_id}, true);
         }
 
 

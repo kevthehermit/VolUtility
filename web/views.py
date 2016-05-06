@@ -276,22 +276,20 @@ def create_session(request):
     return redirect('/session/{0}'.format(str(session_id)))
 
 
-def run_plugin(session_id, plugin_id):
+def run_plugin(session_id, plugin_id, pid=None):
     """
     return the results json from a plugin
     :param session_id:
     :param plugin_id:
+    :param pid:
     :return:
     """
-    target_pid = None
-    dump_dir = None
     dump_dir = None
     error = None
     plugin_id = ObjectId(plugin_id)
     sess_id = ObjectId(session_id)
 
     if sess_id and plugin_id:
-
         # Get details from the session
         session = db.get_session(sess_id)
         # Get details from the plugin
@@ -311,7 +309,7 @@ def run_plugin(session_id, plugin_id):
         # Run the plugin with json as normal
         output_style = 'json'
         try:
-            results = vol_int.run_plugin(plugin_name, output_style=output_style)
+            results = vol_int.run_plugin(plugin_name, output_style=output_style, pid=pid)
         except Exception as error:
             results = False
             logger.error('Json Output error in {0} - {1}'.format(plugin_name, error))
@@ -319,7 +317,7 @@ def run_plugin(session_id, plugin_id):
         if 'unified output format has not been implemented' in str(error) or 'JSON output for trees' in str(error):
             output_style = 'text'
             try:
-                results = vol_int.run_plugin(plugin_name, output_style=output_style)
+                results = vol_int.run_plugin(plugin_name, output_style=output_style, pid=pid)
                 error = None
             except Exception as error:
                 logger.error('Json Output error in {0}, {1}'.format(plugin_name, error))
@@ -333,7 +331,7 @@ def run_plugin(session_id, plugin_id):
             temp_dir = tempfile.mkdtemp()
             dump_dir = temp_dir
             try:
-                results = vol_int.run_plugin(plugin_name, dump_dir=dump_dir, output_style=output_style)
+                results = vol_int.run_plugin(plugin_name, dump_dir=dump_dir, output_style=output_style, pid=str(pid))
             except Exception as error:
                 results = False
                 # Set plugin status
@@ -341,13 +339,12 @@ def run_plugin(session_id, plugin_id):
                 db.update_plugin(ObjectId(plugin_id), new_values)
                 logger.error('Error: Unable to run plugin {0} - {1}'.format(plugin_name, error))
 
-
         # Check for result set
         if not results:
             # Set plugin status
-            new_values = {'status': 'error'}
+            new_values = {'status': 'completed'}
             db.update_plugin(ObjectId(plugin_id), new_values)
-            return 'Error: Unable to run plugin {0} - {1}'.format(plugin_name, error)
+            return 'Warning: No output from Plugin {0}'.format(plugin_name)
 
         ##
         # Files that dump output to disk
@@ -426,10 +423,12 @@ def run_plugin(session_id, plugin_id):
             if plugin_row['plugin_name'] in ['memdump']:
                 logger.debug('Processing Rows')
                 # Convert text to rows
-                new_results = {'rows': [], 'columns': ['Process', 'PID', 'StoredFile']}
+                if not plugin_row['plugin_output']:
+                    new_results = {'rows': [], 'columns': ['Process', 'PID', 'StoredFile']}
+                else:
+                    new_results = plugin_row['plugin_output']
                 base_output = results['rows'][0][0]
                 base_output = base_output.lstrip('<pre>').rstrip('</pre>')
-                #print results
                 for line in base_output.split('*'*72):
                     if '.dmp' not in line:
                         continue
@@ -1068,34 +1067,18 @@ def ajax_handler(request, command):
     if command == 'procmem':
         if 'row_id' in request.POST and 'session_id' in request.POST:
             plugin_id, row_id = request.POST['row_id'].split('_')
+            session_id = request.POST['session_id']
             plugin_id = ObjectId(plugin_id)
             row_id = int(row_id)
             plugin_data = db.get_pluginbyid(ObjectId(plugin_id))['plugin_output']
             row = plugin_data['rows'][row_id - 1]
             pid = row[2]
 
+            plugin_row = db.get_plugin_byname('memdump', ObjectId(session_id))
 
-            session = db.get_session(session_id)
-            # Get details from the plugin
-            plugin_row = db.get_pluginbyid(ObjectId(plugin_id))
+            logger.debug('Running Plugin: memdump with pid {0}'.format(pid))
 
-            plugin_name = plugin_row['plugin_name'].lower()
-
-            logger.debug('Running Plugin: {0}'.format(plugin_name))
-
-            # Set plugin status
-            new_values = {'status': 'processing'}
-            db.update_plugin(ObjectId(plugin_id), new_values)
-
-            # set vol interface
-            vol_int = RunVol(session['session_profile'], session['session_path'])
-
-            # Run the plugin with json as normal
-            output_style = 'json'
-            try:
-                results = vol_int.run_plugin(plugin_name, output_style=output_style)
-            except:
-                pass
-
+            res = run_plugin(session_id, plugin_row['_id'], pid=pid)
+            return HttpResponse(res)
 
     return HttpResponse('No valid search query found.')

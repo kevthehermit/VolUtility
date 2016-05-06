@@ -90,10 +90,17 @@ class Database():
         plugin_output = self.vol_plugins.find({'session_id': session_id}).sort("created", -1)
         for row in plugin_output:
             result_rows.append(row)
+
+        result_rows.sort(key=lambda d: (d["plugin_name"]))
+
         return result_rows
 
     def get_pluginbyid(self, plugin_id):
         plugin_output = self.vol_plugins.find_one({'_id': plugin_id})
+        return plugin_output
+
+    def get_plugin_byname(self, plugin_name, session_id):
+        plugin_output = self.vol_plugins.find_one({'session_id': session_id, 'plugin_name':plugin_name})
         return plugin_output
 
     def create_plugin(self, plugin_data):

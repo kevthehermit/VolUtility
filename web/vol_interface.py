@@ -248,6 +248,8 @@ class RunVol:
                 return output_data
 
             if plugin_name == 'memdump':
+                if not pid:
+                    return None
                 output_data = self.get_text(command)
                 return output_data
 
