@@ -661,28 +661,34 @@ def ajax_handler(request, command):
             file_id = request.POST['file_id']
             file_object = db.get_filebyid(ObjectId(file_id))
             file_datastore = db.search_datastore({'file_id': ObjectId(file_id)})
-            file_meta = {'vt': None, 'string_list': None, 'yara': None }
+
+            vt_results = None
+            yara_match = None
+            string_list = None
+            state = 'notchecked'
+
             for row in file_datastore:
 
                 if 'vt' in row:
-                    file_meta['vt'] = row['vt']
-                if 'string_list' in row:
-                    file_meta['string_list'] = row['string_list']
+                    vt_results = row['vt']
+                    state = 'complete'
                 if 'yara' in row:
-                    file_meta['yara'] = row['yara']
+                    yara_match = row['yara']
 
             # New String Store
             new_strings = db.get_strings(file_id)
             if new_strings:
-                file_meta['string_list'] = new_strings._id
-            else:
-                file_meta['string_list'] = False
+                string_list = new_strings._id
 
-            yara_list = os.listdir('yararules')
+            yara_list = sorted(os.listdir('yararules'))
             return render(request, 'file_details.html', {'file_details': file_object,
                                                          'file_id': file_id,
-                                                         'file_datastore': file_meta,
-                                                         'yara_list': yara_list
+                                                         'yara_list': yara_list,
+                                                         'yara': yara_match,
+                                                         'vt_results': vt_results,
+                                                         'string_list': string_list,
+                                                         'state': state,
+                                                         'error': None
                                                          })
 
     if command == 'hivedetails':
@@ -747,24 +753,51 @@ def ajax_handler(request, command):
             file_object = db.get_filebyid(ObjectId(file_id))
             sha256 = file_object.sha256
             vt = PublicApi(config.api_key)
-            response = vt.get_file_report(sha256)
 
-            vt_fields = {}
+            if 'upload' in request.POST:
+                response = vt.scan_file(file_object.read(), filename=file_object.filename, from_disk=False)
+                if response['results']['response_code'] == 1:
+                    return render(request, 'file_details_vt.html', {'state': 'pending',
+                                                                    'vt_results': '',
+                                                                    'file_id': file_id})
+                else:
+                    return render(request, 'file_details_vt.html', {'state': 'error',
+                                                                    'vt_results': '',
+                                                                    'file_id': file_id})
+            else:
 
-            if response['results']['response_code'] == 1:
-                vt_fields['permalink'] = response['results']['permalink']
-                vt_fields['total'] = response['results']['total']
-                vt_fields['positives'] = response['results']['positives']
-                vt_fields['scandate'] = response['results']['scan_date']
+                response = vt.get_file_report(sha256)
 
-                # Store the results in datastore
-                store_data = {}
-                store_data['file_id'] = ObjectId(file_id)
-                store_data['vt'] = vt_fields
+                vt_fields = {}
 
-                update = db.create_datastore(store_data)
+                if response['results']['response_code'] == 1:
+                    vt_fields['permalink'] = response['results']['permalink']
+                    vt_fields['total'] = response['results']['total']
+                    vt_fields['positives'] = response['results']['positives']
+                    vt_fields['scandate'] = response['results']['scan_date']
+                    vt_fields['scans'] = response['results']['scans']
 
-            return render(request, 'file_details_vt.html', {'vt_results': vt_fields})
+                    # Store the results in datastore
+                    store_data = {}
+                    store_data['file_id'] = ObjectId(file_id)
+                    store_data['vt'] = vt_fields
+
+                    update = db.create_datastore(store_data)
+                    return render(request, 'file_details_vt.html', {'state': 'complete',
+                                                                    'vt_results': vt_fields,
+                                                                    'file_id': file_id})
+
+                elif response['results']['response_code'] == -2:
+                    # Still Pending Analysis
+                    return render(request, 'file_details_vt.html', {'state': 'pending',
+                                                                    'vt_results': vt_fields,
+                                                                    'file_id': file_id})
+
+                elif response['results']['response_code'] == 0:
+                    # Not present in data set prompt to uploads
+                    return render(request, 'file_details_vt.html', {'state': 'missing',
+                                                                    'vt_results': vt_fields,
+                                                                    'file_id': file_id})
 
     if command == 'yara-string':
 
