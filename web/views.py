@@ -849,10 +849,10 @@ def ajax_handler(request, command):
                     except Exception as e:
                         logger.warning('Error converting hex to str: {0}'.format(e))
 
-
-            return render(request, 'plugin_output_nohtml.html', {'plugin_results': results,
-                                                          'plugin_id': None,
-                                                          'bookmarks': []})
+            return render(request, 'file_details_yara.html', {'yara': results, 'error': None})
+            #return render(request, 'plugin_output_nohtml.html', {'plugin_results': results,
+                                                          #'plugin_id': None,
+                                                          #'bookmarks': []})
             #return HttpResponse(results)
         except Exception as error:
             logger.error(error)
@@ -874,10 +874,10 @@ def ajax_handler(request, command):
             if os.path.exists(rule_file):
                 rules = yara.compile(rule_file)
                 matches = rules.match(data=file_data)
-                results = []
+                results = {'rows': [], 'columns': ['Rule', 'process', 'Offset', 'Data']}
                 for match in matches:
                     for item in match.strings:
-                        results.append({'rule': match.rule, 'offset': item[0], 'string': string_clean_hex(item[2])})
+                        results['rows'].append([match.rule, file_object.filename, item[0], string_clean_hex(item[2])])
 
             else:
                 return render(request, 'file_details_yara.html', {'yara': None, 'error': 'Could not find Rule File'})
@@ -891,7 +891,7 @@ def ajax_handler(request, command):
 
                 update = db.create_datastore(store_data)
 
-            return render(request, 'file_details_yara.html', {'yara': results})
+            return render(request, 'file_details_yara.html', {'yara': results, 'error': None})
 
         else:
             return HttpResponse('Either No file ID or No Yara Rule was provided')
