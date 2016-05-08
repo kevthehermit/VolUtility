@@ -303,6 +303,10 @@ function ajaxHandler(command, postFields, spinner) {
                 }
             }else if (command == 'procmem') {
                 notifications('success', true, postOptions['plugin_id'], 'Check memdump plugin for your file.');
+
+            }else if (command == 'filedump') {
+                notifications('success', true, postOptions['plugin_id'], 'Check dumpfiles plugin for your file.');
+
             }else {
                 alertBar('danger', 'Spaghetti-Os!', 'Unable to find a valid command')
             }
@@ -339,6 +343,16 @@ function resultscontextmenu ($, window) {
             //exists
         } else {
             $("#contextMenu").append('<li><a tabindex="-1" href="#">Store Process Mem</a></li>');
+        }
+
+    }
+
+    if (plugin_name == 'filescan') {
+
+        if ( $('#contextMenu:contains("Store File Object")').length ) {
+            //exists
+        } else {
+            $("#contextMenu").append('<li><a tabindex="-1" href="#">Store File Object</a></li>');
         }
 
     }
@@ -481,6 +495,10 @@ $("#resultsTable tbody tr").contextMenu({
             ajaxHandler('procmem', {'row_id':row_id, 'session_id':session_id}, true);
         }
 
+        if (menu_option == 'Store File Object') {
+            var session_id = $('#sessionID').html();
+            ajaxHandler('filedump', {'row_id':row_id, 'session_id':session_id}, true);
+        }
 
     },
     onMenuShow: function($invokedOn) {

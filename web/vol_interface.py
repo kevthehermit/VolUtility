@@ -236,6 +236,7 @@ class RunVol:
             self.config.hive_offset = hive_offset
             if plugin_options:
                 for option, value in plugin_options.iteritems():
+                    logger.debug('Setting Config {0} to {1}'.format(option, value))
                     self.config.update(option, value)
 
             # Plugins with specific output types
@@ -243,14 +244,24 @@ class RunVol:
                 output_data = self.get_dot(command)
                 return output_data
 
-            if plugin_name == 'imageinfo':
+            elif plugin_name == 'imageinfo':
                 output_data = self.get_text(command)
                 return output_data
 
-            if plugin_name == 'memdump':
+            elif plugin_name == 'memdump':
                 if not pid:
                     return None
                 output_data = self.get_text(command)
+                return output_data
+
+            elif plugin_name == 'dumpfiles':
+                if 'PHYSOFFSET' not in plugin_options:
+                    logger.debug('No Offset Provided')
+                    return None
+                print self.config.REGEX
+                output_data = self.get_text(command)
+                print "a"
+                print output_data
                 return output_data
 
             # All other plugins

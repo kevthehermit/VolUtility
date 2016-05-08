@@ -276,12 +276,13 @@ def create_session(request):
     return redirect('/session/{0}'.format(str(session_id)))
 
 
-def run_plugin(session_id, plugin_id, pid=None):
+def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
     """
     return the results json from a plugin
     :param session_id:
     :param plugin_id:
     :param pid:
+    :param plugin_options:
     :return:
     """
     dump_dir = None
@@ -311,7 +312,7 @@ def run_plugin(session_id, plugin_id, pid=None):
         # Run the plugin with json as normal
         output_style = 'json'
         try:
-            results = vol_int.run_plugin(plugin_name, output_style=output_style, pid=pid)
+            results = vol_int.run_plugin(plugin_name, output_style=output_style, pid=pid, plugin_options=plugin_options)
         except Exception as error:
             results = False
             logger.error('Json Output error in {0} - {1}'.format(plugin_name, error))
@@ -319,7 +320,7 @@ def run_plugin(session_id, plugin_id, pid=None):
         if 'unified output format has not been implemented' in str(error) or 'JSON output for trees' in str(error):
             output_style = 'text'
             try:
-                results = vol_int.run_plugin(plugin_name, output_style=output_style, pid=pid)
+                results = vol_int.run_plugin(plugin_name, output_style=output_style, pid=pid, plugin_options=plugin_options)
                 error = None
             except Exception as error:
                 logger.error('Json Output error in {0}, {1}'.format(plugin_name, error))
@@ -333,7 +334,7 @@ def run_plugin(session_id, plugin_id, pid=None):
             temp_dir = tempfile.mkdtemp()
             dump_dir = temp_dir
             try:
-                results = vol_int.run_plugin(plugin_name, dump_dir=dump_dir, output_style=output_style, pid=pid)
+                results = vol_int.run_plugin(plugin_name, dump_dir=dump_dir, output_style=output_style, pid=pid, plugin_options=plugin_options)
             except Exception as error:
                 results = False
                 # Set plugin status
@@ -367,18 +368,22 @@ def run_plugin(session_id, plugin_id, pid=None):
             # Add Rows
 
             if plugin_row['plugin_name'] == 'dumpfiles':
-                for row in results['rows']:
-                    try:
-                        filename = row[3]
-                        file_data = row[-1].decode('hex')
-                        sha256 = hashlib.sha256(file_data).hexdigest()
-                        file_id = db.create_file(file_data, sess_id, sha256, filename)
-                        row[-1] = '<a class="text-success" href="#" ' \
-                                  'onclick="ajaxHandler(\'filedetails\', {\'file_id\':\'' + str(file_id) + '\'}, false ); return false">' \
-                                  'File Details</a>'
-
-                    except Exception as error:
-                        row[-1] = 'Not Stored: {0}'.format(error)
+                results = {}
+                results['columns'] = ['Offset', 'File Name', 'Image Type', 'StoredFile']
+                results['rows'] = []
+                for filename in file_list:
+                    if filename.endswith('img'):
+                        img_type = 'ImageSectionObject'
+                    elif filename.endswith('dat'):
+                        img_type = 'DataSectionObject'
+                    else:
+                        img_type = 'N/A'
+                    file_data = open(os.path.join(temp_dir, filename), 'rb').read()
+                    sha256 = hashlib.sha256(file_data).hexdigest()
+                    file_id = db.create_file(file_data, sess_id, sha256, filename)
+                    results['rows'].append([plugin_options['PHYSOFFSET'], filename, img_type, '<a class="text-success" href="#" '
+                                  'onclick="ajaxHandler(\'filedetails\', {\'file_id\':\'' + str(file_id) + '\'}, false ); return false">'
+                                  'File Details</a>'])
 
             if plugin_row['plugin_name'] in ['procdump', 'dlldump']:
                 # Add new column
@@ -1133,6 +1138,23 @@ def ajax_handler(request, command):
             logger.debug('Running Plugin: memdump with pid {0}'.format(pid))
 
             res = run_plugin(session_id, plugin_row['_id'], pid=pid)
+            return HttpResponse(res)
+
+    if command == 'filedump':
+        if 'row_id' in request.POST and 'session_id' in request.POST:
+            plugin_id, row_id = request.POST['row_id'].split('_')
+            session_id = request.POST['session_id']
+            plugin_id = ObjectId(plugin_id)
+            row_id = int(row_id)
+            plugin_data = db.get_pluginbyid(ObjectId(plugin_id))['plugin_output']
+            row = plugin_data['rows'][row_id - 1]
+            offset = row[0]
+
+            plugin_row = db.get_plugin_byname('dumpfiles', ObjectId(session_id))
+
+            logger.debug('Running Plugin: dumpfiles with offset {0}'.format(offset))
+
+            res = run_plugin(session_id, plugin_row['_id'], plugin_options={'PHYSOFFSET':str(offset), 'NAME':True, 'REGEX':None})
             return HttpResponse(res)
 
     return HttpResponse('No valid search query found.')
