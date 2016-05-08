@@ -381,6 +381,8 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
                         img_type = 'ImageSectionObject'
                     elif filename.endswith('dat'):
                         img_type = 'DataSectionObject'
+                    elif filename.endswith('vacb'):
+                        img_type = 'SharedCacheMap'
                     else:
                         img_type = 'N/A'
                     file_data = open(os.path.join(temp_dir, filename), 'rb').read()
