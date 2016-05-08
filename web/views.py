@@ -368,9 +368,14 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
             # Add Rows
 
             if plugin_row['plugin_name'] == 'dumpfiles':
-                results = {}
-                results['columns'] = ['Offset', 'File Name', 'Image Type', 'StoredFile']
-                results['rows'] = []
+                print plugin_row['plugin_output']
+                if not plugin_row['plugin_output']:
+                    results = {}
+                    results['columns'] = ['Offset', 'File Name', 'Image Type', 'StoredFile']
+                    results['rows'] = []
+                else:
+                    results = plugin_row['plugin_output']
+
                 for filename in file_list:
                     if filename.endswith('img'):
                         img_type = 'ImageSectionObject'
