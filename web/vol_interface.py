@@ -199,6 +199,7 @@ class RunVol:
         :return:
         """
 
+
         # Convert Hex ints to 0x Values
         try:
             for x in ['Offset', 'Offset (V)', 'Offset(V)', 'Offset(P)', 'Process(V)', 'ImageBase', 'Base', 'Address']:
@@ -268,7 +269,10 @@ class RunVol:
             else:
                 if output_style == 'json':
                     output_data = self.get_json(command)
-                    return self.result_modifier(output_data)
+                    if plugin_name in ['mftparser']:
+                        return output_data
+                    else:
+                        return self.result_modifier(output_data)
 
                 if output_style == 'text':
                     output_data = self.get_text(command)

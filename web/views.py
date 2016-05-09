@@ -368,7 +368,6 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
             # Add Rows
 
             if plugin_row['plugin_name'] == 'dumpfiles':
-                print plugin_row['plugin_output']
                 if not plugin_row['plugin_output']:
                     results = {}
                     results['columns'] = ['Offset', 'File Name', 'Image Type', 'StoredFile']
@@ -465,6 +464,29 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
 
                 results = new_results
 
+            # ToDo
+            '''
+            if plugin_row['plugin_name'] in ['malfind']:
+                logger.debug('Processing Rows')
+                # Convert text to rows
+                new_results = plugin_row['plugin_output']
+
+                if len(file_list) == 0:
+                    new_results['rows'].append([process, pid, 'Not Stored'])
+                else:
+                    for dump_file in file_list:
+                        logger.debug('Store memdump file')
+                        file_data = open(os.path.join(temp_dir, dump_file), 'rb').read()
+                        sha256 = hashlib.sha256(file_data).hexdigest()
+                        file_id = db.create_file(file_data, sess_id, sha256, dump_file)
+                        row_file = '<a class="text-success" href="#" ' \
+                              'onclick="ajaxHandler(\'filedetails\', {\'file_id\':\'' + str(file_id) + '\'}, false ); return false">' \
+                              'File Details</a>'
+                        new_results['rows'].append([process, pid, row_file])
+
+                results = new_results
+            '''
+
 
 
 
@@ -486,6 +508,19 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
                 row.insert(0, counter)
 
                 ajax_string = "onclick=\"ajaxHandler('hivedetails', {'plugin_id':'" + str(plugin_id) + "', 'rowid':'" + str(counter) + "'}, true )\"; return false"
+                row.append('<a class="text-success" href="#" ' + ajax_string + '>View Hive Keys</a>')
+
+        # Add option to process hive keys
+        if plugin_row['plugin_name'] in ['malfind']:
+            results['columns'].insert(0, '#')
+            results['columns'].append('Extract Injected Code')
+
+            counter = 0
+            for row in results['rows']:
+                counter += 1
+                row.insert(0, counter)
+
+                ajax_string = "onclick=\"ajaxHandler('malfind_export', {'plugin_id':'" + str(plugin_id) + "', 'rowid':'" + str(counter) + "'}, true )\"; return false"
                 row.append('<a class="text-success" href="#" ' + ajax_string + '>View Hive Keys</a>')
 
 
@@ -611,7 +646,6 @@ def ajax_handler(request, command):
                     continue
 
                 else:
-                    print plugin[0]
                     db_results = {}
                     db_results['session_id'] = ObjectId(session_id)
                     db_results['plugin_name'] = plugin[0]
@@ -711,6 +745,48 @@ def ajax_handler(request, command):
             plugin_details = db.get_pluginbyid(ObjectId(pluginid))
 
             key_name = 'hive_keys_{0}'.format(rowid)
+
+            if key_name in plugin_details:
+                hive_details = plugin_details[key_name]
+            else:
+                session_id = plugin_details['session_id']
+
+                session = db.get_session(session_id)
+
+                plugin_data = plugin_details['plugin_output']
+
+                for row in plugin_data['rows']:
+                    if str(row[0]) == rowid:
+                        hive_offset = str(row[1])
+
+                # Run the plugin
+                vol_int = RunVol(session['session_profile'], session['session_path'])
+                hive_details = vol_int.run_plugin('hivedump', hive_offset=hive_offset)
+
+                # update the plugin / session
+                new_values = {key_name: hive_details}
+                db.update_plugin(ObjectId(ObjectId(pluginid)), new_values)
+                # Update the session
+                new_sess = {}
+                new_sess['modified'] = datetime.now()
+                db.update_session(session_id, new_sess)
+
+            return render(request, 'hive_details.html', {'hive_details': hive_details})
+
+    if command == 'malfind_export':
+        if 'plugin_id' and 'rowid' in request.POST:
+            plugin_id, row_id = request.POST['row_id'].split('_')
+            session_id = request.POST['session_id']
+            plugin_id = ObjectId(plugin_id)
+            row_id = int(row_id)
+            plugin_data = db.get_pluginbyid(ObjectId(plugin_id))['plugin_output']
+            row = plugin_data['rows'][row_id - 1]
+            pid = row[1]
+
+            run_plugin(session_id, plugin_id, pid=pid, plugin_options={'DUMP-DIR': True})
+
+            return HttpResponse('True')
+
 
             if key_name in plugin_details:
                 hive_details = plugin_details[key_name]
