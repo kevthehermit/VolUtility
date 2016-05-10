@@ -108,6 +108,7 @@ This is a mid level nav bar to hold tool links
         <li><a href="#" data-toggle="modal" data-target="#memoryModal">View Raw Memory</a></li>
         <li><a href="#" data-toggle="modal" data-target="#yaraModal">Yara Scan Memory</a></li>
         <li><a href="#" data-toggle="modal" data-target="#commentsModal">Comments <span class="badge">{{ comments|length }}</span></a></li>
+        <li><a href="#" data-toggle="modal" data-target="#fileUploadModal">Extra Files <span class="badge">{{ comments|length }}</span></a></li>
       </ul>
 
       <ul class="nav navbar-nav navbar-right">
@@ -200,6 +201,7 @@ This is a mid level nav bar to hold tool links
 
 {% include "raw_memory_modal.html" %}
 {% include "yara_modal.html" %}
+{% include "fileupload_modal.html" %}
 
 <div class="comment-modal">
 {% include "comments_modal.html" %}

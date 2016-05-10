@@ -26,4 +26,6 @@ urlpatterns = [
     url(r'^download/(?P<query_type>.+)/(?P<object_id>[0-9a-fA-F]{24})/$', views.file_download),
     # AjaxHandlers
     url(r'^ajaxhandler/(?P<command>.+)/$', views.ajax_handler),
+    url(r'addfiles', views.addfiles),
+
 ]

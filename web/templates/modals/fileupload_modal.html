@@ -1,0 +1,30 @@
+{% load template_dict %}
+<div class="modal fade" id="fileUploadModal" tabindex="-1" role="dialog" aria-labelledby="fileUploadModal" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="fileUploadModal">Comments</h4>
+            </div>
+            <div class="modal-body">
+
+                <div id="comment-block">
+                    <p> Table of elements here</p>
+                </div>
+
+                <hr>
+
+                <form id="file-form" action="/addfiles/" method="POST">
+                  <input type="file" id="file-select" name="addfiles[]" multiple/>
+                    <input type="hidden" name="session_id" value="{{session_details|get:"_id"}}">
+                    {% csrf_token %}
+                  <button type="submit" id="upload-button">Upload</button>
+                </form>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

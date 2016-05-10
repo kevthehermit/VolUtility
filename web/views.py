@@ -596,6 +596,17 @@ def file_download(request, query_type, object_id):
     return response
 
 
+def addfiles(request):
+    for k, v in request.POST.iteritems():
+        print k, v
+
+    if 'session_id':
+        pass
+    # ToDo: Finsih me
+
+    print request.FILES
+
+
 @csrf_exempt
 def ajax_handler(request, command):
     """
@@ -1155,15 +1166,18 @@ def ajax_handler(request, command):
 
             if search_type == 'vol':
                 # Run a vol command and get the output
+                session = db.get_session(ObjectId(session_id))
+                search_text = search_text.replace('%profile%', '--profile={0}'.format(session['session_profile']))
+                search_text = search_text.replace('%path%', '-f {0}'.format(session['session_path']))
 
                 vol_output = getoutput('vol.py {0}'.format(search_text))
 
-                results = {'rows': [['<pre>{0}</pre>'.format(vol_output)]], 'columns': ['Volitlity Raw Output']}
+                results = {'rows': [['<pre>{0}</pre>'.format(vol_output)]], 'columns': ['Volatility Raw Output']}
 
                 # Consider storing the output here as well.
 
-
-                return render(request, 'plugin_output.html', {'plugin_results': results})
+                return render(request, 'plugin_output.html', {'plugin_results': results,
+                                                              'bookmarks': []})
 
             return HttpResponse('No valid search query found.')
 
@@ -1241,3 +1255,5 @@ def ajax_handler(request, command):
             return HttpResponse(res)
 
     return HttpResponse('No valid search query found.')
+
+
