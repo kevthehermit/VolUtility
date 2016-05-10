@@ -129,6 +129,11 @@ def session_page(request, sess_id):
     session_id = ObjectId(sess_id)
     session_details = db.get_session(session_id)
     comments = db.get_commentbysession(session_id)
+    extra_search = db.search_files({'file_meta': 'ExtraFile', 'sess_id': session_id})
+    extra_files = []
+    for upload in extra_search:
+        extra_files.append({'filename': upload.filename, 'file_id': upload._id})
+
     plugin_list = []
     yara_list = os.listdir('yararules')
     plugin_text = db.get_pluginbysession(ObjectId(sess_id))
@@ -148,7 +153,8 @@ def session_page(request, sess_id):
                                             'comments': comments,
                                             'error_line': error_line,
                                             'version_info': version_info,
-                                            'yara_list': yara_list})
+                                            'yara_list': yara_list,
+                                            'extra_files': extra_files})
 
 
 def create_session(request):
@@ -595,16 +601,30 @@ def file_download(request, query_type, object_id):
     response['Content-Disposition'] = 'attachment; filename="{0}"'.format(file_name)
     return response
 
-
+@csrf_exempt
 def addfiles(request):
     for k, v in request.POST.iteritems():
         print k, v
 
-    if 'session_id':
-        pass
-    # ToDo: Finsih me
+    if 'session_id' not in request.POST:
+        logger.warning('No Session ID in POST')
+        return HttpResponseServerError
 
-    print request.FILES
+    session_id = ObjectId(request.POST['session_id'])
+
+
+
+    for upload in request.FILES.getlist('files[]'):
+        logger.debug('Storing File: {0}'.format(upload.name))
+        file_data = upload.read()
+        sha256 = hashlib.sha256(file_data).hexdigest()
+
+
+        # Store file in GridFS
+        db.create_file(file_data, session_id, sha256, upload.name, pid=None, file_meta='ExtraFile')
+
+    return HttpResponse('Hello')
+
 
 
 @csrf_exempt
@@ -782,47 +802,6 @@ def ajax_handler(request, command):
                 new_sess['modified'] = datetime.now()
                 db.update_session(session_id, new_sess)
 
-            return render(request, 'hive_details.html', {'hive_details': hive_details})
-
-    if command == 'malfind_export':
-        if 'plugin_id' and 'rowid' in request.POST:
-            plugin_id, row_id = request.POST['row_id'].split('_')
-            session_id = request.POST['session_id']
-            plugin_id = ObjectId(plugin_id)
-            row_id = int(row_id)
-            plugin_data = db.get_pluginbyid(ObjectId(plugin_id))['plugin_output']
-            row = plugin_data['rows'][row_id - 1]
-            pid = row[1]
-
-            run_plugin(session_id, plugin_id, pid=pid, plugin_options={'DUMP-DIR': True})
-
-            return HttpResponse('True')
-
-
-            if key_name in plugin_details:
-                hive_details = plugin_details[key_name]
-            else:
-                session_id = plugin_details['session_id']
-
-                session = db.get_session(session_id)
-
-                plugin_data = plugin_details['plugin_output']
-
-                for row in plugin_data['rows']:
-                    if str(row[0]) == rowid:
-                        hive_offset = str(row[1])
-
-                # Run the plugin
-                vol_int = RunVol(session['session_profile'], session['session_path'])
-                hive_details = vol_int.run_plugin('hivedump', hive_offset=hive_offset)
-
-                # update the plugin / session
-                new_values = {key_name: hive_details}
-                db.update_plugin(ObjectId(ObjectId(pluginid)), new_values)
-                # Update the session
-                new_sess = {}
-                new_sess['modified'] = datetime.now()
-                db.update_session(session_id, new_sess)
 
             return render(request, 'hive_details.html', {'hive_details': hive_details})
 

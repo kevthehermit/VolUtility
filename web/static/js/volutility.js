@@ -517,60 +517,59 @@ $("#resultsTable tbody tr").contextMenu({
 
 
 
-// Ajax File Upload
-// http://blog.teamtreehouse.com/uploading-files-ajax
+$(document).ready( function() {
 
-var form = document.getElementById('file-form');
-var fileSelect = document.getElementById('file-select');
-var uploadButton = document.getElementById('upload-button');
 
-form.onsubmit = function(event) {
-  event.preventDefault();
+    $('#file-form').submit( function(event) {
 
-  // Update button text.
-  uploadButton.innerHTML = 'Uploading...';
+        var fileSelect = document.getElementById('file-select');
 
-  // The rest of the code will go here...
-}
 
-// Get the selected files from the input.
-var files = fileSelect.files;
+        event.preventDefault();
 
-// Create a new FormData object.
-var formData = new FormData();
+        // Update button text.
+        $('#upload-button').html('Uploading ...');
 
-// Loop through each of the selected files.
-for (var i = 0; i < files.length; i++) {
-  var file = files[i];
+        // The rest of the code will go here...
 
-  // Add the file to the request.
-  formData.append('addfiles[]', file, file.name);
-}
+        // Get the selected files from the input.
+        var files = fileSelect.files;
 
-// Files
-formData.append(name, file, filename);
+        // Create a new FormData object.
+        var formData = new FormData();
 
-// Blobs
-formData.append(name, blob, filename);
+        // Loop through each of the selected files.
+            for (var i = 0; i < files.length; i++) {
+            var file = files[i];
 
-// Strings
-formData.append(name, value);
 
-// Set up the request.
+              // Add the file to the request.
+              formData.append('files[]', file, file.name);
+        }
+
+
+        // Add Session ID
+        formData.append('session_id', $('#sessionID').html());
+
+        // Set up the request.
 var xhr = new XMLHttpRequest();
 
 // Open the connection.
-xhr.open('POST', 'file_upload', true);
+xhr.open('POST', '/addfiles/', true);
 
-// Set up a handler for when the request finishes.
+        // Set up a handler for when the request finishes.
 xhr.onload = function () {
   if (xhr.status === 200) {
     // File(s) uploaded.
-    uploadButton.innerHTML = 'Upload';
+    $('#upload-button').html('Upload');
   } else {
     alert('An error occurred!');
   }
 };
 
-// Send the Data.
+        // Send the Data.
 xhr.send(formData);
+
+    });
+});
+
