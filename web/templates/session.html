@@ -107,8 +107,8 @@ This is a mid level nav bar to hold tool links
           <li><a href="#" onclick="ajaxHandler('timeline', {'session_id':'{{session_details|get:"_id"}}','target_div':'dotimage'}, true )" >TimeLine</a></li>
         <li><a href="#" data-toggle="modal" data-target="#memoryModal">View Raw Memory</a></li>
         <li><a href="#" data-toggle="modal" data-target="#yaraModal">Yara Scan Memory</a></li>
-        <li><a href="#" data-toggle="modal" data-target="#commentsModal">Comments <span class="badge">{{ comments|length }}</span></a></li>
-        <li><a href="#" data-toggle="modal" data-target="#fileUploadModal">Extra Files <span class="badge">{{ extra_files|length }}</span></a></li>
+        <li><a href="#" data-toggle="modal" data-target="#commentsModal">Comments <span id="comm_count" class="badge">{{ comments|length }}</span></a></li>
+        <li><a href="#" data-toggle="modal" data-target="#fileUploadModal">Extra Files <span id="file_count" class="badge">{{ extra_files|length }}</span></a></li>
       </ul>
 
       <ul class="nav navbar-nav navbar-right">
@@ -161,7 +161,7 @@ This is a mid level nav bar to hold tool links
 <!-- End Tool Bar -->
 
 
-<div class="panel panel-default">
+<div class="panel panel-default" id="plugin-panel">
     <div class="panel-heading">
         <div class="col-xs4"></div>
         <h3 class="panel-title">Plugin Results</h3>
@@ -218,5 +218,9 @@ This is a mid level nav bar to hold tool links
 
     <div id="dotimage"></div>
 
+
+<div id="return-button">
+    <a class="btn btn-default" href="#plugin-panel" role="button">Back to Top</a>
+</div>
 
 {% endblock %}

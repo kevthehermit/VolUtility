@@ -623,7 +623,13 @@ def addfiles(request):
         # Store file in GridFS
         db.create_file(file_data, session_id, sha256, upload.name, pid=None, file_meta='ExtraFile')
 
-    return HttpResponse('Hello')
+    # Return the new list
+    extra_search = db.search_files({'file_meta': 'ExtraFile', 'sess_id': session_id})
+    extra_files = []
+    for upload in extra_search:
+        extra_files.append({'filename': upload.filename, 'file_id': upload._id})
+
+    return render(request, 'file_upload_table.html', {'extra_files': extra_files})
 
 
 

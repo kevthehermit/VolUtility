@@ -251,8 +251,12 @@ function ajaxHandler(command, postFields, spinner) {
                 location.reload();
 
             }else if (command == 'filedetails') {
+
                 $('#fileModalDiv').html(data);
                 jQuery.noConflict();
+                //Hide Any Open Modal
+                $('.modal').modal('hide');
+                // Open New Modal
                 $('#fileModal').modal('show');
 
             }else if (command == 'hivedetails') {
@@ -329,7 +333,6 @@ function ajaxHandler(command, postFields, spinner) {
 
         );
 }
-
 
 
 function resultscontextmenu ($, window) {
@@ -516,56 +519,50 @@ $("#resultsTable tbody tr").contextMenu({
 }
 
 
+/*
+Extra Files Uploader
+Uses Ajax to handle the upload and some bootstrap to 'theme' the file input button
 
+Credits to:
+http://www.abeautifulsite.net/whipping-file-inputs-into-shape-with-bootstrap-3/
+http://blog.teamtreehouse.com/uploading-files-ajax
+
+ */
 $(document).ready( function() {
 
 
     $('#file-form').submit( function(event) {
 
         var fileSelect = document.getElementById('file-select');
-
-
         event.preventDefault();
-
         // Update button text.
         $('#upload-button').html('Uploading ...');
-
-        // The rest of the code will go here...
-
-        // Get the selected files from the input.
         var files = fileSelect.files;
-
-        // Create a new FormData object.
         var formData = new FormData();
-
-        // Loop through each of the selected files.
             for (var i = 0; i < files.length; i++) {
             var file = files[i];
-
-
               // Add the file to the request.
               formData.append('files[]', file, file.name);
         }
-
-
         // Add Session ID
         formData.append('session_id', $('#sessionID').html());
 
-        // Set up the request.
-var xhr = new XMLHttpRequest();
+        var xhr = new XMLHttpRequest();
 
-// Open the connection.
-xhr.open('POST', '/addfiles/', true);
+        xhr.open('POST', '/addfiles/', true);
 
-        // Set up a handler for when the request finishes.
-xhr.onload = function () {
-  if (xhr.status === 200) {
-    // File(s) uploaded.
-    $('#upload-button').html('Upload');
-  } else {
-    alert('An error occurred!');
-  }
-};
+        xhr.onload = function () {
+        if (xhr.status === 200) {
+        // Success Update Elements
+        $('#upload-button').html('Upload');
+        $('#fileupload-block').html(xhr.responseText);
+
+        } else {
+            //Error
+            alertBar('danger', 'Spaghetti-Os!', 'Server Generated an Error 500 Please check the console. ' +
+                                    'Typically volitility couldnt handle a plugin correctly');
+        }
+        };
 
         // Send the Data.
 xhr.send(formData);
@@ -573,3 +570,25 @@ xhr.send(formData);
     });
 });
 
+
+$(document).on('change', '.btn-file :file', function() {
+  var input = $(this),
+      numFiles = input.get(0).files ? input.get(0).files.length : 1,
+      label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+  input.trigger('fileselect', [numFiles, label]);
+});
+
+$(document).ready( function() {
+    $('.btn-file :file').on('fileselect', function(event, numFiles, label) {
+
+        var input = $(this).parents('.input-group').find(':text'),
+            log = numFiles > 1 ? numFiles + ' files selected' : label;
+
+        if( input.length ) {
+            input.val(log);
+        } else {
+            if( log ) alert(log);
+        }
+
+    });
+});

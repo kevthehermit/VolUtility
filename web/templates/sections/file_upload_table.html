@@ -1,0 +1,21 @@
+ {% load template_dict %}
+
+                    <table id="extra-files" class="table table-striped table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <th>FileName</th>
+                            <th>Stored</th>
+                        </thead>
+
+                        <tbody>
+                            {%  for row in extra_files %}
+                                <tr>
+
+                                <td>{{ row.filename }}</td>
+                                <td><a class="text-success" href="#" onclick="ajaxHandler('filedetails', {'file_id':'{{row.file_id}}'}, false ); return false">File Details</a></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+
