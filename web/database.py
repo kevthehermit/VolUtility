@@ -91,7 +91,7 @@ class Database():
         for row in plugin_output:
             result_rows.append(row)
 
-        result_rows.sort(key=lambda d: (d["plugin_name"]))
+        #result_rows.sort(key=lambda d: (d["plugin_name"]))
 
         return result_rows
 
