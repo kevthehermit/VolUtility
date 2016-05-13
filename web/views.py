@@ -14,7 +14,7 @@ except ImportError:
     logger.error('Unable to import pymongo')
 
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpResponseServerError
+from django.http import HttpResponse, HttpResponseServerError, StreamingHttpResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
 
@@ -580,7 +580,9 @@ def file_download(request, query_type, object_id):
     if query_type == 'file':
         file_object = db.get_filebyid(ObjectId(object_id))
         file_name = '{0}.bin'.format(file_object.filename)
-        file_data = file_object.read()
+        response = StreamingHttpResponse((chunk for chunk in file_object), content_type='application/octet-stream')
+        response['Content-Disposition'] = 'attachment; filename="{0}"'.format(file_name)
+        return response
 
     if query_type == 'plugin':
         plugin_object = db.get_pluginbyid(ObjectId(object_id))
@@ -597,9 +599,9 @@ def file_download(request, query_type, object_id):
             file_data.rstrip(',')
             file_data += "\n"
 
-    response = HttpResponse(file_data, content_type='application/octet-stream')
-    response['Content-Disposition'] = 'attachment; filename="{0}"'.format(file_name)
-    return response
+        response = HttpResponse(file_data, content_type='application/octet-stream')
+        response['Content-Disposition'] = 'attachment; filename="{0}"'.format(file_name)
+        return response
 
 @csrf_exempt
 def addfiles(request):
