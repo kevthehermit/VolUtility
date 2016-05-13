@@ -275,7 +275,7 @@ function ajaxHandler(command, postFields, spinner) {
                 image = Viz(data, {format: "png-image-element"});
                 $(image).attr('id', 'proctree');
                 $(image).width('100%').height(500);
-                $('#resultsTarget').append(image);
+                $('#resultsTarget').html(image);
                 //$('#'+postOptions["target_div"]).append(image);
 
             }else if (command == "dropsession") {
