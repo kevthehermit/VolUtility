@@ -107,8 +107,25 @@ This is a mid level nav bar to hold tool links
           <li><a href="#" onclick="ajaxHandler('timeline', {'session_id':'{{session_details|get:"_id"}}','target_div':'dotimage'}, true )" >TimeLine</a></li>
         <li><a href="#" data-toggle="modal" data-target="#memoryModal">View Raw Memory</a></li>
         <li><a href="#" data-toggle="modal" data-target="#yaraModal">Yara Scan Memory</a></li>
-        <li><a href="#" data-toggle="modal" data-target="#commentsModal">Comments <span id="comm_count" class="badge">{{ comments|length }}</span></a></li>
-        <li><a href="#" data-toggle="modal" data-target="#fileUploadModal">Extra Files <span id="file_count" class="badge">{{ extra_files|length }}</span></a></li>
+
+
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Add New <span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="#" data-toggle="modal" data-target="#commentsModal">Comment <span id="comm_count" class="badge">{{ comments|length }}</span></a></li>
+            <li><a href="#" data-toggle="modal" data-target="#fileUploadModal">File<span id="file_count" class="badge">{{ extra_files|length }}</span></a></li>
+
+            <li class="divider"></li>
+            <li><a href="#" data-toggle="modal" data-target="#aboutModal">About</a></li>
+          </ul>
+        </li>
+
+
+
+
+
+
+
       </ul>
 
       <ul class="nav navbar-nav navbar-right">

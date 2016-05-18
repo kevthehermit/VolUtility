@@ -293,6 +293,8 @@ function ajaxHandler(command, postFields, spinner) {
             }else if (command == 'pluginresults' || command == 'searchbar') {
                 $('#resultsTarget').html(data);
                 // Enable table sorting
+
+                // Return JQuery
                 $('#resultsTable').DataTable({pageLength:25, scrollX: true, drawCallback: resultscontextmenu ($, window)});
                 resultscontextmenu ($, window);
 
