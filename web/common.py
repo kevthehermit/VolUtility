@@ -13,7 +13,7 @@ except ImportError:
     from commands import getoutput
 
 logger = logging.getLogger(__name__)
-volutility_version = '0.1'
+volutility_version = '1.0-dev'
 volrc_file = os.path.join(os.path.expanduser('~'), '.volatilityrc')
 
 
