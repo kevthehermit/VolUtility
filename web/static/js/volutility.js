@@ -5,7 +5,7 @@
 
 
 function sessionCreate() {
-    jQuery.noConflict();
+    //jQuery.noConflict();
     $('#sessionModal').modal('hide');
     spinnerControl('open', 'Cats are preparing your image for analysis');
 }
@@ -253,7 +253,7 @@ function ajaxHandler(command, postFields, spinner) {
             }else if (command == 'filedetails') {
 
                 $('#fileModalDiv').html(data);
-                jQuery.noConflict();
+                //jQuery.noConflict();
                 //Hide Any Open Modal
                 $('.modal').modal('hide');
                 // Open New Modal
@@ -261,11 +261,11 @@ function ajaxHandler(command, postFields, spinner) {
 
             }else if (command == 'hivedetails') {
                 $('#hiveModalDiv').html(data);
-                jQuery.noConflict();
+                //jQuery.noConflict();
                 spinnerControl('close', 'Loading Data');
                 $('#hiveModal').modal('show');
                 // Enable table sorting
-                jQuery.noConflict();
+                //jQuery.noConflict();
                 $('#hiveTable').DataTable();
 
             }else if (command == "virustotal" || command == "yara" || command == "strings" || command == "yara-string") {
