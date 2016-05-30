@@ -14,7 +14,7 @@ except ImportError:
     logger.error('Unable to import pymongo')
 
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpResponseServerError, StreamingHttpResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseServerError, StreamingHttpResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
 
@@ -1169,19 +1169,66 @@ def ajax_handler(request, command):
             return HttpResponse('No valid search query found.')
 
     if command == 'pluginresults':
+        if 'start' in request.POST:
+            start = int(request.POST['start'])
+        else:
+            start = 0
+
+        if 'length' in request.POST:
+            length = int(request.POST['length'])
+        else:
+            length = 25
+
         if 'plugin_id' in request.POST:
             plugin_id = ObjectId(request.POST['plugin_id'])
             plugin_id = ObjectId(plugin_id)
             plugin_results = db.get_pluginbyid(plugin_id)
+            output = plugin_results['plugin_output']['rows']
+            resultcount = len(plugin_results['plugin_output']['rows'])
 
+            # Get Bookmarks
             try:
                 bookmarks = db.get_pluginbyid(plugin_id)['bookmarks']
             except:
                 bookmarks = []
 
+
+        # If we are paging with datatables
+        if 'pagination' in request.POST:
+            paged_data = []
+            counter = start
+
+            # Searching
+            if 'search[value]' in request.POST:
+                search_term = request.POST['search[value]']
+                print search_term
+                # output = [r for r in output if search_term.lower() in r]
+                output = filter(lambda x: search_term in str(x), output)
+
+            for row in output[start:start+length]:
+                row.insert(0, counter)
+                paged_data.append(row)
+                counter += 1
+
+
+            datatables = {
+                "draw": request.POST['draw'],
+                "recordsTotal": resultcount,
+                "recordsFiltered": len(output),
+                "data": paged_data
+
+            }
+
+            return JsonResponse(datatables)
+
+        # Else return standard 25 rows
+        else:
+            plugin_results['plugin_output']['rows'] = plugin_results['plugin_output']['rows'][start:length]
+
             return render(request, 'plugin_output.html', {'plugin_results': plugin_results['plugin_output'],
                                                           'plugin_id': plugin_id,
                                                           'bookmarks': bookmarks,
+                                                          'resultcount': resultcount,
                                                           'plugin_name': plugin_results['plugin_name']})
 
     if command == 'bookmark':

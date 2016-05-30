@@ -295,8 +295,8 @@ function ajaxHandler(command, postFields, spinner) {
                 // Enable table sorting
 
                 // Return JQuery
-                $('#resultsTable').DataTable({pageLength:25, scrollX: true, drawCallback: resultscontextmenu ($, window)});
-                resultscontextmenu ($, window);
+                //$('#resultsTable').DataTable({pageLength:25,scrollX: true,drawCallback: resultscontextmenu ($, window)});
+                //resultscontextmenu ($, window);
 
             }else if (command == 'bookmark') {
                 var row_id = postOptions['row_id'];
@@ -594,3 +594,66 @@ $(document).ready( function() {
 
     });
 });
+
+
+function datatablesAjax(plugin_id) {
+
+                // Fill the First Page
+                $.post("/ajaxhandler/pluginresults/", {'plugin_id':plugin_id})
+
+                    // Success
+                    .done(function(data) {
+                        // POLL PLUGINS
+                        $('#resultsTarget').html(data);
+                        // need total rows somewhere
+                        // Enable table sorting
+
+                        // tehn handover to ajax
+                        $('#resultsTable').DataTable({
+                            sDom: '<"top"flpr>rt<"bottom"ip><"clear">',
+                            oLanguage:{
+                              sProcessing: '<h3 style="position:fixed;top:50%;left:50%;z-index:99999999;background:#1a242f;";>Loading. Please Wait.</h3>'
+                            },
+                            processing: true,
+                            serverSide: true,
+                            ajax :{
+                                url: '/ajaxhandler/pluginresults/',
+                                type: 'POST',
+                                data: function (d) {
+                                    d.plugin_id = plugin_id;
+                                    d.pagination = true;
+                                }
+                            },
+                            pageLength:25,
+                            scrollX: true,
+                            drawCallback: function( settings ) {resultscontextmenu ($, window);},
+                            deferLoading: $('#resultcount').html()
+                        });
+                        resultscontextmenu ($, window);
+
+                        // End of Done
+                    })
+                    // Failed
+                    .error(function(xhr, status) {
+                            if (xhr.status == 500) {
+                                alertBar('danger', 'Spaghetti-Os!', 'Server Generated an Error 500 Please check the console. ' +
+                                    'Typically volitility couldnt handle a plugin correctly');
+                            }
+                        }
+
+                    )
+                    // CleanUp
+                    .always(function(xhr, status) {
+                           spinnerControl('close');
+                        }
+
+                    );
+
+
+
+
+
+
+
+}
+
