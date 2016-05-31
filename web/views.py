@@ -499,36 +499,49 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
             # Remove the dumpdir
             shutil.rmtree(temp_dir)
 
+
+
+
         ##
-        # Extra processing on some outputs
+        # Extra processing output
+        # Do everything in one loop to save time
         ##
 
-        # Add option to process hive keys
-        if plugin_row['plugin_name'] in ['hivelist', 'hivescan']:
+        if results:
+            # Start Counting
+            counter = 1
+
+            # Columns
+
+            # Add Row ID Column
             results['columns'].insert(0, '#')
-            results['columns'].append('Extract Keys')
 
-            counter = 0
+
+            # Add option to process hive keys
+            if plugin_row['plugin_name'] in ['hivelist', 'hivescan']:
+                results['columns'].append('Extract Keys')
+
+
+            # Add option to process hive keys
+            if plugin_row['plugin_name'] in ['malfind']:
+                results['columns'].append('Extract Injected Code')
+
+
+            # Now Rows
             for row in results['rows']:
-                counter += 1
+                # Add Row ID
                 row.insert(0, counter)
 
-                ajax_string = "onclick=\"ajaxHandler('hivedetails', {'plugin_id':'" + str(plugin_id) + "', 'rowid':'" + str(counter) + "'}, true )\"; return false"
-                row.append('<a class="text-success" href="#" ' + ajax_string + '>View Hive Keys</a>')
+                if plugin_row['plugin_name'] in ['hivelist', 'hivescan']:
+                    ajax_string = "onclick=\"ajaxHandler('hivedetails', {'plugin_id':'" + str(plugin_id) + "', 'rowid':'" + str(counter) + "'}, true )\"; return false"
+                    row.append('<a class="text-success" href="#" ' + ajax_string + '>View Hive Keys</a>')
 
-        # Add option to process hive keys
-        if plugin_row['plugin_name'] in ['malfind']:
-            results['columns'].insert(0, '#')
-            results['columns'].append('Extract Injected Code')
+                # Add option to process hive keys
+                if plugin_row['plugin_name'] in ['malfind']:
+                    ajax_string = "onclick=\"ajaxHandler('malfind_export', {'plugin_id':'" + str(plugin_id) + "', 'rowid':'" + str(counter) + "'}, true )\"; return false"
+                    row.append('<a class="text-success" href="#" ' + ajax_string + '>View Hive Keys</a>')
 
-            counter = 0
-            for row in results['rows']:
                 counter += 1
-                row.insert(0, counter)
-
-                ajax_string = "onclick=\"ajaxHandler('malfind_export', {'plugin_id':'" + str(plugin_id) + "', 'rowid':'" + str(counter) + "'}, true )\"; return false"
-                row.append('<a class="text-success" href="#" ' + ajax_string + '>View Hive Keys</a>')
-
 
         # Image Info
         image_info = False
@@ -1206,9 +1219,7 @@ def ajax_handler(request, command):
                 output = filter(lambda x: search_term in str(x), output)
 
             for row in output[start:start+length]:
-                row.insert(0, counter)
                 paged_data.append(row)
-                counter += 1
 
 
             datatables = {
@@ -1261,8 +1272,8 @@ def ajax_handler(request, command):
             plugin_id = ObjectId(plugin_id)
             row_id = int(row_id)
             plugin_data = db.get_pluginbyid(ObjectId(plugin_id))['plugin_output']
-            row = plugin_data['rows'][row_id - 1]
-            pid = row[2]
+            row = plugin_data['rows'][row_id -1]
+            pid = row[3]
 
             plugin_row = db.get_plugin_byname('memdump', ObjectId(session_id))
 
@@ -1278,8 +1289,8 @@ def ajax_handler(request, command):
             plugin_id = ObjectId(plugin_id)
             row_id = int(row_id)
             plugin_data = db.get_pluginbyid(ObjectId(plugin_id))['plugin_output']
-            row = plugin_data['rows'][row_id - 1]
-            offset = row[0]
+            row = plugin_data['rows'][row_id -1]
+            offset = row[1]
 
             plugin_row = db.get_plugin_byname('dumpfiles', ObjectId(session_id))
 

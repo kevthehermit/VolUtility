@@ -35,6 +35,8 @@ import volatility.commands as commands
 import volatility.addrspace as addrspace
 import volatility.constants as constants
 import volatility.debug as debug
+import volatility.utils as utils
+
 
 logger = logging.getLogger(__name__)
 
@@ -259,10 +261,7 @@ class RunVol:
                 if 'PHYSOFFSET' not in plugin_options:
                     logger.debug('No Offset Provided')
                     return None
-                print self.config.REGEX
                 output_data = self.get_text(command)
-                print "a"
-                print output_data
                 return output_data
 
             # All other plugins
@@ -283,3 +282,22 @@ class RunVol:
                     return output_data
         else:
             return 'Error: Not a valid plugin'
+
+
+    def read_memory(self, offset=0, length=0):
+        self.addr_space = utils.load_as(copy.deepcopy(self.config), 'virtual')
+
+        this = self.addr_space
+
+        print dir(this)
+
+        print "hello"
+
+        #print this.read(0, 100).encode('hex')
+
+        a = self.addr_space.get_available_addresses()
+
+        for b, c in a:
+            print hex(b),c
+
+

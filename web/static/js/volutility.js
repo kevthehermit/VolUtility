@@ -473,9 +473,11 @@ $("#resultsTable tbody tr").contextMenu({
         var row = $invokedOn.closest("tr");
         var menu_option = $selectedMenu.text();
         var cell_value = $invokedOn.text();
-        var row_num = $invokedOn.closest("tr").find('td:first-child').text();
-        var row_id = $invokedOn.closest("tr").find('td:first-child').data('rowid');
-
+        var plugin_id = $('#activepluginid').html();
+        var row_num = row.find('td:first-child').text();
+        //var row_id = $invokedOn.closest("tr").find('td:first-child').data('rowid');
+        var row_id = plugin_id + '_' + row_num;
+        alert(row_id);
 
         if (menu_option == 'Search cell value') {
             // Set the value so the ajax handler reads it properly
@@ -595,59 +597,61 @@ $(document).ready( function() {
     });
 });
 
+/*
+Server side pagination of plugin rows.
+
+ */
 
 function datatablesAjax(plugin_id) {
 
-                // Fill the First Page
-                $.post("/ajaxhandler/pluginresults/", {'plugin_id':plugin_id})
+    // Fill the First Page
+    $.post("/ajaxhandler/pluginresults/", {'plugin_id':plugin_id})
 
-                    // Success
-                    .done(function(data) {
-                        // POLL PLUGINS
-                        $('#resultsTarget').html(data);
-                        // need total rows somewhere
-                        // Enable table sorting
+        // Success
+        .done(function(data) {
+            // Fill first 25 rows
+            $('#resultsTarget').html(data);
 
-                        // tehn handover to ajax
-                        $('#resultsTable').DataTable({
-                            sDom: '<"top"flpr>rt<"bottom"ip><"clear">',
-                            oLanguage:{
-                              sProcessing: '<h3 style="position:fixed;top:50%;left:50%;z-index:99999999;background:#1a242f;";>Loading. Please Wait.</h3>'
-                            },
-                            processing: true,
-                            serverSide: true,
-                            ajax :{
-                                url: '/ajaxhandler/pluginresults/',
-                                type: 'POST',
-                                data: function (d) {
-                                    d.plugin_id = plugin_id;
-                                    d.pagination = true;
-                                }
-                            },
-                            pageLength:25,
-                            scrollX: true,
-                            drawCallback: function( settings ) {resultscontextmenu ($, window);},
-                            deferLoading: $('#resultcount').html()
-                        });
-                        resultscontextmenu ($, window);
+            // then handover to ajax
+            $('#resultsTable').DataTable({
+                sDom: '<"top"flpr>rt<"bottom"ip><"clear">',
+                oLanguage:{
+                  sProcessing: '<h3 style="position:fixed;top:50%;left:50%;z-index:99999999;background:#1a242f;";>Loading. Please Wait.</h3>'
+                },
+                processing: true,
+                serverSide: true,
+                ajax :{
+                    url: '/ajaxhandler/pluginresults/',
+                    type: 'POST',
+                    data: function (d) {
+                        d.plugin_id = plugin_id;
+                        d.pagination = true;
+                    }
+                },
+                pageLength:25,
+                scrollX: true,
+                drawCallback: function( settings ) {resultscontextmenu ($, window);},
+                deferLoading: $('#resultcount').html()
+            });
+            resultscontextmenu ($, window);
 
-                        // End of Done
-                    })
-                    // Failed
-                    .error(function(xhr, status) {
-                            if (xhr.status == 500) {
-                                alertBar('danger', 'Spaghetti-Os!', 'Server Generated an Error 500 Please check the console. ' +
-                                    'Typically volitility couldnt handle a plugin correctly');
-                            }
-                        }
+            // End of Done
+        })
+        // Failed
+        .error(function(xhr, status) {
+                if (xhr.status == 500) {
+                    alertBar('danger', 'Spaghetti-Os!', 'Server Generated an Error 500 Please check the console. ' +
+                        'Typically volitility couldnt handle a plugin correctly');
+                }
+            }
 
-                    )
-                    // CleanUp
-                    .always(function(xhr, status) {
-                           spinnerControl('close');
-                        }
+        )
+        // CleanUp
+        .always(function(xhr, status) {
+               spinnerControl('close');
+            }
 
-                    );
+        );
 
 
 

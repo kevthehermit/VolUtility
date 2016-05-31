@@ -1,9 +1,8 @@
 {% load template_dict %}
-<h3 class="text-center text-capitalize" id="pluginName">{{plugin_name|default:""}}</h3>
+<h3 class="text-center text-capitalize" id="pluginName">{{plugin_name}}</h3>
 <table id="resultsTable" class="table table-striped table-bordered table-hover resultsTable">
     <thead>
     <tr>
-        <th>#</th>
         {% for col in plugin_results.columns %}
         <th>{{ col }}</th>
         {% endfor %}
@@ -11,13 +10,12 @@
 
     <tbody>
         {%  for row in plugin_results.rows %}
-            {% if forloop.counter in bookmarks %}
+            {% if row.0 in bookmarks %}
                 <tr class="success">
             {% else %}
                 <tr>
             {% endif %}
 
-            <td data-rowid="{{ plugin_id }}_{{ forloop.counter }}">{{ forloop.counter }}</td>
             {% for cell in row %}
             <td>{{ cell }}</td>
             {%  endfor %}
@@ -27,3 +25,4 @@
 </table>
 
 <p id="resultcount" class="hidden">{{ resultcount }}</p>
+<p id="activepluginid" class="hidden">{{ plugin_id }}</p>}}</p>
