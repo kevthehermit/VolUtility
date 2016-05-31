@@ -1216,7 +1216,7 @@ def ajax_handler(request, command):
                 search_term = request.POST['search[value]']
                 print search_term
                 # output = [r for r in output if search_term.lower() in r]
-                output = filter(lambda x: search_term in str(x), output)
+                output = filter(lambda x: search_term.lower() in str(x).lower(), output)
 
             for row in output[start:start+length]:
                 paged_data.append(row)
