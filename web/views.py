@@ -114,7 +114,7 @@ def main_page(request, error_line=False):
 
 def session_page(request, sess_id):
     """
-    returns the seesion page thats used to run plugins
+    returns the session page thats used to run plugins
     :param request:
     :param sess_id:
     :return:
@@ -146,7 +146,6 @@ def session_page(request, sess_id):
     if not os.path.exists(session_details['session_path']):
         error_line = 'Memory Image can not be found at {0}'.format(session_details['session_path'])
 
-
     return render(request, 'session.html', {'session_details': session_details,
                                             'plugin_list': plugin_list,
                                             'plugin_output': plugin_text,
@@ -155,7 +154,6 @@ def session_page(request, sess_id):
                                             'version_info': version_info,
                                             'yara_list': yara_list,
                                             'extra_files': extra_files})
-
 
 def create_session(request):
     """
@@ -188,7 +186,6 @@ def create_session(request):
         logger.debug('Generating MD5 for Image')
         md5_hash = checksum_md5(new_session['session_path'])
         new_session['file_hash'] = md5_hash
-
 
     # Get a list of plugins we can use. and prepopulate the list.
 
@@ -318,7 +315,11 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
         # Run the plugin with json as normal
         output_style = 'json'
         try:
-            results = vol_int.run_plugin(plugin_name, output_style=output_style, pid=pid, plugin_options=plugin_options)
+            results = vol_int.run_plugin(plugin_name,
+                                         output_style=output_style,
+                                         pid=pid,
+                                         plugin_options=plugin_options
+                                         )
         except Exception as error:
             results = False
             logger.error('Json Output error in {0} - {1}'.format(plugin_name, error))
@@ -326,7 +327,11 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
         if 'unified output format has not been implemented' in str(error) or 'JSON output for trees' in str(error):
             output_style = 'text'
             try:
-                results = vol_int.run_plugin(plugin_name, output_style=output_style, pid=pid, plugin_options=plugin_options)
+                results = vol_int.run_plugin(plugin_name,
+                                             output_style=output_style,
+                                             pid=pid,
+                                             plugin_options=plugin_options
+                                             )
                 error = None
             except Exception as error:
                 logger.error('Json Output error in {0}, {1}'.format(plugin_name, error))
@@ -340,7 +345,12 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
             temp_dir = tempfile.mkdtemp()
             dump_dir = temp_dir
             try:
-                results = vol_int.run_plugin(plugin_name, dump_dir=dump_dir, output_style=output_style, pid=pid, plugin_options=plugin_options)
+                results = vol_int.run_plugin(plugin_name,
+                                             dump_dir=dump_dir,
+                                             output_style=output_style,
+                                             pid=pid,
+                                             plugin_options=plugin_options
+                                             )
             except Exception as error:
                 results = False
                 # Set plugin status
@@ -493,14 +503,8 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
                 results = new_results
             '''
 
-
-
-
             # Remove the dumpdir
             shutil.rmtree(temp_dir)
-
-
-
 
         ##
         # Extra processing output
@@ -516,16 +520,13 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
             # Add Row ID Column
             results['columns'].insert(0, '#')
 
-
             # Add option to process hive keys
             if plugin_row['plugin_name'] in ['hivelist', 'hivescan']:
                 results['columns'].append('Extract Keys')
 
-
             # Add option to process hive keys
             if plugin_row['plugin_name'] in ['malfind']:
                 results['columns'].append('Extract Injected Code')
-
 
             # Now Rows
             for row in results['rows']:
@@ -560,7 +561,6 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
         new_values['created'] = datetime.now()
         new_values['plugin_output'] = results
         new_values['status'] = 'completed'
-
 
         try:
             db.update_plugin(ObjectId(plugin_id), new_values)
@@ -627,13 +627,10 @@ def addfiles(request):
 
     session_id = ObjectId(request.POST['session_id'])
 
-
-
     for upload in request.FILES.getlist('files[]'):
         logger.debug('Storing File: {0}'.format(upload.name))
         file_data = upload.read()
         sha256 = hashlib.sha256(file_data).hexdigest()
-
 
         # Store file in GridFS
         db.create_file(file_data, session_id, sha256, upload.name, pid=None, file_meta='ExtraFile')
@@ -645,7 +642,6 @@ def addfiles(request):
         extra_files.append({'filename': upload.filename, 'file_id': upload._id})
 
     return render(request, 'file_upload_table.html', {'extra_files': extra_files})
-
 
 
 @csrf_exempt
@@ -661,24 +657,16 @@ def ajax_handler(request, command):
         if 'session_id' in request.POST:
             # Get Current Session
             session_id = request.POST['session_id']
-
             session = db.get_session(ObjectId(session_id))
-
             plugin_rows = db.get_pluginbysession(ObjectId(session_id))
 
             # Check for new registered plugins
-
             # Get compatible plugins
 
-
             profile = session['session_profile']
-
             session_path = session['session_path']
-
             vol_int = RunVol(profile, session_path)
-
             plugin_list = vol_int.list_plugins()
-
 
             # Plugin Options
             plugin_filters = vol_interface.plugin_filters
@@ -793,9 +781,7 @@ def ajax_handler(request, command):
         if 'plugin_id' and 'rowid' in request.POST:
             pluginid = request.POST['plugin_id']
             rowid = request.POST['rowid']
-
             plugin_details = db.get_pluginbyid(ObjectId(pluginid))
-
             key_name = 'hive_keys_{0}'.format(rowid)
 
             if key_name in plugin_details:
@@ -822,7 +808,6 @@ def ajax_handler(request, command):
                 new_sess = {}
                 new_sess['modified'] = datetime.now()
                 db.update_session(session_id, new_sess)
-
 
             return render(request, 'hive_details.html', {'hive_details': hive_details})
 
@@ -866,7 +851,6 @@ def ajax_handler(request, command):
             else:
 
                 response = vt.get_file_report(sha256)
-
                 vt_fields = {}
 
                 if response['results']['response_code'] == 1:
@@ -952,7 +936,8 @@ def ajax_handler(request, command):
             vol_int = RunVol(session['session_profile'], session['session_path'])
 
             if yara_string:
-                results = vol_int.run_plugin('yarascan', output_style='json', pid=yara_pid, plugin_options={'YARA_RULES': yara_string,
+                results = vol_int.run_plugin('yarascan', output_style='json', pid=yara_pid, plugin_options={
+                                                                                          'YARA_RULES': yara_string,
                                                                                           'CASE': yara_case,
                                                                                           'ALL': yara_kernel,
                                                                                           'WIDE': yara_wide,
@@ -960,17 +945,15 @@ def ajax_handler(request, command):
                                                                                           'REVERSE': yara_reverse})
 
             elif yara_file:
-                results = vol_int.run_plugin('yarascan', output_style='json', pid=yara_pid, plugin_options={'YARA_FILE': yara_file,
+                results = vol_int.run_plugin('yarascan', output_style='json', pid=yara_pid, plugin_options={
+                                                                                          'YARA_FILE': yara_file,
                                                                                           'CASE': yara_case,
                                                                                           'ALL': yara_kernel,
                                                                                           'WIDE': yara_wide,
                                                                                           'SIZE': yara_hex,
                                                                                           'REVERSE': yara_reverse})
-
             else:
                 return
-
-
 
             if 'Data' in results['columns']:
                 row_loc = results['columns'].index('Data')
@@ -1020,7 +1003,6 @@ def ajax_handler(request, command):
                 store_data = {}
                 store_data['file_id'] = ObjectId(file_id)
                 store_data['yara'] = results
-
                 update = db.create_datastore(store_data)
 
             return render(request, 'file_details_yara.html', {'yara': results, 'error': None})
@@ -1221,13 +1203,11 @@ def ajax_handler(request, command):
             for row in output[start:start+length]:
                 paged_data.append(row)
 
-
             datatables = {
                 "draw": request.POST['draw'],
                 "recordsTotal": resultcount,
                 "recordsFiltered": len(output),
                 "data": paged_data
-
             }
 
             return JsonResponse(datatables)

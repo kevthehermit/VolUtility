@@ -477,7 +477,6 @@ $("#resultsTable tbody tr").contextMenu({
         var row_num = row.find('td:first-child').text();
         //var row_id = $invokedOn.closest("tr").find('td:first-child').data('rowid');
         var row_id = plugin_id + '_' + row_num;
-        alert(row_id);
 
         if (menu_option == 'Search cell value') {
             // Set the value so the ajax handler reads it properly
