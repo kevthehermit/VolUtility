@@ -261,11 +261,9 @@ function ajaxHandler(command, postFields, spinner) {
 
             }else if (command == 'hivedetails') {
                 $('#hiveModalDiv').html(data);
-                //jQuery.noConflict();
                 spinnerControl('close', 'Loading Data');
                 $('#hiveModal').modal('show');
                 // Enable table sorting
-                //jQuery.noConflict();
                 $('#hiveTable').DataTable();
 
             }else if (command == "virustotal" || command == "yara" || command == "strings" || command == "yara-string") {
@@ -299,14 +297,8 @@ function ajaxHandler(command, postFields, spinner) {
                 //resultscontextmenu ($, window);
 
             }else if (command == 'bookmark') {
-                var row_id = postOptions['row_id'];
-                var row = $('#resultsTable').find("[data-rowid='" + row_id + "']").parent('tr');
-                if (data == 'add') {
+                //
 
-                    $(row).addClass("success");
-                } else {
-                    $(row).removeClass("success");
-                }
             }else if (command == 'procmem') {
                 notifications('success', true, postOptions['plugin_id'], 'Check memdump plugin for your file.');
 
@@ -336,8 +328,15 @@ function ajaxHandler(command, postFields, spinner) {
         );
 }
 
+/*
+resultscontextmenu
+This is called whenever the datatables lib redraws a table.
+On page switch search etc.
 
+ */
 function resultscontextmenu ($, window) {
+
+    // This is called on every redraw so makes sense to add bookmark code in here.
 
     // Add any plugin specific rows
     var plugin_name = $('#pluginName').html();
@@ -362,6 +361,7 @@ function resultscontextmenu ($, window) {
 
     }
 
+    // Construct the Menu
 
     var menus = {};
     $.fn.contextMenu = function (settings) {
@@ -464,7 +464,13 @@ function resultscontextmenu ($, window) {
     };
 
 
+/*
+Context Menu Handler
+Identifies what option from the context menu was selected
+and act accordingly.
 
+
+ */
 $("#resultsTable tbody tr").contextMenu({
     menuSelector: "#contextMenu",
     menuSelected: function ($invokedOn, $selectedMenu) {
@@ -473,7 +479,8 @@ $("#resultsTable tbody tr").contextMenu({
         var row = $invokedOn.closest("tr");
         var menu_option = $selectedMenu.text();
         var cell_value = $invokedOn.text();
-        var plugin_id = $('#activepluginid').html();
+        //var plugin_id = $('#activepluginid').html();
+        plugin_id = vActivePluginID;
         var row_num = row.find('td:first-child').text();
         //var row_id = $invokedOn.closest("tr").find('td:first-child').data('rowid');
         var row_id = plugin_id + '_' + row_num;
@@ -493,7 +500,12 @@ $("#resultsTable tbody tr").contextMenu({
         }
 
         if (menu_option == 'BookMark Row') {
+            // Trigger the server side
             ajaxHandler('bookmark', {'row_id':row_id }, false);
+            // Client Side update rows.
+
+
+
         }
 
         if (menu_option == 'Store Process Mem') {
@@ -627,10 +639,15 @@ function datatablesAjax(plugin_id) {
                         d.pagination = true;
                     }
                 },
+                createdRow: function (row, data, index) {
+                    if ($.inArray(parseInt(data[0]), vBookMarks) > -1) {
+                        $(row).addClass('success');
+                    }
+                },
                 pageLength:25,
                 scrollX: true,
                 drawCallback: function( settings ) {resultscontextmenu ($, window);},
-                deferLoading: $('#resultcount').html()
+                deferLoading: vresultCount
             });
             resultscontextmenu ($, window);
 
@@ -651,12 +668,5 @@ function datatablesAjax(plugin_id) {
             }
 
         );
-
-
-
-
-
-
-
 }
 

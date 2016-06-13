@@ -10,12 +10,7 @@
 
     <tbody>
         {%  for row in plugin_results.rows %}
-            {% if row.0 in bookmarks %}
-                <tr class="success">
-            {% else %}
-                <tr>
-            {% endif %}
-
+        <tr>
             {% for cell in row %}
             <td>{{ cell }}</td>
             {%  endfor %}
@@ -24,5 +19,8 @@
     </tbody>
 </table>
 
-<p id="resultcount" class="hidden">{{ resultcount }}</p>
-<p id="activepluginid" class="hidden">{{ plugin_id }}</p>}}</p>
+<script>
+    var vresultCount = '{{ resultcount }}';
+    var vActivePluginID = '{{ plugin_id }}';
+    var vBookMarks = {{ bookmarks }};
+</script>
