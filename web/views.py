@@ -545,9 +545,10 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
                 counter += 1
 
         # Image Info
+
         image_info = False
         if plugin_name == 'imageinfo':
-            imageinfo_text = results['rows'][0][0]
+            imageinfo_text = results['rows'][0][1]
             image_info = {}
             for line in imageinfo_text.split('\n'):
                 try:
