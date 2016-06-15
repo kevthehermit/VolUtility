@@ -518,7 +518,8 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
             # Columns
 
             # Add Row ID Column
-            results['columns'].insert(0, '#')
+            if results['columns'][0] != '#':
+                results['columns'].insert(0, '#')
 
             # Add option to process hive keys
             if plugin_row['plugin_name'] in ['hivelist', 'hivescan']:
@@ -531,7 +532,14 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
             # Now Rows
             for row in results['rows']:
                 # Add Row ID
-                row.insert(0, counter)
+                if plugin_name == 'memdump':
+                    if len(row) == 3:
+                        row.insert(0, counter)
+                elif plugin_name == 'dumpfiles':
+                    if len(row) == 4:
+                        row.insert(0, counter)
+                else:
+                    row.insert(0, counter)
 
                 if plugin_row['plugin_name'] in ['hivelist', 'hivescan']:
                     ajax_string = "onclick=\"ajaxHandler('hivedetails', {'plugin_id':'" + str(plugin_id) + "', 'rowid':'" + str(counter) + "'}, true )\"; return false"
