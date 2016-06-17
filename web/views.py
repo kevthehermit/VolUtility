@@ -1197,7 +1197,6 @@ def ajax_handler(request, command):
             # Searching
             if 'search[value]' in request.POST:
                 search_term = request.POST['search[value]']
-                print search_term
                 # output = [r for r in output if search_term.lower() in r]
                 output = filter(lambda x: search_term.lower() in str(x).lower(), output)
 

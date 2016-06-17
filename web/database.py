@@ -1,4 +1,4 @@
-import sys
+import json
 import pymongo
 from bson.objectid import ObjectId
 from gridfs import GridFS
@@ -52,7 +52,7 @@ class Database():
         return sess_id
 
     def update_session(self, sess_id, new_values):
-        self.vol_sessions.update_one({'_id':sess_id},{"$set": new_values })
+        self.vol_sessions.update_one({'_id': sess_id}, {"$set": new_values })
         return True
 
     ##
@@ -91,16 +91,24 @@ class Database():
         for row in plugin_output:
             result_rows.append(row)
 
-        #result_rows.sort(key=lambda d: (d["plugin_name"]))
+        # result_rows.sort(key=lambda d: (d["plugin_name"]))
 
         return result_rows
 
     def get_pluginbyid(self, plugin_id):
         plugin_output = self.vol_plugins.find_one({'_id': plugin_id})
+        if 'largedoc' in plugin_output:
+            large_document_id = plugin_output['plugin_output']
+            large_document = self.get_filebyid(large_document_id)
+            plugin_output['plugin_output'] = json.loads(large_document.read())
         return plugin_output
 
     def get_plugin_byname(self, plugin_name, session_id):
-        plugin_output = self.vol_plugins.find_one({'session_id': session_id, 'plugin_name':plugin_name})
+        plugin_output = self.vol_plugins.find_one({'session_id': session_id, 'plugin_name': plugin_name})
+        if 'largedoc' in plugin_output:
+            large_document_id = plugin_output['plugin_output']
+            large_document = self.get_filebyid(large_document_id)
+            plugin_output['plugin_output'] = json.loads(large_document.read())
         return plugin_output
 
     def create_plugin(self, plugin_data):
@@ -119,7 +127,14 @@ class Database():
         return results
 
     def update_plugin(self, plugin_id, new_values):
-        self.vol_plugins.update_one({'_id':plugin_id},{"$set": new_values })
+        if len(str(new_values)) > 15000000:
+            print "Storing Large Document in GridFS"
+            large_document = json.dumps(new_values['plugin_output'])
+            large_document_id = self.create_file(large_document, 'sess_id', 'sha256', 'filename', pid=None, file_meta=None)
+            new_values['plugin_output'] = large_document_id
+            new_values['largedoc'] = 'True'
+
+        self.vol_plugins.update_one({'_id': plugin_id}, {"$set": new_values})
         return True
 
 
