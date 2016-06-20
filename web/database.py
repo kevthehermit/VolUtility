@@ -127,7 +127,7 @@ class Database():
         return results
 
     def update_plugin(self, plugin_id, new_values):
-        if len(str(new_values)) > 15000000:
+        if len(str(new_values)) > 12000000:
             print "Storing Large Document in GridFS"
             large_document = json.dumps(new_values['plugin_output'])
             large_document_id = self.create_file(large_document, 'sess_id', 'sha256', 'filename', pid=None, file_meta=None)
