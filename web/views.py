@@ -1208,8 +1208,23 @@ def ajax_handler(request, command):
                 # output = [r for r in output if search_term.lower() in r]
                 output = filter(lambda x: search_term.lower() in str(x).lower(), output)
 
+            # Column Sort
+            col_index = int(request.POST['order[0][column]'])
+            if request.POST['order[0][dir]'] == 'asc':
+                direction = False
+            else:
+                direction = True
+
+            # Test column data for correct sort
+            try:
+                output = sorted(output, key=lambda x:int(x[col_index]), reverse=direction)
+            except:
+                output = sorted(output, key=lambda x:str(x[col_index]).lower(), reverse=direction)
+
+            # Get number of Rows
             for row in output[start:start+length]:
                 paged_data.append(row)
+
 
             datatables = {
                 "draw": request.POST['draw'],
