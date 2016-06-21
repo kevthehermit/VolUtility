@@ -1024,13 +1024,17 @@ def ajax_handler(request, command):
             file_id = request.POST['file_id']
             file_object = db.get_filebyid(ObjectId(file_id))
             file_data = file_object.read()
-            chars = r"A-Za-z0-9/\-:.,_$%'()[\]<>@=+ "
+            chars = " !\"#\$%&\'\(\)\*\+,-\./0123456789:;<=>\?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\]\^_`abcdefghijklmnopqrstuvwxyz\{\|\}\\\~\t"
             shortest_run = 4
             regexp = '[%s]{%d,}' % (chars, shortest_run)
             pattern = re.compile(regexp)
-            string_list = pattern.findall(file_data)
+            string_list_a = pattern.findall(file_data)
+            regexp = b'((?:[%s]\x00){%d,})' % (chars, shortest_run)
+            pattern = re.compile(regexp)
+            string_list_u = [w.decode('utf-16').encode('ascii') for w in pattern.findall(file_data)]
+            merged_list = string_list_a + string_list_u
             logger.debug('Joining Strings')
-            string_list = '\n'.join(string_list)
+            string_list = '\n'.join(merged_list)
 
             '''
             String lists can get larger than the 16Mb bson limit
