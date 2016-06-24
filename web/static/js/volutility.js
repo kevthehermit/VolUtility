@@ -270,10 +270,59 @@ function ajaxHandler(command, postFields, spinner) {
                 $('#'+postOptions["target_div"]).html(data);
 
             }else if (command == 'dottree' || command == "timeline") {
-                image = Viz(data, {format: "png-image-element"});
-                $(image).attr('id', 'proctree');
-                $(image).width('100%').height(500);
-                $('#resultsTarget').html(image);
+
+                // Prepare the div
+                $('#resultsTarget').html('<svg width="100%" height="100"><g/></svg>');
+
+
+                var svg = d3.select("svg"),
+                    inner = d3.select("svg g"),
+                    zoom = d3.behavior.zoom().on("zoom", function() {
+                      inner.attr("transform", "translate(" + d3.event.translate + ")" +
+                                                  "scale(" + d3.event.scale + ")");
+                    });
+                svg.call(zoom);
+
+
+                var render = dagreD3.render();
+
+                var g = graphlibDot.read(data);
+
+                // Set margins, if not present
+                if (!g.graph().hasOwnProperty("marginx") &&
+                    !g.graph().hasOwnProperty("marginy")) {
+                  g.graph().marginx = 20;
+                  g.graph().marginy = 20;
+                }
+
+
+                g.graph().transition = function(selection) {
+                      return selection.transition().duration(500);
+                    };
+
+
+                d3.select("svg g").call(render, g);
+
+
+                var xCenterOffset = (svg.attr("width") - g.graph().width) / 2;
+                inner.attr("transform", "translate(" + xCenterOffset + ", 20)");
+                svg.attr("height", g.graph().height + 40);
+
+            var allStates = $("svg.node > *");
+
+            allStates.on("click", function() {
+
+              allStates.removeClass("open");
+              $(this).addClass("open");
+
+            });
+
+
+
+                //image = Viz(data, {format: "png-image-element"});
+                //$(image).attr('id', 'proctree');
+                //$(image).width('100%').height(500);
+                //$('#resultsTarget').html(image);
                 //$('#'+postOptions["target_div"]).append(image);
 
             }else if (command == "dropsession") {
@@ -335,8 +384,6 @@ On page switch search etc.
 
  */
 function resultscontextmenu ($, window) {
-
-    // This is called on every redraw so makes sense to add bookmark code in here.
 
     // Add any plugin specific rows
     var plugin_name = $('#pluginName').html();
@@ -503,8 +550,6 @@ $("#resultsTable tbody tr").contextMenu({
             // Trigger the server side
             ajaxHandler('bookmark', {'row_id':row_id }, false);
             // Client Side update rows.
-
-
 
         }
 

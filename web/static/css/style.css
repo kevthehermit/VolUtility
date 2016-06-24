@@ -173,3 +173,35 @@ input[readonly] {
     bottom: 60px;
     right: 30px;
 }
+
+/* SVG Styles*/
+
+svg {
+  border: 1px solid #999;
+  overflow: hidden;
+}
+
+.node {
+  white-space: nowrap;
+}
+
+.node rect,
+.node circle,
+.node ellipse {
+  stroke: #333;
+  fill: #fff;
+  stroke-width: 1.5px;
+}
+
+.cluster rect {
+  stroke: #333;
+  fill: #000;
+  fill-opacity: 0.1;
+  stroke-width: 1.5px;
+}
+
+.edgePath path.path {
+  stroke: #ffffff;
+  stroke-width: 1.5px;
+  fill: none;
+}

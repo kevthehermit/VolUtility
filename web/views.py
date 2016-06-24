@@ -825,7 +825,45 @@ def ajax_handler(request, command):
         session = db.get_session(ObjectId(session_id))
         vol_int = RunVol(session['session_profile'], session['session_path'])
         results = vol_int.run_plugin('pstree', output_style='dot')
-        return HttpResponse(results)
+
+        # Configure the output for svg with D3 and digraph-d3
+
+        digraph = ''
+        for line in results.split('\n'):
+            if line.startswith('  #'):
+                pass
+            elif line.startswith('  node[shape'):
+                digraph += '{0}\n'.format('  node [labelStyle="font: 300 20px \'Helvetica Neue\', Helvetica"]')
+            elif 'label="{' in line:
+                # Format each node
+                node_block = re.search('\[label="{(.*)}"\]', line)
+                node_text = node_block.group(1)
+                elements = node_text.split('|')
+                label_style = ''
+
+                label_style = '<table> \
+                                <tbody> \
+                                <tr><td>Name</td><td>|Name|</td></tr> \
+                                <tr><td>PID</td><td>|Pid|</td></tr> \
+                                <tr><td>PPID</td><td>|PPid|</td></tr> \
+                                <tr><td>Offfset</td><td>|Offset|</td></tr> \
+                                <tr><td>Threads</td><td>|Thds|</td></tr> \
+                                <tr><td>Handles</td><td>|Hnds|</td></tr> \
+                                <tr><td>Time</td><td>|Time|</td></tr> \
+                                </tbody> \
+                                </table>'
+
+                for elem in elements:
+                    key, value = elem.split(':', 1)
+                    label_style = label_style.replace('|{0}|'.format(key), value)
+
+                line = line.replace('label="', 'labelType="html" label="')
+                line = line.replace('{'+node_text+'}', label_style)
+                digraph += '{0}\n'.format(line)
+
+            else:
+                digraph += '{0}\n'.format(line)
+        return HttpResponse(digraph)
 
     if command == 'timeline':
         logger.debug('Running Timeline')
