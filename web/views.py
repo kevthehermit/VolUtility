@@ -822,6 +822,14 @@ def ajax_handler(request, command):
 
     if command == 'dottree':
         session_id = request.POST['session_id']
+        # Check for existing Map
+        dottree = db.search_datastore({'session_id': ObjectId(session_id)})
+        if len(dottree) > 0:
+            if 'dottree' in dottree[0]:
+                print 'return Existing'
+                return HttpResponse(dottree[0]['dottree'])
+
+        # Else Generate and store
         session = db.get_session(ObjectId(session_id))
         vol_int = RunVol(session['session_profile'], session['session_path'])
         results = vol_int.run_plugin('pstree', output_style='dot')
@@ -863,6 +871,13 @@ def ajax_handler(request, command):
 
             else:
                 digraph += '{0}\n'.format(line)
+
+        # Store the results in datastore
+        store_data = {}
+        store_data['session_id'] = ObjectId(session_id)
+        store_data['dottree'] = digraph
+        update = db.create_datastore(store_data)
+
         return HttpResponse(digraph)
 
     if command == 'timeline':
