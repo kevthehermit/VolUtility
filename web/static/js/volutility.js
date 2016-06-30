@@ -550,6 +550,16 @@ $("#resultsTable tbody tr").contextMenu({
             // Trigger the server side
             ajaxHandler('bookmark', {'row_id':row_id }, false);
             // Client Side update rows.
+            if ($.inArray(parseInt(row_num), vBookMarks) > -1) {
+                // Remove from array
+                vBookMarks = jQuery.grep(vBookMarks, function(value) {
+                  return value != row_num;
+                });
+            } else {
+                vBookMarks.splice(0, 0, parseInt(row_num));
+            }
+            // Redraw Table
+            $('#resultsTable').DataTable().draw(false);
 
         }
 
