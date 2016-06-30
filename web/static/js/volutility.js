@@ -385,26 +385,25 @@ On page switch search etc.
  */
 function resultscontextmenu ($, window) {
 
-    // Add any plugin specific rows
+    // Construct the Base Menu
+    $("#contextMenu").empty();
+    $("#contextMenu").append('<li><a tabindex="-1" href="#">BookMark Row</a></li>');
+    $("#contextMenu").append('<li><a tabindex="-1" href="#">Search cell value</a></li>');
+    $("#contextMenu").append('<li class="divider"></li>');
+    $("#contextMenu").append('<li><a tabindex="-1" href="#">Export Row</a></li>');
+    $("#contextMenu").append('<li><a tabindex="-1" href="#">Export Table</a></li>');
+
+    // Add Rows based on current plugin
     var plugin_name = $('#pluginName').html();
 
     if (plugin_name == 'pslist') {
-
-        if ( $('#contextMenu:contains("Store Process Mem")').length ) {
-            //exists
-        } else {
+            $("#contextMenu").append('<li class="divider"></li>');
             $("#contextMenu").append('<li><a tabindex="-1" href="#">Store Process Mem</a></li>');
-        }
-
     }
 
     if (plugin_name == 'filescan') {
-
-        if ( $('#contextMenu:contains("Store File Object")').length ) {
-            //exists
-        } else {
+            $("#contextMenu").append('<li class="divider"></li>');
             $("#contextMenu").append('<li><a tabindex="-1" href="#">Store File Object</a></li>');
-        }
 
     }
 
