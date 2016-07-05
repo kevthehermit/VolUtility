@@ -19,8 +19,14 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
 
 try:
+    import virus_total_apis
     from virus_total_apis import PublicApi
     VT_LIB = True
+    # Version check needs to be higher than 1.0.9
+    vt_ver = virus_total_apis.__version__.split('.')
+    if int(vt_ver[1]) < 1:
+        logger.warning("virustotal-api version is too low. 'sudo pip install --upgrade virustotal-api'")
+        VT_LIB = False
 except ImportError:
     VT_LIB = False
     logger.warning("Unable to import VirusTotal API Library")
@@ -239,7 +245,7 @@ def create_session(request):
     session_id = db.create_session(new_session)
 
     # Autorun list from config
-    if config.autorun:
+    if config.autorun == 'True':
         auto_list = config.plugins.split(',')
     else:
         auto_list = False
@@ -886,6 +892,45 @@ def ajax_handler(request, command):
         session = db.get_session(ObjectId(session_id))
         vol_int = RunVol(session['session_profile'], session['session_path'])
         results = vol_int.run_plugin('timeliner', output_style='dot')
+
+        # Configure the output for svg with D3 and digraph-d3
+
+        digraph = ''
+        for line in results.split('\n'):
+            if line.startswith('  #'):
+                pass
+            elif line.startswith('  node[shape'):
+                digraph += '{0}\n'.format('  node [labelStyle="font: 300 20px \'Helvetica Neue\', Helvetica"]')
+            elif 'label="{' in line:
+                # Format each node
+                node_block = re.search('\[label="{(.*)}"\]', line)
+                node_text = node_block.group(1)
+                elements = node_text.split('|')
+                label_style = ''
+
+                label_style = '<table> \
+                                <tbody> \
+                                <tr><td>Start</td><td>|Start|</td></tr> \
+                                <tr><td>Header</td><td>|Header|</td></tr> \
+                                <tr><td>Item</td><td>|Item|</td></tr> \
+                                <tr><td>Details</td><td>|Details|</td></tr> \
+                                <tr><td>End</td><td>|End|</td></tr> \
+                                </tbody> \
+                                </table>'
+
+                for elem in elements:
+                    key, value = elem.split(':', 1)
+                    label_style = label_style.replace('|{0}|'.format(key), value)
+
+                line = line.replace('label="', 'labelType="html" label="')
+                line = line.replace('{'+node_text+'}', label_style)
+                digraph += '{0}\n'.format(line)
+
+            else:
+                digraph += '{0}\n'.format(line)
+
+
+
         return HttpResponse(results)
 
     if command == 'virustotal':
