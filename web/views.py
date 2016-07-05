@@ -1209,7 +1209,11 @@ def ajax_handler(request, command):
                 rows = db.search_plugins(search_text, session_id=ObjectId(session_id))
                 for row in rows:
                     results['rows'].append([row['plugin_name'], '<a href="#" onclick="ajaxHandler(\'pluginresults\', \{{\'plugin_id\':\'{0}\'}}, false ); return false">View Output</a>'.format(row['_id'])])
-                return render(request, 'plugin_output.html', {'plugin_results': results})
+                return render(request, 'plugin_output.html', {'plugin_results': results,
+                                                              'bookmarks': [],
+                                                              'plugin_id': 'None',
+                                                              'plugin_name': 'Search Results',
+                                                              'resultcount': len(results['rows'])})
 
             if search_type == 'hash':
                 pass
@@ -1245,7 +1249,11 @@ def ajax_handler(request, command):
                     session = db.get_session(ObjectId(session_id))
                     vol_int = RunVol(session['session_profile'], session['session_path'])
                     results = vol_int.run_plugin('printkey', output_style='json', plugin_options={'KEY': search_text})
-                    return render(request, 'plugin_output.html', {'plugin_results': results})
+                    return render(request, 'plugin_output.html', {'plugin_results': results,
+                                                                  'bookmarks': [],
+                                                                  'plugin_id': 'None',
+                                                                  'plugin_name': 'Registry Search',
+                                                                  'resultcount': len(results['rows'])})
                 except Exception as error:
                     logger.error(error)
 
@@ -1262,7 +1270,10 @@ def ajax_handler(request, command):
                 # Consider storing the output here as well.
 
                 return render(request, 'plugin_output.html', {'plugin_results': results,
-                                                              'bookmarks': []})
+                                                              'bookmarks': [],
+                                                              'plugin_id': 'None',
+                                                              'plugin_name': 'Volatility Command Line',
+                                                              'resultcount': len(results['rows'])})
 
             return HttpResponse('No valid search query found.')
 

@@ -342,8 +342,8 @@ function ajaxHandler(command, postFields, spinner) {
                 // Enable table sorting
 
                 // Return JQuery
-                //$('#resultsTable').DataTable({pageLength:25,scrollX: true,drawCallback: resultscontextmenu ($, window)});
-                //resultscontextmenu ($, window);
+                $('#resultsTable').DataTable({pageLength:25,scrollX: true,drawCallback: resultscontextmenu ($, window)});
+                resultscontextmenu ($, window);
 
             }else if (command == 'bookmark') {
                 //
