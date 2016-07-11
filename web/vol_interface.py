@@ -236,7 +236,7 @@ class RunVol:
             # Set Config options
             self.config.PID = pid
             self.config.DUMP_DIR = dump_dir
-            self.config.hive_offset = hive_offset
+            self.config.HIVE_OFFSET = hive_offset
             if plugin_options:
                 for option, value in plugin_options.iteritems():
                     logger.debug('Setting Config {0} to {1}'.format(option, value))
