@@ -271,13 +271,13 @@ function ajaxHandler(command, postFields, spinner) {
 
             }else if (command == 'dottree' || command == "timeline") {
 
+
+
                 // Prepare the div
                 $('#resultsTarget').html('<svg width="100%" height="100"><g/></svg>');
-
-
-                var svg = d3.select("svg"),
-                    inner = d3.select("svg g"),
-                    zoom = d3.behavior.zoom().on("zoom", function() {
+                var svg = d3.select("svg");
+                var inner = d3.select("svg g");
+                var zoom = d3.behavior.zoom().on("zoom", function() {
                       inner.attr("transform", "translate(" + d3.event.translate + ")" +
                                                   "scale(" + d3.event.scale + ")");
                     });
@@ -285,9 +285,7 @@ function ajaxHandler(command, postFields, spinner) {
 
 
                 var render = dagreD3.render();
-
                 var g = graphlibDot.read(data);
-
                 // Set margins, if not present
                 if (!g.graph().hasOwnProperty("marginx") &&
                     !g.graph().hasOwnProperty("marginy")) {
@@ -295,29 +293,56 @@ function ajaxHandler(command, postFields, spinner) {
                   g.graph().marginy = 20;
                 }
 
-
                 g.graph().transition = function(selection) {
                       return selection.transition().duration(500);
                     };
 
-
                 d3.select("svg g").call(render, g);
 
+                svg.attr("height", g.graph().height);
 
-                var xCenterOffset = (svg.attr("width") - g.graph().width) / 2;
-                inner.attr("transform", "translate(" + xCenterOffset + ", 20)");
-                svg.attr("height", g.graph().height + 40);
+                var xCenterOffset = (g.graph().width) / 2;
+                var yCenterOffset = (g.graph().height) / 2;
 
-            var allStates = $("svg.node > *");
+                inner.attr("transform", "translate("+xCenterOffset+", "+ yCenterOffset +")");
 
-            allStates.on("click", function() {
+                $("svg").click(function( event ) {
 
-              allStates.removeClass("open");
-              $(this).addClass("open");
+                    // Reset the CSS
+                    $("svg").find('rect').css("fill", "white");
+                    $("svg").find('path').css("stroke", "white");
 
+                    // Get nodes and paths
+                    var node_list = inner.selectAll("g.node")[0];
+                    var path_list = inner.selectAll("g.edgePath")[0];
+
+                    // Get Selected Node
+                    var selectedNode = $(event.target).closest('.node').find('rect');
+                    var selectedNodeID = selectedNode[0].__data__;
+
+                    // Set selected node to blue
+                    selectedNode.html("TEST");
+                    selectedNode.css("fill", "blue");
+                    // Find parents and children
+
+                    for (i = 0; i < path_list.length; i++) {
+
+                        var ppid = path_list[i].__data__.v;
+                        var pid = path_list[i].__data__.w;
+                        // Parent
+                        if (pid == selectedNodeID) {
+                            var ppid_int = parseInt(ppid.slice(4));
+                            $(node_list[ppid_int-1]).find('rect').css("fill", "red");
+                            $(path_list[i]).find('path').css("stroke", "red")
+                        }
+                        // Children
+                        if (ppid == selectedNodeID) {
+                            var pid_int = parseInt(pid.slice(4));
+                            $(node_list[pid_int-1]).find('rect').css("fill", "yellow");
+                            $(path_list[i]).find('path').css("stroke", "yellow")
+                        }
+                    }
             });
-
-
 
                 //image = Viz(data, {format: "png-image-element"});
                 //$(image).attr('id', 'proctree');
@@ -325,7 +350,7 @@ function ajaxHandler(command, postFields, spinner) {
                 //$('#resultsTarget').html(image);
                 //$('#'+postOptions["target_div"]).append(image);
 
-            }else if (command == "dropsession") {
+            }else if (command == "deleteobject" || command == "dropsession") {
                 window.location.reload();
 
             }else if (command == 'memhex') {
