@@ -369,8 +369,8 @@ function ajaxHandler(command, postFields, spinner) {
                 //$('#'+postOptions["target_div"]).append(image);
 
             }else if (command == "deleteobject" || command == "dropsession") {
-                //window.location.reload();
-                var empty = true;
+                $('.modal').modal('hide');
+                datatablesAjax(vActivePluginID)
 
             }else if (command == 'memhex') {
                 $('#'+postOptions["target_div"]).html(data);
