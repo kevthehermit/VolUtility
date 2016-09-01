@@ -16,6 +16,7 @@
     <li><a data-toggle="pill" href="#menu1">VirusTotal</a></li>
     <li><a data-toggle="pill" href="#menu2">Strings</a></li>
     <li><a data-toggle="pill" href="#menu3">Yara</a></li>
+    <li><a data-toggle="pill" href="#menu4">Cuckoo</a></li>
   </ul>
 
   <div class="tab-content">
@@ -33,7 +34,7 @@
                 </tr>
                 <tr>
                     <th>MD5</th>
-                    <td id="sessionID">{{ file_details.md5}}</td>
+                    <td>{{ file_details.md5}}</td>
                 </tr>
                 <tr>
                     <th>SHA256</th>
@@ -43,6 +44,13 @@
                     <th>Download</th>
                     <td><a href="/download/file/{{file_id}}">Download</a></td>
                 </tr>
+                <tr>
+                    <th>Delete</th>
+                    <td><span class="clickable"> <a class="text-danger" href="#" onclick="ajaxHandler('deleteobject', {'file_id':'{{file_id}}', 'droptype':'dumpfiles', 'session_id':'{{session_details|get:"_id"}}'}, false )">  <span class="glyphicon glyphicon-trash"></span></a></span></td>
+
+                </tr>
+
+
             </table>
     </div>
 
@@ -90,6 +98,14 @@
                 <a href="#" onclick="ajaxHandler('yara', {'file_id':'{{file_id}}', 'target_div':'yara-out'}, false ); return false" class="btn btn-info" role="button">Yara Scan</a>
             </div>
 
+    </div>
+
+    <div id="menu4" class="tab-pane fade">
+      <h3>Cuckoo</h3>
+        <div id="vt-out">
+        {% include "file_details_cuckoo.html" %}
+
+        </div>
     </div>
 
 

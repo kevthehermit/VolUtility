@@ -30,7 +30,7 @@
             <td class="clickable" onclick="document.location = '/session/{{row|get:"_id"}}/';">{{row.session_profile}}</td>
             <td class="clickable" onclick="document.location = '/session/{{row|get:"_id"}}/';">{{row.created|date:"m M y H:i:s"}}</td>
             <td class="clickable" onclick="document.location = '/session/{{row|get:"_id"}}/';">{{row.modified|date:"m M y H:i:s"}}</td>
-            <td><span class="clickable"> <a class="text-danger" href="#" onclick="ajaxHandler('dropsession', {'session_id':'{{row|get:"_id"}}'}, false )">  <span class="glyphicon glyphicon-trash"></span></a></span></td>
+            <td><span class="clickable"> <a class="text-danger" href="#" onclick="ajaxHandler('deleteobject', {'session_id':'{{row|get:"_id"}}', 'droptype':'session'}, false )">  <span class="glyphicon glyphicon-trash"></span></a></span></td>
         </tr>
         {% endfor %}
     </table>

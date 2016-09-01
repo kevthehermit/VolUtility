@@ -731,6 +731,7 @@ def ajax_handler(request, command):
             return HttpResponse('OK')
 
     if command == 'runplugin':
+        print 1
         if 'plugin_id' in request.POST and 'session_id' in request.POST:
             plugin_name = run_plugin(request.POST['session_id'], request.POST['plugin_id'])
             return HttpResponse(plugin_name)
@@ -761,6 +762,10 @@ def ajax_handler(request, command):
             return HttpResponse(' No Plugin Path Provided')
 
     if command == 'filedetails':
+        if 'session_id' in request.POST:
+            session_id = request.POST['session_id']
+            session_details = db.get_session(ObjectId(session_id))
+
         if 'file_id' in request.POST:
             file_id = request.POST['file_id']
             file_object = db.get_filebyid(ObjectId(file_id))
@@ -792,7 +797,8 @@ def ajax_handler(request, command):
                                                          'vt_results': vt_results,
                                                          'string_list': string_list,
                                                          'state': state,
-                                                         'error': None
+                                                         'error': None,
+                                                         'session_details': session_details
                                                          })
 
     if command == 'hivedetails':
@@ -1138,10 +1144,38 @@ def ajax_handler(request, command):
 
             return HttpResponse('<td><a class="btn btn-success" role="button" href="/download/file/{0}">Download</a></td>'.format(string_id))
 
-    if command == 'dropsession':
+    if command == 'deleteobject':
+        if 'droptype' in request.POST:
+            drop_type = request.POST['droptype']
+
         if 'session_id' in request.POST:
+            session_id = request.POST['session_id']
+
+        if drop_type == 'session' and session_id:
             session_id = ObjectId(request.POST['session_id'])
             db.drop_session(session_id)
+            return HttpResponse('OK')
+
+        if 'file_id' in request.POST and drop_type == 'dumpfiles':
+
+            plugin_id = request.POST['plugin_id']
+            file_id = request.POST['file_id']
+            plugin_details = db.get_pluginbyid(ObjectId(plugin_id))
+
+            new_rows = []
+            for row in plugin_details['plugin_output']['rows']:
+                if str(file_id) in str(row):
+                    pass
+                else:
+                    new_rows.append(row)
+            plugin_details['plugin_output']['rows'] = new_rows
+
+            # Drop file
+            db.drop_file(ObjectId(file_id))
+
+            # Update plugin
+            db.update_plugin(ObjectId(plugin_id), plugin_details)
+
             return HttpResponse('OK')
 
     if command == 'memhex':

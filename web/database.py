@@ -161,6 +161,9 @@ class Database():
         file_id = self.vol_files.put(file_data, filename=filename, sess_id=sess_id, sha256=sha256, pid=pid, file_meta=file_meta)
         return file_id
 
+    def drop_file(self, file_id):
+        self.vol_files.delete(file_id)
+        return True
 
     ##
     # DataStore
@@ -181,6 +184,7 @@ class Database():
     def update_datastore(self, search_query, new_values):
         self.vol_datastore.update_one(search_query, {"$set": new_values})
         return True
+
 
 
     ##

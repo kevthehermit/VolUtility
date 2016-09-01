@@ -6,15 +6,31 @@
 
 **Implemented enhancements:**
 
+- Plugin Row ID [\#27](https://github.com/kevthehermit/VolUtility/issues/27)
+- Dockerfile [\#25](https://github.com/kevthehermit/VolUtility/issues/25)
+- Export single file via context menu [\#18](https://github.com/kevthehermit/VolUtility/issues/18)
 - Pre select plugins to run when loading image [\#9](https://github.com/kevthehermit/VolUtility/issues/9)
 
 **Fixed bugs:**
 
+- Process Map button not working [\#33](https://github.com/kevthehermit/VolUtility/issues/33)
+- command document too large error [\#31](https://github.com/kevthehermit/VolUtility/issues/31)
+- Files Detail button issue [\#30](https://github.com/kevthehermit/VolUtility/issues/30)
+- imageinfo is not working [\#29](https://github.com/kevthehermit/VolUtility/issues/29)
+- Plugin Row ID [\#27](https://github.com/kevthehermit/VolUtility/issues/27)
+- DataTables Stops rendering [\#26](https://github.com/kevthehermit/VolUtility/issues/26)
 - memdump not producing results [\#21](https://github.com/kevthehermit/VolUtility/issues/21)
 
 **Closed issues:**
 
+- Process Map/Timeliner \(enhancement\) [\#35](https://github.com/kevthehermit/VolUtility/issues/35)
+- Bookmarks do not show up until plugin results are reloaded. [\#34](https://github.com/kevthehermit/VolUtility/issues/34)
+- List supported plugins sorted [\#23](https://github.com/kevthehermit/VolUtility/issues/23)
 - ERROR Json Output error in yarascan [\#20](https://github.com/kevthehermit/VolUtility/issues/20)
+
+**Merged pull requests:**
+
+- Add unicode to strings output [\#32](https://github.com/kevthehermit/VolUtility/pull/32) ([Beercow](https://github.com/Beercow))
 
 ## [v0.2](https://github.com/kevthehermit/VolUtility/tree/v0.2) (2016-04-17)
 [Full Changelog](https://github.com/kevthehermit/VolUtility/compare/v0.1-alpha...v0.2)

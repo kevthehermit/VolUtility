@@ -173,6 +173,7 @@ function ajaxHandler(command, postFields, spinner) {
         var postOptions = JSON.parse(postFields);
     }
 
+
     // Sometimes we need to get values from form fields before the post.
     if (command == 'plugin_dir'){
         var postOptions = {'plugin_dir':$('#pluginDir').val()};
@@ -219,6 +220,23 @@ function ajaxHandler(command, postFields, spinner) {
         span_id.removeAttribute('class');
         span_id.className += 'glyphicon glyphicon-repeat';
         span_id.className += ' gly-spin';
+    }
+
+
+    // Try to add a session ID if one is present.
+    var session_id = $('#sessionID').html();
+    if(typeof session_id !== "undefined")
+    {
+      postOptions['session_id'] =session_id;
+    }
+
+    //Try to add active plugin ID
+    if (postOptions['plugin_id'] == undefined)
+    {
+        if(typeof vActivePluginID !== "undefined")
+        {
+          postOptions['plugin_id'] = vActivePluginID;
+        }
     }
 
     $.post("/ajaxhandler/" + command + "/", postOptions)
@@ -351,7 +369,8 @@ function ajaxHandler(command, postFields, spinner) {
                 //$('#'+postOptions["target_div"]).append(image);
 
             }else if (command == "deleteobject" || command == "dropsession") {
-                window.location.reload();
+                //window.location.reload();
+                var empty = true;
 
             }else if (command == 'memhex') {
                 $('#'+postOptions["target_div"]).html(data);
