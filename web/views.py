@@ -4,6 +4,7 @@ from datetime import datetime
 from web.common import *
 import multiprocessing
 from common import Config, checksum_md5
+from Registry import Registry
 config = Config()
 
 logger = logging.getLogger(__name__)
@@ -49,6 +50,27 @@ try:
     db = Database()
 except Exception as e:
     logger.error("Unable to access mongo database: {0}".format(e))
+
+##
+# Registry Stuffs
+##
+
+
+def reg_sub_keys(key):
+    sub_keys = []
+
+    for subkey in key.subkeys():
+        sub_keys.append(subkey)
+
+    return sub_keys
+
+
+def reg_key_values(key):
+    key_values = []
+    for value in [v for v in key.values()
+                  if v.value_type() == Registry.RegSZ or v.value_type() == Registry.RegExpandSZ]:
+        key_values.append([value.name(), value.value()])
+    return key_values
 
 
 ##
@@ -834,6 +856,39 @@ def ajax_handler(request, command):
                 db.update_session(session_id, new_sess)
 
             return render(request, 'hive_details.html', {'hive_details': hive_details})
+
+    if command == 'hiveviewer':
+        file_id = request.POST['file_id']
+
+        key_request = request.POST['key']
+
+        reg_data = db.get_filebyid(ObjectId(file_id))
+
+        reg = Registry.Registry(reg_data)
+
+        reg_root = reg.root()
+
+        root_path = reg_root.path()
+
+        if key_request == 'root':
+
+            return HttpResponse(root_path)
+
+            first_path = reg_root.path()
+
+
+            this = reg_sub_keys(reg_root)
+
+            for sub in this:
+                print sub.path()
+
+
+            for a in reg_sub_keys(this[0]):
+                print a.path()
+                for b in reg_sub_keys(a):
+                    print b.path()
+
+
 
     if command == 'dottree':
         session_id = request.POST['session_id']

@@ -398,6 +398,13 @@ function ajaxHandler(command, postFields, spinner) {
             }else if (command == 'filedump') {
                 notifications('success', true, postOptions['plugin_id'], 'Check dumpfiles plugin for your file.');
 
+            }else if (command == 'hiveviewer') {
+                //Hide Any Open Modal
+                $('.modal').modal('hide');
+                // Open New Modal
+                $('#hiveViewModal').modal('show');
+                $('#hiveviewcontainer').html(data);
+
             }else {
                 alertBar('danger', 'Spaghetti-Os!', 'Unable to find a valid command')
             }
