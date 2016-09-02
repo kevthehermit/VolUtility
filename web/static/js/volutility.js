@@ -399,11 +399,50 @@ function ajaxHandler(command, postFields, spinner) {
                 notifications('success', true, postOptions['plugin_id'], 'Check dumpfiles plugin for your file.');
 
             }else if (command == 'hiveviewer') {
-                //Hide Any Open Modal
-                $('.modal').modal('hide');
-                // Open New Modal
-                $('#hiveViewModal').modal('show');
-                $('#hiveviewcontainer').html(data);
+
+                if (postOptions['reset']){
+                    //Hide Any Open Modal
+                    $('.modal').modal('hide');
+                    // Open New Modal
+                    $('#hiveViewModal').modal('show');
+                }
+
+
+
+                // Convert to Json
+                var new_data = $.parseJSON(data);
+
+                var key_values = new_data['key_values'];
+                var child_keys = new_data['child_keys'];
+                var parent_key = new_data['parent_key'];
+
+                // Add Nodes to Tree
+
+                $.each(child_keys, function( index, value ) {
+
+                    // If parent node exists then apend to that.
+
+                    if ( $( "#nodelist ul #"+value ).length ) {
+
+                    $("#nodelist ul #"+value).append("<li id='"+value+"'><input type=\"checkbox\" id=\"item-0\" /><label for=\"item-0\" onclick=\"ajaxHandler('hiveviewer', {'file_id':'57c82408695b265f7cf3feb4', 'key': '"+value+"', 'reset': false}, false )\">"+value+"</label>");
+
+                    // Else create new node
+
+                    } else {
+                        $('#nodelist ul').append("<li id='"+value+"'><input type=\"checkbox\" id=\"item-0\" /><label for=\"item-0\" onclick=\"ajaxHandler('hiveviewer', {'file_id':'57c82408695b265f7cf3feb4', 'key': '"+value+"', 'reset': false}, false )\">"+value+"</label>");
+                    }
+
+                });
+
+
+
+                // Populate Values
+                $('#regValues tbody').empty();
+                $.each(key_values, function( index, value ) {
+                  $('#regValues tbody').append('<tr><td>'+value[0]+'</td><td>'+value[1]+'</td><td>'+value[2]+'</td></tr>');
+                });
+
+                // End Reg
 
             }else {
                 alertBar('danger', 'Spaghetti-Os!', 'Unable to find a valid command')
@@ -775,3 +814,8 @@ function datatablesAjax(plugin_id) {
         );
 }
 
+$(document).ready(function () {
+	$('label.tree-toggler').click(function () {
+		$(this).parent().children('ul.tree').toggle(300);
+	});
+});

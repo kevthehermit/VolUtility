@@ -95,11 +95,12 @@ class Config:
             logger.error('Unable to find a valid volutility.conf file.')
 
 
-def rec(key, depth=0):
-    print "\t" * depth + key.path()
+def rec(key, depth=0, all_nodes=''):
+    all_nodes += "\t" * depth + key.path()
+
 
     for subkey in key.subkeys():
-        try:
-            rec(subkey, depth + 1)
-        except:
-            pass
+        rec(subkey, depth + 1, all_nodes=all_nodes)
+
+
+    return all_nodes

@@ -1,5 +1,6 @@
 import re
 import sys
+import json
 from datetime import datetime
 from web.common import *
 import multiprocessing
@@ -858,6 +859,7 @@ def ajax_handler(request, command):
             return render(request, 'hive_details.html', {'hive_details': hive_details})
 
     if command == 'hiveviewer':
+        # https://github.com/williballenthin/python-registry
         file_id = request.POST['file_id']
 
         key_request = request.POST['key']
@@ -866,27 +868,47 @@ def ajax_handler(request, command):
 
         reg = Registry.Registry(reg_data)
 
-        reg_root = reg.root()
-
-        root_path = reg_root.path()
 
         if key_request == 'root':
+            key = reg.root()
 
-            return HttpResponse(root_path)
+        else:
+            try:
+                key = reg.open(key_request)
+            except Registry.RegistryKeyNotFoundException:
+                # Check for values
+                key = False
 
-            first_path = reg_root.path()
+        if key:
+
+            # Get the Parent
+            try:
+                parent_path = "\\".join(key.parent().path().strip("\\").split('\\')[1:])
+            except Registry.RegistryKeyHasNoParentException:
+                parent_path = None
+
+            json_response = {'parent_key': parent_path}
+
+            # Get Sub Keys
+            child_keys = []
+            for sub in reg_sub_keys(key):
+                sub_path = "\\".join(sub.path().strip("\\").split('\\')[1:])
+                child_keys.append(sub_path)
+
+            # Get Values
+            key_values = []
+            for value in key.values():
+
+                key_values.append([value.name(), value.value_type_str(), value.value()])
+
+            json_response['child_keys'] = child_keys
+            json_response['key_values'] = key_values
 
 
-            this = reg_sub_keys(reg_root)
+            json_response = json.dumps(json_response)
 
-            for sub in this:
-                print sub.path()
+            return JsonResponse(json_response, safe=False)
 
-
-            for a in reg_sub_keys(this[0]):
-                print a.path()
-                for b in reg_sub_keys(a):
-                    print b.path()
 
 
 
