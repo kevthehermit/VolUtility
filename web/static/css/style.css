@@ -205,3 +205,10 @@ svg {
   stroke-width: 1.5px;
   fill: none;
 }
+
+
+@media screen and (min-width: 768px) {
+    .custom-class {
+        width: 70%; /* either % (e.g. 60%) or px (400px) */
+    }
+}

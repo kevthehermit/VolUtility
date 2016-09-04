@@ -859,15 +859,18 @@ def ajax_handler(request, command):
             return render(request, 'hive_details.html', {'hive_details': hive_details})
 
     if command == 'hiveviewer':
+
+        import urllib
         # https://github.com/williballenthin/python-registry
         file_id = request.POST['file_id']
 
-        key_request = request.POST['key']
+        key_request = urllib.unquote(request.POST['key'])
 
         reg_data = db.get_filebyid(ObjectId(file_id))
 
         reg = Registry.Registry(reg_data)
 
+        print key_request
 
         if key_request == 'root':
             key = reg.root()
@@ -880,12 +883,13 @@ def ajax_handler(request, command):
                 key = False
 
         if key:
-
             # Get the Parent
             try:
                 parent_path = "\\".join(key.parent().path().strip("\\").split('\\')[1:])
+                print key.parent().path()
             except Registry.RegistryKeyHasNoParentException:
                 parent_path = None
+
 
             json_response = {'parent_key': parent_path}
 
@@ -899,17 +903,41 @@ def ajax_handler(request, command):
             key_values = []
             for value in key.values():
 
-                key_values.append([value.name(), value.value_type_str(), value.value()])
+                val_name = value.name()
+                val_type = value.value_type_str()
+                val_value = value.value()
+
+                # Replace Unicode Chars
+                try:
+                    val_value = val_value.replace('\x00', ' ')
+                except AttributeError:
+                    pass
+
+                # Convert Bin to Hex chars
+
+                if val_type == 'RegBin' and all(c in string.printable for c in val_value) == False:
+                    val_value = val_value.encode('hex')
+
+                if val_type == 'RegNone' and all(c in string.printable for c in val_value) == False:
+                    val_value = val_value.encode('hex')
+
+                # Assemble and send
+                key_values.append([val_name, val_type, val_value])
+
+                #print val_type, val_value
 
             json_response['child_keys'] = child_keys
             json_response['key_values'] = key_values
-
 
             json_response = json.dumps(json_response)
 
             return JsonResponse(json_response, safe=False)
 
-
+        else:
+            json_response = {}
+            json_response['child_keys'] = []
+            json_response['key_values'] = []
+            return JsonResponse(json_response)
 
 
     if command == 'dottree':
