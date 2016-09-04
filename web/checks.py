@@ -21,6 +21,11 @@ def compat_check(app_configs=None, **kwargs):
         errors.append(Error('Unable to import pymongo', hint='sudo pip install pymongo'))
 
     try:
+        import Registry
+    except ImportError:
+        errors.append(Error('Unable to import python-registry', hint='sudo pip install python-registry'))
+
+    try:
         from virus_total_apis import PublicApi
     except ImportError:
         errors.append(Warning('Unable to import virustotalapi', hint='sudo pip install virustotal'))
