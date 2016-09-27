@@ -381,12 +381,16 @@ function ajaxHandler(command, postFields, spinner) {
                 $('#comment-block').html(data);
 
             }else if (command == 'pluginresults' || command == 'searchbar') {
+                // Close the spinner
+                spinnerControl('close', 'Loading Data');
+                // Load the data
                 $('#resultsTarget').html(data);
                 // Enable table sorting
 
                 // Return JQuery
                 $('#resultsTable').DataTable({pageLength:25,scrollX: true,drawCallback: resultscontextmenu ($, window)});
                 resultscontextmenu ($, window);
+
 
             }else if (command == 'bookmark') {
                 //

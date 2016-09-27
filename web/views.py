@@ -1055,7 +1055,8 @@ def ajax_handler(request, command):
 
             if 'upload' in request.POST:
                 response = vt.scan_file(file_object.read(), filename=file_object.filename, from_disk=False)
-                if response['results']['response_code'] == 1:
+                if response['results']['response_code'] == 1 and 'Scan request successfully queued' in response['results']['verbose_msg']:
+
                     return render(request, 'file_details_vt.html', {'state': 'pending',
                                                                     'vt_results': '',
                                                                     'file_id': file_id})
@@ -1067,7 +1068,6 @@ def ajax_handler(request, command):
 
                 response = vt.get_file_report(sha256)
                 vt_fields = {}
-
                 if response['results']['response_code'] == 1:
                     vt_fields['permalink'] = response['results']['permalink']
                     vt_fields['total'] = response['results']['total']
