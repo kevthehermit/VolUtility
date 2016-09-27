@@ -82,7 +82,7 @@ RUN groupadd -r volutility && \
  chown -R volutility:volutility /home/volutility
 
 # Install PIP Requirements.
-RUN pip install django distorm3 pymongo pycrypto virustotal-api
+RUN pip install django distorm3 pymongo pycrypto virustotal-api python-registry
 
 # Get VolUtility
 RUN cd /opt && \
