@@ -21,7 +21,7 @@ def compat_check(app_configs=None, **kwargs):
         errors.append(Error('Unable to import pymongo', hint='sudo pip install pymongo'))
 
     try:
-        import Registry
+        from Registry import Registry
     except ImportError:
         errors.append(Error('Unable to import python-registry', hint='sudo pip install python-registry'))
 
@@ -63,7 +63,12 @@ def compat_check(app_configs=None, **kwargs):
     # Database Connection finally
     if have_mongo:
         try:
-            connection = pymongo.MongoClient('localhost')
+            if config.valid:
+                mongo_uri = config.mongo_uri
+            else:
+                mongo_uri = 'mongodb://localhost'
+
+            connection = pymongo.MongoClient(mongo_uri)
 
             # Version Check
             server_version = connection.server_info()['version']

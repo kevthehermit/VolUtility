@@ -6,13 +6,18 @@
 
 **Implemented enhancements:**
 
+- Ability to delete individual files [\#37](https://github.com/kevthehermit/VolUtility/issues/37)
+- Process Map/Timeliner \(enhancement\) [\#35](https://github.com/kevthehermit/VolUtility/issues/35)
 - Plugin Row ID [\#27](https://github.com/kevthehermit/VolUtility/issues/27)
 - Dockerfile [\#25](https://github.com/kevthehermit/VolUtility/issues/25)
+- Registry viewer [\#22](https://github.com/kevthehermit/VolUtility/issues/22)
+- Support for Other memory formatys [\#19](https://github.com/kevthehermit/VolUtility/issues/19)
 - Export single file via context menu [\#18](https://github.com/kevthehermit/VolUtility/issues/18)
 - Pre select plugins to run when loading image [\#9](https://github.com/kevthehermit/VolUtility/issues/9)
 
 **Fixed bugs:**
 
+- Bookmarks do not show up until plugin results are reloaded. [\#34](https://github.com/kevthehermit/VolUtility/issues/34)
 - Process Map button not working [\#33](https://github.com/kevthehermit/VolUtility/issues/33)
 - command document too large error [\#31](https://github.com/kevthehermit/VolUtility/issues/31)
 - Files Detail button issue [\#30](https://github.com/kevthehermit/VolUtility/issues/30)
@@ -23,13 +28,13 @@
 
 **Closed issues:**
 
-- Process Map/Timeliner \(enhancement\) [\#35](https://github.com/kevthehermit/VolUtility/issues/35)
-- Bookmarks do not show up until plugin results are reloaded. [\#34](https://github.com/kevthehermit/VolUtility/issues/34)
+- Spaghetti-Os! Server Generated an Error 500 Please check the console. Typically volitility couldnt handle a plugin correctly [\#36](https://github.com/kevthehermit/VolUtility/issues/36)
 - List supported plugins sorted [\#23](https://github.com/kevthehermit/VolUtility/issues/23)
 - ERROR Json Output error in yarascan [\#20](https://github.com/kevthehermit/VolUtility/issues/20)
 
 **Merged pull requests:**
 
+- Fixed typo in fileupload modal [\#38](https://github.com/kevthehermit/VolUtility/pull/38) ([Beercow](https://github.com/Beercow))
 - Add unicode to strings output [\#32](https://github.com/kevthehermit/VolUtility/pull/32) ([Beercow](https://github.com/Beercow))
 
 ## [v0.2](https://github.com/kevthehermit/VolUtility/tree/v0.2) (2016-04-17)

@@ -52,9 +52,12 @@ def hex_dump(hex_cmd):
             asc_str = asc_str.replace('"', '&quot;')
             asc_str = asc_str.replace('<', '&lt;')
             asc_str = asc_str.replace('>', '&gt;')
-            html_string += '<div class="row"><span class="text-info mono">{0}</span> <span class="text-primary mono">{1}</span> <span class="text-success mono">{2}</span></div>'.format(off_str, hex_str, asc_str)
+            html_string += '<div class="row"><span class="text-info mono">{0}</span> ' \
+                           '<span class="text-primary mono">{1}</span> <span class="text-success mono">' \
+                           '{2}</span></div>'.format(off_str, hex_str, asc_str)
     # return the data
     return html_string
+
 
 @contextlib.contextmanager
 def temp_dumpdir():
@@ -66,23 +69,30 @@ def temp_dumpdir():
     yield temp_dir
     shutil.rmtree(temp_dir)
 
+
 def checksum_md5(file_path):
     md5 = hashlib.md5()
-    with open(file_path,'rb') as f:
+    with open(file_path, 'rb') as f:
         for chunk in iter(lambda: f.read(8192), b''):
             md5.update(chunk)
     return md5.hexdigest()
+
 
 class Config:
     def __init__(self):
         config = ConfigParser.ConfigParser(allow_no_value=True)
 
-        conf_file = 'volutility.conf'
+        # Order of precedence is ~/.volutility.conf, volutility.conf, volutility.conf.sample
 
-        if not os.path.exists('volutility.conf'):
+        if os.path.exists(os.path.join(os.path.expanduser("~"), '.volutility.conf')):
+            conf_file = os.path.join(os.path.expanduser("~"), '.volutility.conf')
+
+        elif os.path.exists('volutility.conf'):
+            conf_file = 'volutility.conf'
+
+        else:
             conf_file = 'volutility.conf.sample'
             logger.warning('Using default config file. Check your volutility.conf file exists')
-
 
         valid = config.read(conf_file)
         if len(valid) > 0:
@@ -94,13 +104,13 @@ class Config:
             self.valid = False
             logger.error('Unable to find a valid volutility.conf file.')
 
+        logger.info("Loaded configuration from {0}".format(conf_file))
+
 
 def rec(key, depth=0, all_nodes=''):
     all_nodes += "\t" * depth + key.path()
 
-
     for subkey in key.subkeys():
         rec(subkey, depth + 1, all_nodes=all_nodes)
-
 
     return all_nodes
