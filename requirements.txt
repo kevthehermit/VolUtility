@@ -1,0 +1,6 @@
+django
+python-registry
+yara-python
+distorm3
+virustotal
+pymongo

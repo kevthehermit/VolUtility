@@ -5,7 +5,10 @@ from datetime import datetime
 from web.common import *
 import multiprocessing
 from common import Config, checksum_md5
-from Registry import Registry
+try:
+    from Registry import Registry
+except ImportError:
+    pass
 config = Config()
 
 logger = logging.getLogger(__name__)
@@ -559,7 +562,7 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
             if plugin_row['plugin_name'] in ['hivelist', 'hivescan']:
                 results['columns'].append('Extract Keys')
 
-            # Add option to process hive keys
+            # Add option to process malfind
             if plugin_row['plugin_name'] in ['malfind']:
                 results['columns'].append('Extract Injected Code')
 
@@ -580,11 +583,11 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
                                   "', 'rowid':'" + str(counter) + "'}, true )\"; return false"
                     row.append('<a class="text-success" href="#" ' + ajax_string + '>View Hive Keys</a>')
 
-                # Add option to process hive keys
+                # Add option to process malfind
                 if plugin_row['plugin_name'] in ['malfind']:
                     ajax_string = "onclick=\"ajaxHandler('malfind_export', {'plugin_id':'" + str(plugin_id) + \
                                   "', 'rowid':'" + str(counter) + "'}, true )\"; return false"
-                    row.append('<a class="text-success" href="#" ' + ajax_string + '>View Hive Keys</a>')
+                    row.append('<a class="text-success" href="#" ' + ajax_string + '>Extract Injected</a>')
 
                 counter += 1
 

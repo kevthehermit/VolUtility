@@ -61,7 +61,7 @@ Not many plugins need to use this.
 
 function spinnerControl(state, message){
     if (state == 'open'){
-        document.getElementById('loadingtext').innerHTML = message
+        document.getElementById('loadingtext').innerHTML = message;
        document.getElementById("spinnerdiv").style.width = "100%";
     } else {
         document.getElementById("spinnerdiv").style.width = "0%";
