@@ -18,6 +18,7 @@
         <tr>
             <th>#</th>
             <th>Name</th>
+            <th>Status</th>
             <th>Profile</th>
             <th>Created</th>
             <th>Modified</th>
@@ -27,6 +28,7 @@
         <tr>
             <td class="clickable" onclick="document.location = '/session/{{row|get:"_id"}}/';">{{row|get:"_id"}}</td>
             <td class="clickable" onclick="document.location = '/session/{{row|get:"_id"}}/';"><a href="/session/{{row|get:"_id"}}/">{{row.session_name}}</a></td>
+            <td class="clickable" onclick="document.location = '/session/{{row|get:"_id"}}/';">{{row.status|default:'Completed'}}</td>
             <td class="clickable" onclick="document.location = '/session/{{row|get:"_id"}}/';">{{row.session_profile}}</td>
             <td class="clickable" onclick="document.location = '/session/{{row|get:"_id"}}/';">{{row.created|date:"m M y H:i:s"}}</td>
             <td class="clickable" onclick="document.location = '/session/{{row|get:"_id"}}/';">{{row.modified|date:"m M y H:i:s"}}</td>

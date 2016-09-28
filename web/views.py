@@ -77,6 +77,129 @@ def reg_key_values(key):
     return key_values
 
 
+def session_creation(request, mem_image, session_id):
+    # Get some vars
+
+    new_session = db.get_session(session_id)
+
+    file_hash = False
+    if 'description' in request.POST:
+        new_session['session_description'] = request.POST['description']
+    if 'plugin_path' in request.POST:
+        new_session['plugin_path'] = request.POST['plugin_path']
+    if 'file_hash' in request.POST:
+        file_hash = True
+
+    # Check for mem file
+    if not os.path.exists(mem_image):
+        logger.error('Unable to find an image file at {0}'.format(mem_image))
+        return main_page(request, error_line='Unable to find an image file at {0}'.format(request.POST['sess_path']))
+
+    new_session['session_path'] = mem_image
+
+    # Generate FileHash (MD5 for now)
+    if file_hash:
+        logger.debug('Generating MD5 for Image')
+        # Update the status
+        new_session['status'] = 'Calculating MD5'
+        db.update_session(session_id, new_session)
+
+        md5_hash = checksum_md5(new_session['session_path'])
+        new_session['file_hash'] = md5_hash
+
+    # Get a list of plugins we can use. and prepopulate the list.
+
+    if 'profile' in request.POST:
+        if request.POST['profile'] != 'AutoDetect':
+            profile = request.POST['profile']
+            new_session['session_profile'] = profile
+        else:
+            profile = None
+    else:
+        profile = None
+
+    vol_int = RunVol(profile, new_session['session_path'])
+
+    image_info = {}
+
+    if not profile:
+        logger.debug('AutoDetecting Profile')
+        # kdbg scan to get a profile suggestion
+        # Update the status
+        new_session['status'] = 'Detecting Profile'
+        db.update_session(session_id, new_session)
+        # Doesnt support json at the moment
+        kdbg_results = vol_int.run_plugin('kdbgscan', output_style='text')
+
+        lines = kdbg_results['rows'][0][0]
+
+        profiles = []
+
+        for line in lines.split('\n'):
+            if 'Profile suggestion' in line:
+                profiles.append(line.split(':')[1].strip())
+
+        if len(profiles) == 0:
+            logger.error('Unable to find a valid profile with kdbg scan')
+            return main_page(request, error_line='Unable to find a valid profile with kdbg scan')
+
+        profile = profiles[0]
+
+        # Re initialize with correct profile
+        vol_int = RunVol(profile, new_session['session_path'])
+
+    # Get compatible plugins
+
+    plugin_list = vol_int.list_plugins()
+
+    new_session['session_profile'] = profile
+
+    new_session['image_info'] = image_info
+
+    # Plugin Options
+    plugin_filters = vol_interface.plugin_filters
+
+    # Update Session
+    new_session['status'] = 'Complete'
+    db.update_session(session_id, new_session)
+
+    # Autorun list from config
+    if config.autorun == 'True':
+        auto_list = config.plugins.split(',')
+    else:
+        auto_list = False
+
+    # Merge Autorun from manual post with config
+    if 'auto_run' in request.POST:
+        run_list = request.POST['auto_run'].split(',')
+        if not auto_list:
+            auto_list = run_list
+        else:
+            for run in run_list:
+                if run not in auto_list:
+                    auto_list.append(run)
+
+    # For each plugin create the entry
+    for plugin in plugin_list:
+        plugin_name = plugin[0]
+        db_results = {'session_id': session_id, 'plugin_name': plugin_name}
+
+        # Ignore plugins we cant handle
+        if plugin_name in plugin_filters['drop']:
+            continue
+
+        db_results['help_string'] = plugin[1]
+        db_results['created'] = None
+        db_results['plugin_output'] = None
+        db_results['status'] = None
+        # Write to DB
+        plugin_id = db.create_plugin(db_results)
+
+        if auto_list:
+            if plugin_name in auto_list:
+                multiprocessing.Process(target=run_plugin, args=(session_id, plugin_id)).start()
+
+
 ##
 # Page Views
 ##
@@ -194,122 +317,55 @@ def create_session(request):
     :param request:
     :return:
     """
-    # Get some vars
-    new_session = {'created': datetime.now(), 'modified': datetime.now(), 'file_hash': 'Not Selected'}
 
-    file_hash = False
-    if 'sess_name' in request.POST:
-        new_session['session_name'] = request.POST['sess_name']
-    if 'sess_path' in request.POST:
-        new_session['session_path'] = request.POST['sess_path']
-    if 'description' in request.POST:
-        new_session['session_description'] = request.POST['description']
-    if 'plugin_path' in request.POST:
-        new_session['plugin_path'] = request.POST['plugin_path']
-    if 'file_hash' in request.POST:
-        file_hash = True
-
-    # Check for mem file
-    if not os.path.exists(new_session['session_path']):
-        logger.error('Unable to find an image file at {0}'.format(request.POST['sess_path']))
-        return main_page(request, error_line='Unable to find an image file at {0}'.format(request.POST['sess_path']))
-
-    # Generate FileHash (MD5 for now)
-    if file_hash:
-        logger.debug('Generating MD5 for Image')
-        md5_hash = checksum_md5(new_session['session_path'])
-        new_session['file_hash'] = md5_hash
-
-    # Get a list of plugins we can use. and prepopulate the list.
-
-    if 'profile' in request.POST:
-        if request.POST['profile'] != 'AutoDetect':
-            profile = request.POST['profile']
-            new_session['session_profile'] = profile
-        else:
-            profile = None
+    if 'process_dir' in request.POST:
+        recursive_dir = True
     else:
-        profile = None
+        recursive_dir = False
 
-    vol_int = RunVol(profile, new_session['session_path'])
+    dir_listing = []
 
-    image_info = {}
+    if not 'sess_path' in request.POST:
+        logger.error('No path or file selected')
+        return main_page(request, error_line='No path or file selected')
 
-    if not profile:
-        logger.debug('AutoDetecting Profile')
-        # kdbg scan to get a profile suggestion
 
-        # Doesnt support json at the moment
-        kdbg_results = vol_int.run_plugin('kdbgscan', output_style='text')
+    if recursive_dir:
+        for root, subdir, filename in os.walk(request.POST['sess_path']):
+            for name in filename:
+                # ToDo: Add extension check
+                extensions = ['vmss', 'bin', 'mem', 'img', '001', 'raw', 'dmp', 'vmem']
+                for ext in extensions:
+                    if name.lower().endswith(ext):
+                        dir_listing.append(os.path.join(root, name))
 
-        lines = kdbg_results['rows'][0][0]
-
-        profiles = []
-
-        for line in lines.split('\n'):
-            if 'Profile suggestion' in line:
-                profiles.append(line.split(':')[1].strip())
-
-        if len(profiles) == 0:
-            logger.error('Unable to find a valid profile with kdbg scan')
-            return main_page(request, error_line='Unable to find a valid profile with kdbg scan')
-
-        profile = profiles[0]
-
-        # Re initialize with correct profile
-        vol_int = RunVol(profile, new_session['session_path'])
-
-    # Get compatible plugins
-
-    plugin_list = vol_int.list_plugins()
-
-    new_session['session_profile'] = profile
-
-    new_session['image_info'] = image_info
-
-    # Plugin Options
-    plugin_filters = vol_interface.plugin_filters
-
-    # Store it
-    session_id = db.create_session(new_session)
-
-    # Autorun list from config
-    if config.autorun == 'True':
-        auto_list = config.plugins.split(',')
     else:
-        auto_list = False
+        dir_listing.append(request.POST['sess_path'])
 
-    # Merge Autorun from manual post with config
-    if 'auto_run' in request.POST:
-        run_list = request.POST['auto_run'].split(',')
-        if not auto_list:
-            auto_list = run_list
+    for mem_image in dir_listing:
+
+        # Create session in DB and set to pending
+        new_session = {'created': datetime.now(),
+                       'modified': datetime.now(),
+                       'file_hash': 'Not Selected',
+                       'status': 'Processing',
+                       'session_profile': request.POST['profile']
+                       }
+
+        if 'sess_name' in request.POST:
+            new_session['session_name'] = '{0} ({1})'.format(request.POST['sess_name'], mem_image.split('/')[-1])
         else:
-            for run in run_list:
-                if run not in auto_list:
-                    auto_list.append(run)
+            new_session['session_name'] = mem_image.split('/')[-1]
 
-    # For each plugin create the entry
-    for plugin in plugin_list:
-        plugin_name = plugin[0]
-        db_results = {'session_id': session_id, 'plugin_name': plugin_name}
+        # Store it
+        session_id = db.create_session(new_session)
 
-        # Ignore plugins we cant handle
-        if plugin_name in plugin_filters['drop']:
-            continue
+        # Run the multiprocessing
+        multiprocessing.Process(target=session_creation, args=(request, mem_image, session_id)).start()
 
-        db_results['help_string'] = plugin[1]
-        db_results['created'] = None
-        db_results['plugin_output'] = None
-        db_results['status'] = None
-        # Write to DB
-        plugin_id = db.create_plugin(db_results)
+        # Add search all on main page filter sessions that match.
 
-        if auto_list:
-            if plugin_name in auto_list:
-                multiprocessing.Process(target=run_plugin, args=(session_id, plugin_id)).start()
-
-    return redirect('/session/{0}'.format(str(session_id)))
+    return redirect('/')
 
 
 def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
