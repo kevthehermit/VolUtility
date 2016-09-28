@@ -28,7 +28,7 @@ def compat_check(app_configs=None, **kwargs):
     try:
         from virus_total_apis import PublicApi
     except ImportError:
-        errors.append(Warning('Unable to import virustotalapi', hint='sudo pip install virustotal'))
+        errors.append(Warning('Unable to import virustotalapi', hint='sudo pip install virustotal-api'))
 
     try:
         import yara
