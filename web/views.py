@@ -804,6 +804,19 @@ def ajax_handler(request, command):
         else:
             return HttpResponseServerError
 
+    if command == 'filtersessions':
+        matching_sessions = []
+        if ('pluginname' and 'searchterm') in request.POST:
+            pluginname = request.POST['pluginname']
+            searchterm = request.POST['searchterm']
+            results = db.search_plugins(searchterm, plugin_name=pluginname)
+            for row in results:
+                matching_sessions.append(str(row))
+        json_response = json.dumps(matching_sessions)
+
+        return JsonResponse(matching_sessions, safe=False)
+
+
     if command == 'dropplugin':
         if 'plugin_id' in request.POST:
             plugin_id = request.POST['plugin_id']

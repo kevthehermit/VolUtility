@@ -178,6 +178,14 @@ function ajaxHandler(command, postFields, spinner) {
         var postOptions = {'plugin_dir':$('#pluginDir').val()};
     }
 
+
+    if (command == 'filtersessions'){
+        postOptions['pluginname'] = $('#pluginname').val();
+        postOptions['searchterm'] = $('#searchterm').val();
+
+    }
+
+
     if (command == 'yara'){
         postOptions['rule_file'] = $('#rule_file').val();
     }
@@ -246,8 +254,20 @@ function ajaxHandler(command, postFields, spinner) {
             if (command == "pollplugins"){
                 $('#pluginTable').html(data);
 
-            // DROP PLUGINS
-            } else if (command == "dropplugin"){
+            // Filter Sessions
+            } else if (command == "filtersessions"){
+            for (var i = 0; i < data.length; i++) {
+                session_id = data[i];
+                console.log(session_id);
+                $('tr').each(function(){
+                    var tr = $(this);
+                    if (tr.find('td:eq(0)').text()==session_id
+                    ) tr.addClass('success');
+                });
+        }
+
+            // Run Plugin
+            }else if (command == "dropplugin"){
                 notifications('warning', true, postOptions['plugin_id'], 'Plugin Deleted');
 
             // Run Plugin

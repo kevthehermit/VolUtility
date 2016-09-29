@@ -115,13 +115,17 @@ class Database():
         plugin_id = self.vol_plugins.insert_one(plugin_data).inserted_id
         return plugin_id
 
-    def search_plugins(self, search_text, session_id=None):
+    def search_plugins(self, search_text, session_id=None, plugin_name=None):
         results = []
         rows = self.vol_plugins.find({"$text": {"$search": search_text}})
         for row in rows:
             if session_id:
                 if row['session_id'] == session_id:
                     results.append(row)
+            # This is the session filter from the main page.
+            elif plugin_name:
+                if row['plugin_name'] == plugin_name:
+                    results.append(row['session_id'])
             else:
                 results.append(row)
         return results
