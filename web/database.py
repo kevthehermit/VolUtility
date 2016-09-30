@@ -124,7 +124,6 @@ class Database():
                     results.append(row)
             # This is the session filter from the main page.
             elif plugin_name:
-
                 if row['plugin_name'] == plugin_name:
                     if search_text in str(row['plugin_output']):
                         results.append(row['session_id'])
