@@ -2,5 +2,5 @@ django
 python-registry
 yara-python
 distorm3
-virustotal
+virustotal-api
 pymongo
