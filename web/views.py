@@ -334,7 +334,7 @@ def create_session(request):
         for root, subdir, filename in os.walk(request.POST['sess_path']):
             for name in filename:
                 # ToDo: Add extension check
-                extensions = ['vmss', 'bin', 'mem', 'img', '001', 'raw', 'dmp', 'vmem']
+                extensions = ['bin', 'mem', 'img', '001', 'raw', 'dmp', 'vmem']
                 for ext in extensions:
                     if name.lower().endswith(ext):
                         dir_listing.append(os.path.join(root, name))
