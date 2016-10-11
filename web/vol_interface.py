@@ -228,6 +228,8 @@ class RunVol:
         :return: json
         """
 
+        # Re Init the config to prevent conflict
+        self.init_config()
         # Get Valid commands
         cmds = registry.get_plugin_classes(commands.Command, lower=True)
 

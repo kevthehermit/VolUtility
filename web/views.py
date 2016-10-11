@@ -826,7 +826,6 @@ def ajax_handler(request, command):
             return HttpResponse('OK')
 
     if command == 'runplugin':
-        print 1
         if 'plugin_id' in request.POST and 'session_id' in request.POST:
             plugin_name = run_plugin(request.POST['session_id'], request.POST['plugin_id'])
             return HttpResponse(plugin_name)
