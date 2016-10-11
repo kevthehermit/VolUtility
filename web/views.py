@@ -1415,6 +1415,21 @@ def ajax_handler(request, command):
 
             logger.debug('{0} search for {1}'.format(search_type, search_text))
 
+            if search_type == 'dumpfiles':
+                regex = request.POST['search_text']
+                session_id = request.POST['session_id']
+                if regex and session_id:
+
+                    plugin_row = db.get_plugin_byname('dumpfiles', ObjectId(session_id))
+
+                    logger.debug('Running Plugin: dumpfiles with regex {0}'.format(regex))
+
+                    res = run_plugin(session_id, plugin_row['_id'], plugin_options={'PHYSOFFSET': None,
+                                                                                    'NAME': True,
+                                                                                    'REGEX': regex,
+                                                                                    'UNSAFE': True})
+                    return HttpResponse(res)
+
             if search_type == 'plugin':
                 results = {'columns': ['Plugin Name', 'View Results'], 'rows': []}
                 rows = db.search_plugins(search_text, session_id=ObjectId(session_id))
@@ -1621,5 +1636,8 @@ def ajax_handler(request, command):
                                                                             'NAME': True,
                                                                             'REGEX': None})
             return HttpResponse(res)
+
+
+
 
     return HttpResponse('No valid search query found.')

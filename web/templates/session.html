@@ -127,18 +127,19 @@ This is a mid level nav bar to hold tool links
       <form class="navbar-form navbar-left" role="search">
 
         <div class="form-group">
-            <label for="search_type">Search Type</label>
+            <label for="search_type">Extra Tools</label>
             <select class="form-control" id="search_type" name="SearchType">
-              <option value="plugin">plugin output</option>
-              <option value="hash">Hash</option>
-              <option value="registry">Registry Key</option>
-              <option value="vol">Vol Command Line</option>
-              <option value="string">String Search / yara rule </option>
+              <option value="plugin">Search Plugins</option>
+              <option value="hash">Find Hash</option>
+              <option value="registry">Find Registry Key</option>
+              <option value="vol">Run Vol Command Line</option>
+              <option value="string">String Search / Yara Rule </option>
+                <option value="dumpfiles">Store files matching Regex</option>
           </select>
         </div>
 
         <div class="form-group">
-          <input class="form-control" placeholder="Search" type="text" id="search_text" size="40">
+          <input class="form-control" placeholder="Options" type="text" id="search_text" size="40">
         </div>
         <a href="#" onclick="ajaxHandler('searchbar', {'session_id':'{{session_details|get:"_id"}}'}, true )" class="btn btn-default" role="button">Submit</a>
       </form>
