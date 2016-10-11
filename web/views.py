@@ -93,7 +93,8 @@ def session_creation(request, mem_image, session_id):
     # Check for mem file
     if not os.path.exists(mem_image):
         logger.error('Unable to find an image file at {0}'.format(mem_image))
-        return main_page(request, error_line='Unable to find an image file at {0}'.format(request.POST['sess_path']))
+        new_session['status'] = 'Unable to find an image file at {0}'.format(request.POST['sess_path'])
+        return
 
     new_session['session_path'] = mem_image
 
@@ -334,7 +335,7 @@ def create_session(request):
         for root, subdir, filename in os.walk(request.POST['sess_path']):
             for name in filename:
                 # ToDo: Add extension check
-                extensions = ['bin', 'mem', 'img', '001', 'raw', 'dmp', 'vmem']
+                extensions = ['.bin', '.mem', '.img', '.001', '.raw', '.dmp', '.vmem']
                 for ext in extensions:
                     if name.lower().endswith(ext):
                         dir_listing.append(os.path.join(root, name))
@@ -361,7 +362,7 @@ def create_session(request):
         session_id = db.create_session(new_session)
 
         # Run the multiprocessing
-        multiprocessing.Process(target=session_creation, args=(request, mem_image, session_id)).start()
+        p = multiprocessing.Process(target=session_creation, args=(request, mem_image, session_id)).start()
 
         # Add search all on main page filter sessions that match.
 
