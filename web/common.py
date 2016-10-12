@@ -109,6 +109,18 @@ class Config:
 
 class Extension(object):
 
+    '''
+    Need to load the HTML and put it in the right place
+    extension_inject_point = None
+
+    Need a single place in the DB so we can always call it out. Or do i?
+    Look at this
+
+    need to look at how to load the javascript from file as well. at the moment hiveviewer has a hardcoded read file.
+
+
+    '''
+
     extension_name = None
     render_type = None
     render_data = None
