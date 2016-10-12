@@ -6,6 +6,7 @@ import tempfile
 import shutil
 import ConfigParser
 import hashlib
+from web.database import Database
 
 try:
     from subprocess import getoutput
@@ -105,6 +106,16 @@ class Config:
             logger.error('Unable to find a valid volutility.conf file.')
 
         logger.info("Loaded configuration from {0}".format(conf_file))
+
+
+class Module(object):
+
+    output = None
+
+    def __init__(self):
+        self.config = Config()
+        self.db = Database()
+
 
 
 def rec(key, depth=0, all_nodes=''):

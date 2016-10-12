@@ -23,6 +23,7 @@ from django.http import HttpResponse, JsonResponse, HttpResponseServerError, Str
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
 
+
 try:
     import virus_total_apis
     from virus_total_apis import PublicApi
