@@ -5,10 +5,13 @@ from datetime import datetime
 from web.common import *
 import multiprocessing
 from common import Config, checksum_md5
+from web.modules import __extensions__
+
 try:
     from Registry import Registry
 except ImportError:
     pass
+
 config = Config()
 
 logger = logging.getLogger(__name__)
@@ -18,18 +21,6 @@ from django.http import HttpResponse, JsonResponse, HttpResponseServerError, Str
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
 
-try:
-    import virus_total_apis
-    from virus_total_apis import PublicApi
-    VT_LIB = True
-    # Version check needs to be higher than 1.0.9
-    vt_ver = virus_total_apis.__version__.split('.')
-    if int(vt_ver[1]) < 1:
-        logger.warning("virustotal-api version is too low. 'sudo pip install --upgrade virustotal-api'")
-        VT_LIB = False
-except ImportError:
-    VT_LIB = False
-    logger.warning("Unable to import VirusTotal API Library")
 
 try:
     import yara
@@ -267,7 +258,7 @@ def session_page(request, session_id):
     """
     returns the session page thats used to run plugins
     :param request:
-    :param sess_id:
+    :param session_id:
     :return:
     """
     error_line = False
@@ -279,7 +270,7 @@ def session_page(request, session_id):
     # Get the session
     session_details = db.get_session(session_id)
     comments = db.get_commentbysession(session_id)
-    extra_search = db.search_files({'file_meta': 'ExtraFile', 'sess_id': session_id})
+    extra_search = db.search_files({'file_meta': 'ExtraFile', 'session_id': session_id})
     extra_files = []
     for upload in extra_search:
         extra_files.append({'filename': upload.filename, 'file_id': upload._id})
@@ -583,7 +574,7 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
                         logger.debug('Store memdump file')
                         file_data = open(os.path.join(temp_dir, dump_file), 'rb').read()
                         sha256 = hashlib.sha256(file_data).hexdigest()
-                        file_id = db.create_file(file_data, sess_id, sha256, dump_file)
+                        file_id = db.create_file(file_data, session_id, sha256, dump_file)
                         row_file = '<a class="text-success" href="#" ' \
                               'onclick="ajaxHandler(\'filedetails\', {\'file_id\':\'' + str(file_id) + '\'}, false ); return false">' \
                               'File Details</a>'
@@ -749,6 +740,30 @@ def ajax_handler(request, command):
     :param command:
     :return:
     """
+
+
+    if command in __extensions__:
+        extension = __extensions__[command]['obj']()
+        extension.set_request(request)
+        extension.set_config(config)
+        extension.run()
+
+        if extension.render_type == 'file':
+            rendered_data = render(extension.request, extension.render_file, extension.render_data)
+            if rendered_data.status_code == 200:
+                return_data = rendered_data.content
+            else:
+                return_data = str(rendered_data.status_code)
+
+        else:
+            return_data = extension.render_data
+
+
+        json_response = {'data': return_data, 'javascript': extension.render_javascript}
+
+        return JsonResponse(json_response, safe=False)
+
+
 
     if command == 'pollplugins':
         if 'session_id' in request.POST:
@@ -1108,60 +1123,6 @@ def ajax_handler(request, command):
 
         return HttpResponse(results)
 
-    if command == 'virustotal':
-        if not config.api_key or not VT_LIB:
-            logger.error('No Virustotal key provided in volutitliy.conf')
-            return HttpResponse("Unable to use Virus Total. No Key or Library Missing. Check the Console for details")
-
-        if 'file_id' in request.POST:
-            file_id = request.POST['file_id']
-
-            file_object = db.get_filebyid(file_id)
-            sha256 = file_object.sha256
-            vt = PublicApi(config.api_key)
-
-            if 'upload' in request.POST:
-                response = vt.scan_file(file_object.read(), filename=file_object.filename, from_disk=False)
-                if response['results']['response_code'] == 1 and 'Scan request successfully queued' in response['results']['verbose_msg']:
-
-                    return render(request, 'file_details_vt.html', {'state': 'pending',
-                                                                    'vt_results': '',
-                                                                    'file_id': file_id})
-                else:
-                    return render(request, 'file_details_vt.html', {'state': 'error',
-                                                                    'vt_results': '',
-                                                                    'file_id': file_id})
-            else:
-
-                response = vt.get_file_report(sha256)
-                vt_fields = {}
-                if response['results']['response_code'] == 1:
-                    vt_fields['permalink'] = response['results']['permalink']
-                    vt_fields['total'] = response['results']['total']
-                    vt_fields['positives'] = response['results']['positives']
-                    vt_fields['scandate'] = response['results']['scan_date']
-                    vt_fields['scans'] = response['results']['scans']
-
-                    # Store the results in datastore
-                    store_data = {'file_id': file_id, 'vt': vt_fields}
-
-                    db.create_datastore(store_data)
-                    return render(request, 'file_details_vt.html', {'state': 'complete',
-                                                                    'vt_results': vt_fields,
-                                                                    'file_id': file_id})
-
-                elif response['results']['response_code'] == -2:
-                    # Still Pending Analysis
-                    return render(request, 'file_details_vt.html', {'state': 'pending',
-                                                                    'vt_results': vt_fields,
-                                                                    'file_id': file_id})
-
-                elif response['results']['response_code'] == 0:
-                    # Not present in data set prompt to uploads
-                    return render(request, 'file_details_vt.html', {'state': 'missing',
-                                                                    'vt_results': vt_fields,
-                                                                    'file_id': file_id})
-
     if command == 'yara-string':
 
         session_id = request.POST['session_id']
@@ -1287,34 +1248,6 @@ def ajax_handler(request, command):
         else:
             return HttpResponse('Either No file ID or No Yara Rule was provided')
 
-    if command == 'strings':
-        if 'file_id' in request.POST:
-            file_id = request.POST['file_id']
-            file_object = db.get_filebyid(file_id)
-            file_data = file_object.read()
-            chars = " !\"#\$%&\'\(\)\*\+,-\./0123456789:;<=>\?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\]\^_`abcdefghijklmnopqrstuvwxyz\{\|\}\\\~\t"
-            shortest_run = 4
-            regexp = '[%s]{%d,}' % (chars, shortest_run)
-            pattern = re.compile(regexp)
-            string_list_a = pattern.findall(file_data)
-            regexp = b'((?:[%s]\x00){%d,})' % (chars, shortest_run)
-            pattern = re.compile(regexp)
-            string_list_u = [w.decode('utf-16').encode('ascii') for w in pattern.findall(file_data)]
-            merged_list = string_list_a + string_list_u
-            logger.debug('Joining Strings')
-            string_list = '\n'.join(merged_list)
-
-            '''
-            String lists can get larger than the 16Mb bson limit
-            Need to store in GridFS
-            '''
-            # Store the list in datastore
-            store_data = {'file_id': file_id, 'string_list': string_list}
-            logger.debug('Store Strings in DB')
-
-            string_id = db.create_file(string_list, 'session_id', 'sha256', '{0}_strings.txt'.format(file_id))
-
-            return HttpResponse('<td><a class="btn btn-success" role="button" href="/download/file/{0}">Download</a></td>'.format(string_id))
 
     if command == 'deleteobject':
         if 'droptype' in request.POST:

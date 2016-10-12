@@ -43,14 +43,14 @@
 {% elif state == 'pending' %}
 <h2>Analysis is Still processing on VirusTotal Please try again shortly</h2>
 <p>Please wait at least 10 minutes before asking again. As VT will not register your upload immediately. </p>
-<a href="#" onclick="ajaxHandler('virustotal', {'file_id':'{{file_id}}', 'target_div':'vt-out'}, false ); return false" class="btn btn-info" role="button">Search Again</a>
+<a href="#" onclick="ajaxHandler('VirusTotalSearch', {'target_div':'vt-out', 'file_id':'{{file_id}}'}, false ); return false" class="btn btn-info" role="button">Search Again</a>
 
 
 {% elif state == 'missing' %}
     <h2>Not present in VT Would you like to upload?</h2>
-    <a href="#" onclick="ajaxHandler('virustotal', {'file_id':'{{file_id}}', 'upload':'true', 'target_div':'vt-out'}, false ); return false" class="btn btn-info" role="button">Upload to VirusTotal</a>
+    <a href="#" onclick="ajaxHandler('VirusTotalSearch', {'file_id':'{{file_id}}', 'upload':'true', 'target_div':'vt-out'}, false ); return false" class="btn btn-info" role="button">Upload to VirusTotal</a>
 
 {% else %}
-<a href="#" onclick="ajaxHandler('virustotal', {'file_id':'{{file_id}}', 'target_div':'vt-out'}, false ); return false" class="btn btn-info" role="button">Search VirusTotal</a>
+<a href="#" onclick="ajaxHandler('VirusTotalSearch', {'file_id':'{{file_id}}', 'target_div':'vt-out'}, false ); return false" class="btn btn-info" role="button">Search VirusTotal</a>
 {% endif %}
 

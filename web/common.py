@@ -6,7 +6,6 @@ import tempfile
 import shutil
 import ConfigParser
 import hashlib
-from web.database import Database
 
 try:
     from subprocess import getoutput
@@ -108,13 +107,19 @@ class Config:
         logger.info("Loaded configuration from {0}".format(conf_file))
 
 
-class Module(object):
+class Extension(object):
 
-    output = None
+    extension_name = None
+    render_type = None
+    render_data = None
+    render_file = None
+    render_javascript = None
 
-    def __init__(self):
-        self.config = Config()
-        self.db = Database()
+    def set_request(self, request):
+        self.request = request
+
+    def set_config(self, config):
+        self.config = config
 
 
 

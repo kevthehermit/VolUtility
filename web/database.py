@@ -177,7 +177,8 @@ class Database():
         return results
 
     def create_file(self, file_data, session_id, sha256, filename, pid=None, file_meta=None):
-        session_id = ObjectId(session_id)
+        if len(session_id) == 24:
+            session_id = ObjectId(session_id)
         file_id = self.vol_files.put(file_data, filename=filename, sess_id=session_id, sha256=sha256, pid=pid, file_meta=file_meta)
         return file_id
 

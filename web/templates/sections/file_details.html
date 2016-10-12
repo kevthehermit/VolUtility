@@ -18,7 +18,7 @@
     <li><a data-toggle="pill" href="#menu3">Yara</a></li>
     <li><a data-toggle="pill" href="#menu4">Cuckoo</a></li>
 
-    <li><a data-toggle="pill" href="#" onclick="ajaxHandler('hiveviewer', {'file_id':'{{file_id}}', 'key': 'root', 'reset': true}, false )">Registry</a></li>
+    <li><a data-toggle="pill" href="#" onclick="ajaxHandler('HiveViewer', {'file_id':'{{file_id}}', 'key': 'root', 'reset': true, 'target_div':'None'}, false )">Registry</a></li>
   </ul>
 
   <div class="tab-content">
@@ -72,7 +72,7 @@
             {% if string_list %}
                 <td><a class="btn btn-success" role="button" href="/download/file/{{string_list}}">Download</a></td>
             {% else %}
-            <a href="#" onclick="ajaxHandler('strings', {'file_id':'{{file_id}}', 'target_div':'strings-out'}, true ); return false" class="btn btn-info" role="button">Extract Strings</a>
+            <a href="#" onclick="ajaxHandler('ExtractStrings', {'file_id':'{{file_id}}', 'target_div':'strings-out'}, true ); return false" class="btn btn-info" role="button">Extract Strings</a>
 
             {%  endif %}
         </div>

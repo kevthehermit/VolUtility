@@ -303,12 +303,16 @@ function ajaxHandler(command, postFields, spinner) {
                 // Enable table sorting
                 $('#hiveTable').DataTable();
 
-            }else if (command == "virustotal" || command == "yara" || command == "strings" || command == "yara-string") {
-                $('#'+postOptions["target_div"]).html(data);
+            // If target_div exists in the postoptions we are just writing out.
+            }else if (postOptions["target_div"]) {
+                // Get the HTML we want to use
+                var html_data = data['data'];
+                // add additional JS
+                var new_js = data['javascript'];
+                eval(new_js);
+                $('#'+postOptions["target_div"]).html(html_data);
 
             }else if (command == 'dottree' || command == "timeline") {
-
-
 
                 // Prepare the div
                 $('#resultsTarget').html('<svg width="100%" height="100"><g/></svg>');
@@ -422,7 +426,7 @@ function ajaxHandler(command, postFields, spinner) {
                 notifications('success', true, postOptions['plugin_id'], 'Check dumpfiles plugin for your file.');
 
             }else if (command == 'hiveviewer') {
-
+                /*
                 if (postOptions['reset']){
                     //Hide Any Open Modal
                     $('.modal').modal('hide');
@@ -484,7 +488,7 @@ function ajaxHandler(command, postFields, spinner) {
                 $.each(key_values, function( index, value ) {
                   $('#regValues tbody').append('<tr><td>'+value[0]+'</td><td>'+value[1]+'</td><td>'+value[2]+'</td></tr>');
                 });
-
+                    */
                 // End Reg
 
             }else {

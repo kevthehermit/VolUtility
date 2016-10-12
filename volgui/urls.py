@@ -20,7 +20,7 @@ from web import views
 urlpatterns = [
     # url(r'^admin/', admin.site.urls),
     url(r'^$', views.main_page),
-    url(r'^session/(?P<sess_id>.+)/$', views.session_page),
+    url(r'^session/(?P<session_id>.+)/$', views.session_page),
     url(r'createsession', views.create_session),
     # Download
     url(r'^download/(?P<query_type>.+)/(?P<object_id>[0-9a-fA-F]{24})/$', views.file_download),

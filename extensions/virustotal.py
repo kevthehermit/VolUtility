@@ -1,5 +1,5 @@
-from bson.objectid import ObjectId
-from web.common import Module
+from web.common import Extension
+from web.database import Database
 try:
     import virus_total_apis
     from virus_total_apis import PublicApi
@@ -11,28 +11,29 @@ try:
 except ImportError:
     VT_LIB = False
 
-class VirusTotalModule(Module):
 
-    '''Render type is one of error, file, html, json'''
-    render_type = None
-    render_data = None
-    render_file = None
+class VirusTotalSearch(Extension):
 
-    def run(self, request):
+    extension_name = 'VirusTotalSearch'
+
+    def run(self):
+        db = Database()
+        #self.render_javascript = "function test(){  alert(1); }; test();"
+        self.render_javascript = ""
         if not self.config.api_key or not VT_LIB:
             #logger.error('No Virustotal key provided in volutitliy.conf')
             #return HttpResponse("Unable to use Virus Total. No Key or Library Missing. Check the Console for details")
             self.render_type = 'error'
             self.render_data = "Unable to use Virus Total. No Key or Library Missing. Check the Console for details"
 
-        if 'file_id' in request.POST:
-            file_id = request.POST['file_id']
+        if 'file_id' in self.request.POST:
+            file_id = self.request.POST['file_id']
 
-            file_object = self.db.get_filebyid(ObjectId(file_id))
+            file_object = db.get_filebyid(file_id)
             sha256 = file_object.sha256
             vt = PublicApi(self.config.api_key)
 
-            if 'upload' in request.POST:
+            if 'upload' in self.request.POST:
                 response = vt.scan_file(file_object.read(), filename=file_object.filename, from_disk=False)
                 if response['results']['response_code'] == 1 and 'Scan request successfully queued' in response['results']['verbose_msg']:
                     state = 'pending'
@@ -53,8 +54,8 @@ class VirusTotalModule(Module):
                     vt_fields['scandate'] = response['results']['scan_date']
                     vt_fields['scans'] = response['results']['scans']
                     # Store the results in datastore
-                    store_data = {'file_id': ObjectId(file_id), 'vt': vt_fields}
-                    self.db.create_datastore(store_data)
+                    store_data = {'file_id': file_id, 'vt': vt_fields}
+                    db.create_datastore(store_data)
                     state = 'complete'
 
                 elif response['results']['response_code'] == -2:
@@ -67,4 +68,4 @@ class VirusTotalModule(Module):
 
                 self.render_type = 'file'
                 self.render_file = 'file_details_vt.html'
-                self.render_data = {'state': state, 'vt_results': '', 'file_id': file_id}
+                self.render_data = {'state': state, 'vt_results': vt_fields, 'file_id': file_id}
