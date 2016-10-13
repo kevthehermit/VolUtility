@@ -858,42 +858,30 @@ def ajax_handler(request, command):
 
 
             includes = []
-            # Register any new modals.
+            response_dict = {'file_details': file_object,
+                             'file_id': file_id,
+                             'error': None,
+                             'session_details': session_details,
+                             'includes': includes
+                             }
+
+            # Register any new tabs
             for extension in __extensions__:
                 if __extensions__[extension]['obj'].extension_type == 'filedetails':
-                    includes.append([__extensions__[extension]['obj'].template_name, __extensions__[extension]['obj'].extension_name])
+                    extension_name = __extensions__[extension]['obj'].extension_name
+                    template_name = __extensions__[extension]['obj'].template_name
+                    includes.append([template_name, extension_name])
+
+                    ext = __extensions__[extension]['obj']()
+                    ext.set_request(request)
+                    ext.set_config(config)
+                    ext.display()
+                    response_dict[extension_name] = ext.render_data
 
 
-            vt_results = None
-            yara_match = None
-            string_list = None
-            state = 'notchecked'
-
-            for row in file_datastore:
-
-                if 'vt' in row:
-                    vt_results = row['vt']
-                    state = 'complete'
-                if 'yara' in row:
-                    yara_match = row['yara']
-
-            # New String Store
-            new_strings = db.get_strings(file_id)
-            if new_strings:
-                string_list = new_strings._id
 
             yara_list = sorted(os.listdir('yararules'))
-            return render(request, 'file_details.html', {'file_details': file_object,
-                                                         'file_id': file_id,
-                                                         'yara_list': yara_list,
-                                                         'yara': yara_match,
-                                                         'vt_results': vt_results,
-                                                         'string_list': string_list,
-                                                         'state': state,
-                                                         'error': None,
-                                                         'session_details': session_details,
-                                                         'includes': includes
-                                                         })
+            return render(request, 'file_details.html', response_dict)
 
     if command == 'hivedetails':
         if 'plugin_id' and 'rowid' in request.POST:

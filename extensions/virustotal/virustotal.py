@@ -42,7 +42,7 @@ class VirusTotalSearch(Extension):
                 else:
                     state = 'error'
                 self.render_type = 'file'
-                self.render_file = 'file_details_vt.html'
+                self.render_file = 'virustotal/virustotal.html'
                 self.render_data = {'state': state, 'vt_results': '', 'file_id': file_id}
 
             else:
@@ -71,3 +71,18 @@ class VirusTotalSearch(Extension):
                 self.render_type = 'file'
                 self.render_file = 'file_details_vt.html'
                 self.render_data = {'state': state, 'vt_results': vt_fields, 'file_id': file_id}
+
+
+    def display(self):
+        db = Database()
+        file_id = self.request.POST['file_id']
+        file_datastore = db.search_datastore({'file_id': file_id})
+        vt_results = None
+        state = 'Not Checked'
+        for row in file_datastore:
+
+            if 'vt' in row:
+                vt_results = row['vt']
+                state = 'complete'
+
+        self.render_data = {'state': state, 'vt_results': vt_results, 'file_id': file_id}

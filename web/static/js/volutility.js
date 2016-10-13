@@ -312,6 +312,7 @@ function ajaxHandler(command, postFields, spinner) {
                 // add additional JS
                 var new_js = data['javascript'];
                 eval(new_js);
+                console.log(postOptions["target_div"]);
                 $('#'+postOptions["target_div"]).html(html_data);
 
             }else if (command == 'dottree' || command == "timeline") {

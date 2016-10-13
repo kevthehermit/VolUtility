@@ -13,7 +13,6 @@ class HiveViewer(Extension):
     modal_name = 'hiveviewer/hiveviewer_modal.html'
     template_name = 'hiveviewer/hiveview,html'
     extra_js = 'hiveviewer/hiveviewer.js'
-    parent_template = 'hiveviewer/file_details.html'
 
     def reg_sub_keys(self, key):
         sub_keys = []
