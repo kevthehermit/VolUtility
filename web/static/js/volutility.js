@@ -191,6 +191,7 @@ function ajaxHandler(command, postFields, spinner) {
     }
 
     if (command == 'yara-string'){
+        console.log('Yara Scanner');
         postOptions['yara-string'] = $('#yara-string').val();
         postOptions['yara-hex'] = $('#yara-hex').val();
         postOptions['yara-reverse'] = $('#yara-reverse').val();
@@ -304,7 +305,8 @@ function ajaxHandler(command, postFields, spinner) {
                 $('#hiveTable').DataTable();
 
             // If target_div exists in the postoptions we are just writing out.
-            }else if (postOptions["target_div"]) {
+            }else if (postOptions["extension"]) {
+                console.log("in Here");
                 // Get the HTML we want to use
                 var html_data = data['data'];
                 // add additional JS
@@ -313,6 +315,7 @@ function ajaxHandler(command, postFields, spinner) {
                 $('#'+postOptions["target_div"]).html(html_data);
 
             }else if (command == 'dottree' || command == "timeline") {
+                console.log('DotTree');
 
                 // Prepare the div
                 $('#resultsTarget').html('<svg width="100%" height="100"><g/></svg>');
@@ -415,6 +418,8 @@ function ajaxHandler(command, postFields, spinner) {
                 $('#resultsTable').DataTable({pageLength:25,scrollX: true,drawCallback: resultscontextmenu ($, window)});
                 resultscontextmenu ($, window);
 
+            }else if (command == 'bookmark') {
+                //
 
             }else if (command == 'procmem') {
                 notifications('success', true, postOptions['plugin_id'], 'Check memdump plugin for your file.');
@@ -423,7 +428,12 @@ function ajaxHandler(command, postFields, spinner) {
                 notifications('success', true, postOptions['plugin_id'], 'Check dumpfiles plugin for your file.');
 
             }else {
-                alertBar('danger', 'Spaghetti-Os!', 'Unable to find a valid command')
+                if (postOptions['target_div']){
+                    $('#'+postOptions["target_div"]).html(data);
+                }else{
+                    alertBar('danger', 'Spaghetti-Os!', 'Unable to find a valid command')
+                }
+
             }
 
             // End of Done
@@ -628,6 +638,7 @@ $("#resultsTable tbody tr").contextMenu({
             // Redraw Table
             $('#resultsTable').DataTable().draw(false);
 
+
         }
 
         if (menu_option == 'Store Process Mem') {
@@ -742,8 +753,13 @@ function datatablesAjax(plugin_id) {
 
         // Success
         .done(function(data) {
+                // Get the HTML we want to use
+                var html_data = data['data'];
+                // add additional JS
+                var new_js = data['javascript'];
+
             // Fill first 25 rows
-            $('#resultsTarget').html(data);
+            $('#resultsTarget').html(html_data);
 
             // then handover to ajax
             $('#resultsTable').DataTable({
@@ -759,10 +775,13 @@ function datatablesAjax(plugin_id) {
                     data: function (d) {
                         d.plugin_id = plugin_id;
                         d.pagination = true;
+                    },
+                    dataSrc: function (json) {
+                        return json['data']['data'];
                     }
                 },
-                createdRow: function (row, data, index) {
-                    if ($.inArray(parseInt(data[0]), vBookMarks) > -1) {
+                createdRow: function (row, html_data, index) {
+                    if ($.inArray(parseInt(html_data[0]), vBookMarks) > -1) {
                         $(row).addClass('success');
                     }
                 },
@@ -772,6 +791,9 @@ function datatablesAjax(plugin_id) {
                 deferLoading: vresultCount
             });
             resultscontextmenu ($, window);
+
+            // Now run any additional JavaScript thats been added
+            eval(new_js);
 
             // End of Done
         })

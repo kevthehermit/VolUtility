@@ -15,6 +15,8 @@ except ImportError:
 class VirusTotalSearch(Extension):
 
     extension_name = 'VirusTotalSearch'
+    extension_type = 'filedetails'
+    template_name = 'virustotal/virustotal.html'
 
     def run(self):
         db = Database()

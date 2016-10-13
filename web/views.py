@@ -7,11 +7,6 @@ import multiprocessing
 from common import Config, checksum_md5
 from web.modules import __extensions__
 
-try:
-    from Registry import Registry
-except ImportError:
-    pass
-
 config = Config()
 
 logger = logging.getLogger(__name__)
@@ -40,27 +35,6 @@ try:
     db = Database()
 except Exception as e:
     logger.error("Unable to access mongo database: {0}".format(e))
-
-##
-# Registry Stuffs
-##
-
-
-def reg_sub_keys(key):
-    sub_keys = []
-
-    for subkey in key.subkeys():
-        sub_keys.append(subkey)
-
-    return sub_keys
-
-
-def reg_key_values(key):
-    key_values = []
-    for value in [v for v in key.values()
-                  if v.value_type() == Registry.RegSZ or v.value_type() == Registry.RegExpandSZ]:
-        key_values.append([value.name(), value.value()])
-    return key_values
 
 
 def session_creation(request, mem_image, session_id):
@@ -262,6 +236,11 @@ def session_page(request, session_id):
     :return:
     """
     error_line = False
+    includes = []
+    # Register any new modals.
+    for extension in __extensions__:
+        if __extensions__[extension]['obj'].modal_name:
+            includes.append(__extensions__[extension]['obj'].modal_name)
 
     # Check Vol Version
     if float(vol_interface.vol_version) < 2.5:
@@ -287,7 +266,8 @@ def session_page(request, session_id):
     if not os.path.exists(session_details['session_path']):
         error_line = 'Memory Image can not be found at {0}'.format(session_details['session_path'])
 
-    return render(request, 'session.html', {'session_details': session_details,
+    return render(request, 'session.html', {'includes': includes,
+                                            'session_details': session_details,
                                             'plugin_list': plugin_list,
                                             'plugin_output': plugin_text,
                                             'comments': comments,
@@ -876,6 +856,14 @@ def ajax_handler(request, command):
             file_object = db.get_filebyid(file_id)
             file_datastore = db.search_datastore({'file_id': file_id})
 
+
+            includes = []
+            # Register any new modals.
+            for extension in __extensions__:
+                if __extensions__[extension]['obj'].extension_type == 'filedetails':
+                    includes.append([__extensions__[extension]['obj'].template_name, __extensions__[extension]['obj'].extension_name])
+
+
             vt_results = None
             yara_match = None
             string_list = None
@@ -903,7 +891,8 @@ def ajax_handler(request, command):
                                                          'string_list': string_list,
                                                          'state': state,
                                                          'error': None,
-                                                         'session_details': session_details
+                                                         'session_details': session_details,
+                                                         'includes': includes
                                                          })
 
     if command == 'hivedetails':
@@ -940,87 +929,6 @@ def ajax_handler(request, command):
 
             return render(request, 'hive_details.html', {'hive_details': hive_details})
 
-    if command == 'hiveviewer':
-
-        import urllib
-        # https://github.com/williballenthin/python-registry
-        file_id = request.POST['file_id']
-
-        key_request = urllib.unquote(request.POST['key'])
-
-        reg_data = db.get_filebyid(file_id)
-
-        reg = Registry.Registry(reg_data)
-
-        print key_request
-
-        if key_request == 'root':
-            key = reg.root()
-
-        else:
-            try:
-                key = reg.open(key_request)
-            except Registry.RegistryKeyNotFoundException:
-                # Check for values
-                key = False
-
-        if key:
-            # Get the Parent
-            try:
-                parent_path = "\\".join(key.parent().path().strip("\\").split('\\')[1:])
-                print key.parent().path()
-            except Registry.RegistryKeyHasNoParentException:
-                parent_path = None
-
-
-            json_response = {'parent_key': parent_path}
-
-            # Get Sub Keys
-            child_keys = []
-            for sub in reg_sub_keys(key):
-                sub_path = "\\".join(sub.path().strip("\\").split('\\')[1:])
-                child_keys.append(sub_path)
-
-            # Get Values
-            key_values = []
-            for value in key.values():
-
-                val_name = value.name()
-                val_type = value.value_type_str()
-                val_value = value.value()
-
-                # Replace Unicode Chars
-                try:
-                    val_value = val_value.replace('\x00', ' ')
-                except AttributeError:
-                    pass
-
-                # Convert Bin to Hex chars
-
-                if val_type == 'RegBin' and all(c in string.printable for c in val_value) == False:
-                    val_value = val_value.encode('hex')
-
-                if val_type == 'RegNone' and all(c in string.printable for c in val_value) == False:
-                    val_value = val_value.encode('hex')
-
-                # Assemble and send
-                key_values.append([val_name, val_type, val_value])
-
-                #print val_type, val_value
-
-            json_response['child_keys'] = child_keys
-            json_response['key_values'] = key_values
-
-            json_response = json.dumps(json_response)
-
-            return JsonResponse(json_response, safe=False)
-
-        else:
-            json_response = {}
-            json_response['child_keys'] = []
-            json_response['key_values'] = []
-            return JsonResponse(json_response)
-
 
     if command == 'dottree':
         session_id = request.POST['session_id']
@@ -1028,7 +936,6 @@ def ajax_handler(request, command):
         dottree = db.search_datastore({'session_id': session_id})
         if len(dottree) > 0:
             if 'dottree' in dottree[0]:
-                print 'return Existing'
                 return HttpResponse(dottree[0]['dottree'])
 
         # Else Generate and store
@@ -1196,6 +1103,7 @@ def ajax_handler(request, command):
                                                                                           'SIZE': yara_hex,
                                                                                           'REVERSE': yara_reverse})
             else:
+                print "Not sure what to do here"
                 return
 
             if 'Data' in results['columns']:
@@ -1457,6 +1365,20 @@ def ajax_handler(request, command):
         else:
             return JsonResponse({'error': 'No Plugin ID'})
 
+        # Extensions Here
+        final_javascript = ''
+        for extension in __extensions__:
+            if __extensions__[extension]['obj'].extension_type == 'postprocess':
+                extension = __extensions__[extension]['obj']()
+                extension.set_request(request)
+                extension.set_config(config)
+                extension.set_plugin_results(plugin_results)
+                extension.run()
+                if extension.render_data:
+                    output = extension.render_data['plugin_output']['rows']
+                    final_javascript += '\n\n{0}'.format(extension.render_javascript)
+
+
         # If we are paging with datatables
         if 'pagination' in request.POST:
             paged_data = []
@@ -1493,17 +1415,27 @@ def ajax_handler(request, command):
                 "data": paged_data
             }
 
-            return JsonResponse(datatables)
+            return_data = datatables
 
         # Else return standard 25 rows
         else:
             plugin_results['plugin_output']['rows'] = plugin_results['plugin_output']['rows'][start:length]
 
-            return render(request, 'plugin_output.html', {'plugin_results': plugin_results['plugin_output'],
+
+            rendered_data = render(request, 'plugin_output.html', {'plugin_results': plugin_results['plugin_output'],
                                                           'plugin_id': plugin_id,
                                                           'bookmarks': bookmarks,
                                                           'resultcount': resultcount,
                                                           'plugin_name': plugin_results['plugin_name']})
+            if rendered_data.status_code == 200:
+                return_data = rendered_data.content
+            else:
+                return_data = str(rendered_data.status_code)
+
+        json_response = {'data': return_data, 'javascript': final_javascript}
+
+        return JsonResponse(json_response, safe=False)
+
 
     if command == 'bookmark':
         if 'row_id' in request.POST:

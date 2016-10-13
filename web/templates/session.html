@@ -241,4 +241,8 @@ This is a mid level nav bar to hold tool links
 </div>
 
 
+{% for inc in includes %}
+    {% include ""|add:inc|stringformat:"s" %}
+{% endfor %}
+
 {% endblock %}

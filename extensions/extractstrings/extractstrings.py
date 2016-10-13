@@ -2,9 +2,12 @@ import re
 from web.common import Extension
 from web.database import Database
 
-class VirusTotalSearch(Extension):
+class ExtractStrings(Extension):
 
     extension_name = 'ExtractStrings'
+    extension_type = 'filedetails'
+    template_name = 'extractstrings/extractstrings.html'
+
 
     def run(self):
         db = Database()

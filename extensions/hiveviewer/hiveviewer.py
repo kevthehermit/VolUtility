@@ -8,7 +8,12 @@ from Registry import Registry
 
 class HiveViewer(Extension):
 
+    # Paths should be relative to the extensions folder
     extension_name = 'HiveViewer'
+    modal_name = 'hiveviewer/hiveviewer_modal.html'
+    template_name = 'hiveviewer/hiveview,html'
+    extra_js = 'hiveviewer/hiveviewer.js'
+    parent_template = 'hiveviewer/file_details.html'
 
     def reg_sub_keys(self, key):
         sub_keys = []
@@ -95,4 +100,4 @@ class HiveViewer(Extension):
 
         self.render_type = 'json'
         self.render_data = json_response
-        self.render_javascript = open(os.path.join("extensions", "hiveviewer", "hiveviewer.js"), 'rb').read()
+        self.render_javascript = open(os.path.join('extensions', self.extra_js), 'rb').read()

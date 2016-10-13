@@ -1,4 +1,5 @@
 # https://github.com/viper-framework/viper/blob/master/viper/core/plugins.py
+import os
 import pkgutil
 import inspect
 from web.common import Extension
@@ -33,7 +34,8 @@ def load_extensions():
                 # Yield the class if it's a subclass of Module.
                 if issubclass(member_object, Extension) and member_object is not Extension:
                     logger.info("Loaded Extension: {0}".format(member_object.extension_name))
-                    extension_list[member_object.extension_name] = dict(obj=member_object, description=member_object.extension_name)
+                    extension_list[member_object.extension_name] = dict(obj=member_object,
+                                                                        description=member_object.extension_name)
 
 
     return extension_list

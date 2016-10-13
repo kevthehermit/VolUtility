@@ -116,22 +116,30 @@ class Extension(object):
     Need a single place in the DB so we can always call it out. Or do i?
     Look at this
 
-    need to look at how to load the javascript from file as well. at the moment hiveviewer has a hardcoded read file.
-
-
     '''
 
     extension_name = None
+    extension_type = None
     render_type = None
     render_data = None
     render_file = None
     render_javascript = None
+    modal_name = None
+    template_name = None
+    extra_js = None
+    parent_template = None
+
+    def __init__(self):
+        pass
 
     def set_request(self, request):
         self.request = request
 
     def set_config(self, config):
         self.config = config
+
+    def set_plugin_results(self, data):
+        self.plugin_results = data
 
 
 
