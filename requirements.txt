@@ -1,3 +1,4 @@
+geoip2
 django
 python-registry
 yara-python
