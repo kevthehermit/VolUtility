@@ -11,7 +11,7 @@ class HiveViewer(Extension):
     # Paths should be relative to the extensions folder
     extension_name = 'HiveViewer'
     modal_name = 'hiveviewer/hiveviewer_modal.html'
-    template_name = 'hiveviewer/hiveview,html'
+    template_name = 'hiveviewer/hiveview.html'
     extra_js = 'hiveviewer/hiveviewer.js'
 
     def reg_sub_keys(self, key):
