@@ -876,6 +876,7 @@ def ajax_handler(request, command):
                     ext.set_request(request)
                     ext.set_config(config)
                     ext.display()
+                    print ext.render_data
                     response_dict[extension_name] = ext.render_data
 
 
