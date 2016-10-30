@@ -876,7 +876,6 @@ def ajax_handler(request, command):
                     ext.set_request(request)
                     ext.set_config(config)
                     ext.display()
-                    print ext.render_data
                     response_dict[extension_name] = ext.render_data
 
 
@@ -1479,7 +1478,8 @@ def ajax_handler(request, command):
 
             res = run_plugin(session_id, plugin_row['_id'], plugin_options={'PHYSOFFSET': str(offset),
                                                                             'NAME': True,
-                                                                            'REGEX': None})
+                                                                            'REGEX': None,
+                                                                            'UNSAFE': True})
             return HttpResponse(res)
 
     return HttpResponse('No valid search query found.')

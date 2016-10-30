@@ -86,8 +86,8 @@ class RunVol:
 
     def init_config(self):
         """Creates a volatility configuration."""
-        if self.config is not None and self.addr_space is not None:
-            return self.config
+        #if self.config is not None and self.addr_space is not None:
+            #return self.config
 
         self.config = conf.ConfObject()
         self.config.optparser.set_conflict_handler("resolve")
