@@ -239,11 +239,6 @@ def session_page(request, session_id):
     includes = []
 
 
-    # Register any new modals.  # Dont want to load any modals any more too complex make it easier
-    #for extension in __extensions__:
-        #if __extensions__[extension]['obj'].modal_name:
-            #includes.append(__extensions__[extension]['obj'].modal_name)
-
     # Check Vol Version
     if float(vol_interface.vol_version) < 2.5:
         error_line = 'UNSUPPORTED VOLATILITY VERSION. REQUIRES 2.5 FOUND {0}'.format(vol_interface.vol_version)
