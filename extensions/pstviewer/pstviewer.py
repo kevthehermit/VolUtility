@@ -77,7 +77,6 @@ class PSTViewer(Extension):
 
 
         self.render_type = 'file'
-        self.render_file = 'file_details_pst.html'
         self.render_data = {'email_dict': self.email_dict, 'file_id': file_id}
 
     def display(self):

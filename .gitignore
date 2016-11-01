@@ -74,3 +74,6 @@ plugins/*
 !plugins/overlays/__init__.py
 !plugins/__init__.py
 volutility.conf
+
+# Test Rule
+yararules/testing.yar

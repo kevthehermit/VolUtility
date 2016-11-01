@@ -68,7 +68,6 @@ class VirusTotalSearch(Extension):
                     state = 'missing'
 
                 self.render_type = 'file'
-                self.render_file = 'file_details_vt.html'
                 self.render_data = {'state': state, 'vt_results': vt_fields, 'file_id': file_id}
 
 

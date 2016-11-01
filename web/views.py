@@ -1108,41 +1108,7 @@ def ajax_handler(request, command):
         except Exception as error:
             logger.error(error)
 
-    if command == 'yara':
-        file_id = rule_file = False
-        if 'file_id' in request.POST:
-            file_id = request.POST['file_id']
 
-        if 'rule_file' in request.POST:
-            rule_file = request.POST['rule_file']
-
-        if rule_file and file_id and YARA:
-            file_object = db.get_filebyid(file_id)
-            file_data = file_object.read()
-
-            rule_file = os.path.join('yararules', rule_file)
-
-            if os.path.exists(rule_file):
-                rules = yara.compile(rule_file)
-                matches = rules.match(data=file_data)
-                results = {'rows': [], 'columns': ['Rule', 'process', 'Offset', 'Data']}
-                for match in matches:
-                    for item in match.strings:
-                        results['rows'].append([match.rule, file_object.filename, item[0], string_clean_hex(item[2])])
-
-            else:
-                return render(request, 'file_details_yara.html', {'yara': None, 'error': 'Could not find Rule File'})
-
-            if len(results) > 0:
-
-                # Store the results in datastore
-                store_data = {'file_id': file_id, 'yara': results}
-                db.create_datastore(store_data)
-
-            return render(request, 'file_details_yara.html', {'yara': results, 'error': None})
-
-        else:
-            return HttpResponse('Either No file ID or No Yara Rule was provided')
 
 
     if command == 'deleteobject':

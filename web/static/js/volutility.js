@@ -186,10 +186,6 @@ function ajaxHandler(command, postFields, spinner) {
     }
 
 
-    if (command == 'yara'){
-        postOptions['rule_file'] = $('#rule_file').val();
-    }
-
     if (command == 'yara-string'){
         console.log('Yara Scanner');
         postOptions['yara-string'] = $('#yara-string').val();
