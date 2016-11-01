@@ -22,8 +22,8 @@ def load_extensions():
         # Try to import the module, otherwise skip.
         try:
             ext = __import__(extension_name, globals(), locals(), ['dummy'], -1)
-        except ImportError as e:
-            logger.error("Something wrong happened while importing the extension {0}: {1}".format(extension_name, e))
+        except Exception as e:
+            logger.error("There was an error importing the extension {0}: {1}".format(extension_name, e))
             continue
 
 

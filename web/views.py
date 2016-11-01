@@ -237,10 +237,12 @@ def session_page(request, session_id):
     """
     error_line = False
     includes = []
-    # Register any new modals.
-    for extension in __extensions__:
-        if __extensions__[extension]['obj'].modal_name:
-            includes.append(__extensions__[extension]['obj'].modal_name)
+
+
+    # Register any new modals.  # Dont want to load any modals any more too complex make it easier
+    #for extension in __extensions__:
+        #if __extensions__[extension]['obj'].modal_name:
+            #includes.append(__extensions__[extension]['obj'].modal_name)
 
     # Check Vol Version
     if float(vol_interface.vol_version) < 2.5:
@@ -729,7 +731,12 @@ def ajax_handler(request, command):
         extension.run()
 
         if extension.render_type == 'file':
-            rendered_data = render(extension.request, extension.render_file, extension.render_data)
+            #rendered_data = render(extension.request, extension.render_file, extension.render_data)
+
+            template_name = '{0}/template.html'.format(extension.extension_name.lower())
+
+            rendered_data = render(extension.request, template_name, extension.render_data)
+
             if rendered_data.status_code == 200:
                 return_data = rendered_data.content
             else:
@@ -854,8 +861,6 @@ def ajax_handler(request, command):
         if 'file_id' in request.POST:
             file_id = request.POST['file_id']
             file_object = db.get_filebyid(file_id)
-            file_datastore = db.search_datastore({'file_id': file_id})
-
 
             includes = []
             response_dict = {'file_details': file_object,
@@ -865,20 +870,20 @@ def ajax_handler(request, command):
                              'includes': includes
                              }
 
-            # Register any new tabs
+            # Register any extension templates
             for extension in __extensions__:
                 if __extensions__[extension]['obj'].extension_type == 'filedetails':
                     extension_name = __extensions__[extension]['obj'].extension_name
-                    template_name = __extensions__[extension]['obj'].template_name
+                    #template_name = __extensions__[extension]['obj'].template_name
+                    template_name = '{0}/template.html'.format(extension_name.lower())
                     includes.append([template_name, extension_name])
 
                     ext = __extensions__[extension]['obj']()
                     ext.set_request(request)
                     ext.set_config(config)
+                    # This contains the rendered HTML
                     ext.display()
                     response_dict[extension_name] = ext.render_data
-
-
 
             yara_list = sorted(os.listdir('yararules'))
             return render(request, 'file_details.html', response_dict)

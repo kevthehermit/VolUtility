@@ -110,7 +110,7 @@ class Config:
 class Extension(object):
 
     '''
-    Need to load the HTML and put it in the right place
+    ToDo: Need to load the HTML and put it in the right place
     extension_inject_point = None
 
     Need a single place in the DB so we can always call it out. Or do i?
@@ -124,10 +124,7 @@ class Extension(object):
     render_data = None
     render_file = None
     render_javascript = None
-    modal_name = None
-    template_name = None
     extra_js = None
-    parent_template = None
 
     def __init__(self):
         pass
