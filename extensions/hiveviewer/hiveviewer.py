@@ -10,8 +10,7 @@ class HiveViewer(Extension):
 
     # Paths should be relative to the extensions folder
     extension_name = 'HiveViewer'
-    modal_name = 'hiveviewer/hiveviewer_modal.html'
-    template_name = 'hiveviewer/hiveview.html'
+    extension_type = 'filedetails'
     extra_js = 'hiveviewer/hiveviewer.js'
 
     def reg_sub_keys(self, key):
@@ -28,6 +27,9 @@ class HiveViewer(Extension):
                       if v.value_type() == Registry.RegSZ or v.value_type() == Registry.RegExpandSZ]:
             key_values.append([value.name(), value.value()])
         return key_values
+
+    def display(self):
+        self.render_data = ''
 
     def run(self):
         db = Database()

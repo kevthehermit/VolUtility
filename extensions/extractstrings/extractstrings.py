@@ -6,8 +6,6 @@ class ExtractStrings(Extension):
 
     extension_name = 'ExtractStrings'
     extension_type = 'filedetails'
-    template_name = 'extractstrings/extractstrings.html'
-
 
     def run(self):
         db = Database()

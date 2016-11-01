@@ -1,14 +1,10 @@
 if (postOptions['reset']){
-    //Hide Any Open Modal
-    $('.modal').modal('hide');
-    // Open New Modal
-    $('#hiveViewModal').modal('show');
-
     //clear the nodelist
     $('#nodelist ul').empty();
-
-
 }
+
+// Remove the parse button
+$('#parsereg').remove();
 
 // Prepare all the returned data.
 var file_id = postOptions['file_id'];

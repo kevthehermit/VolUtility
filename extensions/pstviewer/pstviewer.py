@@ -1,8 +1,6 @@
 import pypff
 from web.common import Extension
 from web.database import Database
-from Registry import Registry
-
 
 
 class PSTViewer(Extension):
@@ -51,18 +49,19 @@ class PSTViewer(Extension):
             print folder_name
             self.recursive_walk_folders(node.get_sub_folder(i), node_path)
 
-
-
-
-
-
     def run(self):
         db = Database()
         # https://github.com/williballenthin/python-registry
         file_id = self.request.POST['file_id']
         pst_file = db.get_filebyid(file_id)
-        self.pst = pypff.file()
-        self.pst.open_file_object(pst_file)
+        if not pst_file:
+            raise IOError("File not found in DB")
+
+        try:
+            self.pst = pypff.file()
+            self.pst.open_file_object(pst_file)
+        except Exception as e:
+            raise
 
         base_path = u""
         root_node = self.pst.get_root_folder()
