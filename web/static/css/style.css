@@ -9,6 +9,10 @@ padding: 0px
     word-wrap: break-word;
 }
 
+.overflow {
+    overflow-x: auto;
+}
+
 .panel-heading span {
     margin-top: -20px;
     font-size: 15px;
@@ -211,4 +215,11 @@ svg {
     .custom-class {
         width: 70%; /* either % (e.g. 60%) or px (400px) */
     }
+}
+
+.modal.modal-wide .modal-dialog {
+  width: 90%;
+}
+.modal-wide .modal-body {
+  overflow-y: auto;
 }

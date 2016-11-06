@@ -26,6 +26,9 @@ class SqliteViewer(Extension):
 
         sqlite_data = {'table_meta': [], 'index_meta': [], 'table_data': []}
 
+        new_data = []
+        first_table = None
+
         with tempfile.NamedTemporaryFile() as tmp:
             tmp.write(db_file.read())
 
@@ -39,32 +42,23 @@ class SqliteViewer(Extension):
                 cursor.execute("SELECT * FROM sqlite_master WHERE type='table';")
 
                 table_data = cursor.fetchall()
-                table_names = []
 
+                # Do everything under this for loop.
                 for table in table_data:
+                    table_dict = {'Name': table[1], 'Meta': None, 'Data': None}
                     table_meta_dict = {'type': table[0],
                                        'name': table[1],
                                        'int': table[3],
                                        'sqlquery': table[4]
                                        }
-                    sqlite_data['table_meta'].append(table_meta_dict)
-                    table_names.append(table[1])
+                    table_dict['Meta'] = table_meta_dict
 
-                # Get index meta data
-                cursor.execute("SELECT * FROM sqlite_master WHERE type='index';")
-                index_data = cursor.fetchall()
+                    # Set active table
+                    if not first_table:
+                        first_table = table[1]
 
-                for index in index_data:
-                    index_meta_dict = {'type': index[0],
-                                       'name': index[2],
-                                       'int': index[3],
-                                       'sqlquery': index[4]
-                                       }
-                    sqlite_data['index_meta'].append(index_meta_dict)
-
-                # Get Table data
-                for table in table_names:
-                    cursor.execute("SELECT * FROM {0}".format(table))
+                    # Get Table data
+                    cursor.execute("SELECT * FROM {0}".format(table[1]))
                     table_data = cursor.fetchall()
 
                     table_rows = []
@@ -80,16 +74,30 @@ class SqliteViewer(Extension):
 
                     col_names = [str(description[0]) for description in cursor.description]
                     table_data_dict = {'columns': col_names, 'rows': table_rows}
-                    sqlite_data['table_data'].append(table_data_dict)
+                    table_dict['Data'] = table_data_dict
+
+                    new_data.append(table_dict)
+
+
 
             except Exception as e:
                 raise
 
-            json_response = json.dumps(sqlite_data)
+        # Get index meta data
+        cursor.execute("SELECT * FROM sqlite_master WHERE type='index';")
+        index_data = cursor.fetchall()
 
+        for index in index_data:
+            index_meta_dict = {'type': index[0],
+                               'name': index[2],
+                               'int': index[3],
+                               'sqlquery': index[4]
+                               }
+            sqlite_data['index_meta'].append(index_meta_dict)
 
-        self.render_type = 'json'
-        self.render_data = json_response
+        self.render_type = 'file'
+        self.render_data = {'sqlite_data': new_data, 'file_id': file_id}
+        self.render_javascript = "$('.nav-pills a[href=\"#{0}\"]').tab('show');".format(first_table)
 
     def display(self):
         self.render_data = ''

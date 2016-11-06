@@ -2,8 +2,8 @@
 
 
 
-<div class="modal fade" id="fileModal" tabindex="-1" role="dialog" aria-labelledby="fileModal" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+<div class="modal modal-wide fade" id="fileModal" tabindex="-1" role="dialog" aria-labelledby="fileModal" aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
@@ -11,7 +11,9 @@
             </div>
             <div class="modal-body">
 
-  <ul class="nav nav-pills">
+<div class="row">
+    <div class="col-lg-3">
+  <ul class="nav nav-pills nav-stacked">
     <li class="active"><a data-toggle="pill" href="#home">Details</a></li>
     {% for inc in includes %}
         <li><a data-toggle="pill" href="#{{ inc.1 }}">{{ inc.1 }}</a></li>
@@ -21,6 +23,12 @@
 
     <!-- <li><a data-toggle="pill" href="#" onclick="ajaxHandler('HiveViewer', {'file_id':'{{file_id}}', 'key': 'root', 'reset': true, 'extension':true}, false )">Registry</a></li> -->
   </ul>
+    </div>
+
+    <div class="col-lg-9">
+
+
+
 
   <div class="tab-content">
     <div id="home" class="tab-pane fade in active">
@@ -66,6 +74,10 @@
 
 
   </div>
+
+    </div>
+</div>
+
 
             </div>
             <div class="modal-footer">
