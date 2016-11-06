@@ -1,24 +1,34 @@
+import re
 import tempfile
 from web.common import Extension
 from web.database import Database
 
 # Floss Strings
-import viv_utils
-from floss import strings
-from floss import stackstrings
-from floss import string_decoder
+try:
+    import viv_utils
+    from floss import strings
+    from floss import stackstrings
+    from floss import string_decoder
 
 
-from floss.plugins import arithmetic_plugin
-from floss import identification_manager as im
-from floss.plugins import library_function_plugin
-from floss.plugins import function_meta_data_plugin
-from floss.plugins import mov_plugin
-from floss.interfaces import DecodingRoutineIdentifier
-from floss.decoding_manager import LocationType
-from base64 import b64encode
+    from floss.plugins import arithmetic_plugin
+    from floss import identification_manager as im
+    from floss.plugins import library_function_plugin
+    from floss.plugins import function_meta_data_plugin
+    from floss.plugins import mov_plugin
+    from floss.interfaces import DecodingRoutineIdentifier
+    from floss.decoding_manager import LocationType
+    from base64 import b64encode
 
-from floss.utils import get_vivisect_meta_info
+    from floss.utils import get_vivisect_meta_info
+
+    # Deliberate fail over to normal strings
+    import failfloss
+
+    HAVE_FLOSS = True
+except ImportError:
+    HAVE_FLOSS = False
+
 
 KILOBYTE = 1024
 MEGABYTE = 1024 * KILOBYTE
@@ -50,16 +60,30 @@ class ExtractStrings(Extension):
 
     def ascii_strings(self, file_data, min_len):
         string_list = ''
-        for s in strings.extract_ascii_strings(file_data, n=min_len):
-            # s is a tuple (string, offset)
-            string_list += '\n{0}\t{1}'.format(s.offset, s.s)
+        if HAVE_FLOSS:
+            for s in strings.extract_ascii_strings(file_data, n=min_len):
+                # s is a tuple (string, offset)
+                string_list += '\n{0}\t{1}'.format(s.offset, s.s)
+        else:
+            chars = " !\"#\$%&\'\(\)\*\+,-\./0123456789:;<=>\?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\]\^_`abcdefghijklmnopqrstuvwxyz\{\|\}\\\~\t"
+            regexp = '[%s]{%d,}' % (chars, min_len)
+            pattern = re.compile(regexp)
+            for s in pattern.finditer(file_data):
+                string_list += '\n{0}\t{1}'.format(s.start(), s.group())
         return string_list
 
     def unicode_strings(self, file_data, min_len):
         string_list = ''
-        for s in strings.extract_unicode_strings(file_data, n=min_len):
-            # s is a tuple (string, offset)
-            string_list += '\n{0}\t{1}'.format(s.offset, s.s)
+        if HAVE_FLOSS:
+            for s in strings.extract_unicode_strings(file_data, n=min_len):
+                # s is a tuple (string, offset)
+                string_list += '\n{0}\t{1}'.format(s.offset, s.s)
+        else:
+            chars = " !\"#\$%&\'\(\)\*\+,-\./0123456789:;<=>\?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\]\^_`abcdefghijklmnopqrstuvwxyz\{\|\}\\\~\t"
+            regexp = b'((?:[%s]\x00){%d,})' % (chars, min_len)
+            pattern = re.compile(regexp)
+            for s in pattern.finditer(file_data):
+                string_list += '\n{0}\t{1}'.format(s.start(), s.group().decode('utf-16').encode('ascii'))
         return string_list
 
 
@@ -86,32 +110,31 @@ class ExtractStrings(Extension):
 
                 file_data = file_object.read()
 
-
                 ascii_strings = self.ascii_strings(file_data, 4)
                 unicode_strings = self.unicode_strings(file_data, 4)
 
+                if HAVE_FLOSS:
 
-                # Advacned Floss needs a file on disk
-                with tempfile.NamedTemporaryFile() as tmp:
-                    tmp.write(file_data)
+                    # Advacned Floss needs a file on disk
+                    with tempfile.NamedTemporaryFile() as tmp:
+                        tmp.write(file_data)
 
-                    file_path = tmp.name
+                        file_path = tmp.name
 
-                    if self.is_supported_file_type(file_path):
-                        try:
-                            vw = viv_utils.getWorkspace(file_path, should_save=False)
-                        except Exception:
-                            print "ahhhhhhhhhhhhhh"
-                            raise
+                        if self.is_supported_file_type(file_path):
+                            try:
+                                vw = viv_utils.getWorkspace(file_path, should_save=False)
+                            except Exception:
+                                print "ahhhhhhhhhhhhhh"
+                                raise
 
-                        # Decode Strings
-                        #decoding_functions_candidates = im.identify_decoding_functions(vw, selected_plugins, selected_functions)
-                        #function_index = viv_utils.InstructionFunctionIndex(vw)
+                            # Decode Strings
+                            #decoding_functions_candidates = im.identify_decoding_functions(vw, selected_plugins, selected_functions)
+                            #function_index = viv_utils.InstructionFunctionIndex(vw)
 
-                        #decoded_strings = decode_strings(vw, function_index, decoding_functions_candidates)
+                            #decoded_strings = decode_strings(vw, function_index, decoding_functions_candidates)
 
-                        # Stack Strings
-
+                            # Stack Strings
 
                 # Generate the final output file
 
