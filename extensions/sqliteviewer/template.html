@@ -1,11 +1,8 @@
 
 <div id="sqlite-out">
-<h3>SQlite Vewer</h3>
-
-
 
 <ul class="nav nav-pills nav-stacked col-md-2">
-  <li class="active"><a href="#" onclick="ajaxHandler('SqliteViewer', {'file_id':'{{file_id}}', 'target_div':'sqlite-out', 'extension':true}, true ); return false" class="btn btn-info" role="button">Scan Tables</a></li>
+  <li class="active" id="sqlitescan"><a href="#" onclick="ajaxHandler('SqliteViewer', {'file_id':'{{file_id}}', 'target_div':'sqlite-out', 'extension':true}, true ); return false" class="btn btn-info" role="button">Scan Tables</a></li>
 {% for table in sqlite_data %}
     <li><a href="#{{ table.Name }}" data-toggle="pill" onclick="$('table.sqlite').DataTable();">{{ table.Name }}</a></li>
 {% endfor %}
@@ -15,26 +12,26 @@
 
 <div class="tab-content col-md-10 overflow">
 {% for table_name in sqlite_data %}
-        <div class="tab-pane active" id="{{ table_name.Name }}">
+        <div class="tab-pane" id="{{ table_name.Name }}">
 
-<table class="table table-hover table-bordered sqlite">
-    <thead>
-      <tr>
-          {% for col in table_name.Data.columns %}
-          <th>{{ col }}</th>
-          {% endfor %}
-      </tr>
-    </thead>
-    <tbody>
-        {% for row in table_name.Data.rows %}
-        <tr>
-            {% for cell in row %}
-            <td>{{ cell }}</td>
-            {% endfor %}
-        </tr>
-        {% endfor %}
-    </tbody>
-  </table>
+            <table class="table table-hover table-bordered sqlite">
+                <thead>
+                  <tr>
+                      {% for col in table_name.Data.columns %}
+                      <th>{{ col }}</th>
+                      {% endfor %}
+                  </tr>
+                </thead>
+                <tbody>
+                    {% for row in table_name.Data.rows %}
+                    <tr>
+                        {% for cell in row %}
+                        <td>{{ cell }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+              </table>
 
 
         </div>
