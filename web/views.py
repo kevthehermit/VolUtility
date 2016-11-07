@@ -374,18 +374,7 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
             results = False
             logger.error('Json Output error in {0} - {1}'.format(plugin_name, error))
 
-        # if 'unified output format has not been implemented' in str(error) or 'JSON output for trees' in str(error):
-            output_style = 'text'
-            try:
-                results = vol_int.run_plugin(plugin_name,
-                                             output_style=output_style,
-                                             pid=pid,
-                                             plugin_options=plugin_options
-                                             )
-                error = None
-            except Exception as error:
-                logger.error('Json Output error in {0}, {1}'.format(plugin_name, error))
-                results = False
+
 
         # If we need a DumpDir
         if '--dump-dir' in str(error) or 'specify a dump directory' in str(error):
@@ -407,12 +396,28 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
                 db.update_plugin(plugin_id, new_values)
                 logger.error('Error: Unable to run plugin {0} - {1}'.format(plugin_name, error))
 
+
         # Check for result set
         if not results:
-            # Set plugin status
-            new_values = {'status': 'completed'}
-            db.update_plugin(plugin_id, new_values)
-            return 'Warning: No output from Plugin {0}'.format(plugin_name)
+            # if 'unified output format has not been implemented' in str(error) or 'JSON output for trees' in str(error):
+            output_style = 'text'
+            try:
+                results = vol_int.run_plugin(plugin_name,
+                                             output_style=output_style,
+                                             pid=pid,
+                                             plugin_options=plugin_options
+                                             )
+                error = None
+            except Exception as error:
+                logger.error('Json Output error in {0}, {1}'.format(plugin_name, error))
+                results = False
+
+            # If still no results fail
+            if not results:
+                # Set plugin status
+                new_values = {'status': 'completed'}
+                db.update_plugin(plugin_id, new_values)
+                return 'Warning: No output from Plugin {0}'.format(plugin_name)
 
         ##
         # Files that dump output to disk
@@ -569,6 +574,7 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
         ##
 
         if results:
+            print results
             # Start Counting
             counter = 1
 
