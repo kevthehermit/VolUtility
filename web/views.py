@@ -374,7 +374,7 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
             results = False
             logger.error('Json Output error in {0} - {1}'.format(plugin_name, error))
 
-        if 'unified output format has not been implemented' in str(error) or 'JSON output for trees' in str(error):
+        # if 'unified output format has not been implemented' in str(error) or 'JSON output for trees' in str(error):
             output_style = 'text'
             try:
                 results = vol_int.run_plugin(plugin_name,

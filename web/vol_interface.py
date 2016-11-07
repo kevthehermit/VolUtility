@@ -5,6 +5,8 @@ import copy
 import StringIO
 import json
 
+from web.common import string_clean_hex
+
 # Need to do this before importing Volatility
 
 volrc_file = os.path.join(os.path.expanduser('~'), '.volatilityrc')
@@ -177,7 +179,7 @@ class RunVol:
         strio = StringIO.StringIO()
         plugin = plugin_class(copy.deepcopy(self.config))
         plugin.render_json(strio, plugin.calculate())
-        return json.loads(strio.getvalue())
+        return json.loads(strio.getvalue(), parse_int=str)
 
     def get_text(self, plugin_class):
         """
@@ -189,6 +191,9 @@ class RunVol:
         plugin = plugin_class(copy.deepcopy(self.config))
         plugin.render_text(strio, plugin.calculate())
         plugin_data = strio.getvalue()
+
+        # AS this is all text lets clean it up a bit so its viable to store in json
+        plugin_data = string_clean_hex(plugin_data)
 
         # Return a json object from our string so it matches the json output.
         # Also going to drop in pre tags here
