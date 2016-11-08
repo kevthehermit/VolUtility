@@ -478,6 +478,8 @@ function resultscontextmenu ($, window) {
     if (plugin_name == 'pslist') {
             $("#contextMenu").append('<li class="divider"></li>');
             $("#contextMenu").append('<li><a tabindex="-1" href="#">Store Process Mem</a></li>');
+            $("#contextMenu").append('<li class="divider"></li>');
+            $("#contextMenu").append('<li><a tabindex="-1" href="#">View VAD Tree</a></li>');
     }
 
     if (plugin_name == 'filescan') {
@@ -650,6 +652,30 @@ $("#resultsTable tbody tr").contextMenu({
         if (menu_option == 'Store File Object') {
             var session_id = $('#sessionID').html();
             ajaxHandler('filedump', {'row_id':row_id, 'session_id':session_id}, true);
+        }
+
+        if (menu_option == 'View VAD Tree') {
+            // Get PID from Row
+            // Lets find it properly get the column number using search then use this as index for the row.
+            // This is because we can manipulate rows now.
+            var pid_index = $('th:contains("PID")').index();
+
+            var row_elem = $invokedOn.closest("tr");
+            console.log(row_elem);
+            //var pid = row_elem.cells[pid_index];
+            //var pid = $invokedOn.closest("tr td:eq("+row_elem+")").text();
+            var pid = row_elem.find('td:eq('+pid_index+')').text();
+
+
+            console.log(pid);
+
+
+            // Get session
+            var session_id = $('#sessionID').html();
+
+            // reset search bar
+            ajaxHandler('vaddot', {'session_id':session_id,'target_div':'dotimage', 'pid': pid}, true );
+
         }
 
     },
