@@ -77,7 +77,7 @@ class PSTViewer(Extension):
 
 
         self.render_type = 'file'
-        self.render_data = {'email_dict': self.email_dict, 'file_id': file_id}
+        self.render_data = {'PSTViewer': {'email_dict': self.email_dict, 'file_id': file_id}}
 
     def display(self):
         db = Database()
@@ -88,4 +88,5 @@ class PSTViewer(Extension):
             if 'pst' in row:
                 pst_results = row['pst']
 
-        self.render_data = {'email_dict': pst_results, 'file_id': file_id}
+        self.render_data = {'PSTViewer': {'email_dict': pst_results, 'file_id': file_id}}
+

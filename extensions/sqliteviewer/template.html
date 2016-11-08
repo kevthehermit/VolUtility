@@ -3,15 +3,19 @@
 
 <ul class="nav nav-pills nav-stacked col-md-2">
   <li class="active" id="sqlitescan"><a href="#" onclick="ajaxHandler('SqliteViewer', {'file_id':'{{file_id}}', 'target_div':'sqlite-out', 'extension':true}, true ); return false" class="btn btn-info" role="button">Scan Tables</a></li>
-{% for table in sqlite_data %}
-    <li><a href="#{{ table.Name }}" data-toggle="pill" onclick="$('table.sqlite').DataTable();">{{ table.Name }}</a></li>
-{% endfor %}
+
+    {% if SqliteViewer %}
+      {% for table in SqliteViewer.sqlite_data %}
+        <li><a href="#{{ table.Name }}" data-toggle="pill" onclick="$('table.sqlite').DataTable();">{{ table.Name }}</a></li>
+      {% endfor %}
+    {% endif %}
 </ul>
 
 
 
 <div class="tab-content col-md-10 overflow">
-{% for table_name in sqlite_data %}
+    {% if SqliteViewer %}
+        {% for table_name in SqliteViewer.sqlite_data %}
         <div class="tab-pane" id="{{ table_name.Name }}">
 
             <table class="table table-hover table-bordered sqlite">
@@ -35,7 +39,8 @@
 
 
         </div>
-{% endfor %}
+        {% endfor %}
+    {% endif %}
 </div>
 
 </div><!-- tab content -->

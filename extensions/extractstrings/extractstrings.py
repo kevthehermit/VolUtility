@@ -164,4 +164,4 @@ class ExtractStrings(Extension):
                 string_id = False
         print string_id
 
-        self.render_data = string_id
+        self.render_data = {'ExtractStrings': {'string_id': string_id}}

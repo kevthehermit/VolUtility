@@ -96,9 +96,8 @@ class SqliteViewer(Extension):
             sqlite_data['index_meta'].append(index_meta_dict)
 
         self.render_type = 'file'
-        self.render_data = {'sqlite_data': new_data, 'file_id': file_id}
-        #self.render_javascript = "$('.nav-pills a[href=\"#{0}\"]').tab('show');".format(first_table)
+        self.render_data = {'SqliteViewer': {'sqlite_data': new_data, 'file_id': file_id}}
         self.render_javascript = "$('#sqlitescan').remove();"
 
     def display(self):
-        self.render_data = ''
+        self.render_data = {'SqliteViewer': None}

@@ -777,6 +777,7 @@ def ajax_handler(request, command):
 
             # For each plugin create the entry
             for plugin in plugin_list:
+                #print plugin
 
                 # Ignore plugins we cant handle
                 if plugin[0] in plugin_filters['drop']:
@@ -786,6 +787,7 @@ def ajax_handler(request, command):
                     continue
 
                 else:
+                    print "Adding Plugin", plugin
                     db_results = {'session_id': session_id,
                                   'plugin_name': plugin[0],
                                   'help_string': plugin[1],
@@ -884,7 +886,9 @@ def ajax_handler(request, command):
                     ext.set_config(config)
                     # This contains the rendered HTML
                     ext.display()
-                    response_dict[extension_name] = ext.render_data
+                    print ext.render_data
+                    print extension_name
+                    response_dict[extension_name] = ext.render_data[extension_name]
 
             yara_list = sorted(os.listdir('yararules'))
             return render(request, 'file_details.html', response_dict)
@@ -923,6 +927,61 @@ def ajax_handler(request, command):
 
             return render(request, 'hive_details.html', {'hive_details': hive_details})
 
+    if command == 'vaddot':
+        session_id = request.POST['session_id']
+        pid = request.POST['pid']
+        # Check for existing Map
+        dotvad = db.search_datastore({'session_id': session_id})
+        if len(dotvad) > 0:
+            if 'dotvad' in dotvad[0]:
+                return HttpResponse(dotvad[0]['dotvad'])
+
+        # Else Generate and store
+        session = db.get_session(session_id)
+        vol_int = RunVol(session['session_profile'], session['session_path'])
+        results = vol_int.run_plugin('vadtree', output_style='dot', pid=pid)
+
+        # Configure the output for svg with D3 and digraph-d3
+
+        digraph = ''
+        for line in results.split('\n'):
+
+            # For each colour:
+            if 'fillcolor = "yellow"' in line:
+                # Mapped Files
+                fillcolor = 'yellow'
+                replace = True
+
+            elif 'fillcolor = "red"' in line:
+                # heaps
+                fillcolor = 'red'
+                replace = True
+
+            elif 'fillcolor = "gray"' in line:
+                # DLL
+                fillcolor = 'gray'
+                replace = True
+
+            elif 'fillcolor = "green"' in line:
+                # Stacks
+                fillcolor = 'green'
+                replace = True
+
+            elif 'fillcolor = "white"' in line:
+                # Stacks
+                fillcolor = 'white'
+                replace = True
+
+            else:
+                replace = False
+
+            if replace:
+                line = re.sub('"shape(.*)"];', '"style="fill: {0}; font-weight: bold"];'.format(fillcolor), line)
+                digraph += '{0}\n'.format(line)
+            else:
+                digraph += '{0}\n'.format(line)
+
+        return HttpResponse(digraph)
 
     if command == 'dottree':
         session_id = request.POST['session_id']

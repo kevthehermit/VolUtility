@@ -29,7 +29,7 @@ class HiveViewer(Extension):
         return key_values
 
     def display(self):
-        self.render_data = ''
+        self.render_data = {'HiveViewer': None}
 
     def run(self):
         db = Database()

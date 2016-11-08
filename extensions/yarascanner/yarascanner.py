@@ -48,4 +48,4 @@ class YaraScanner(Extension):
             self.render_data = {'YaraScanner': {'yara_list': sorted(os.listdir('yararules')), 'yara_results': results}}
 
     def display(self):
-        self.render_data = {'yara_list': sorted(os.listdir('yararules')), 'yara_results': None}
+        self.render_data = {'YaraScanner': {'yara_list': sorted(os.listdir('yararules')), 'yara_results': None}}

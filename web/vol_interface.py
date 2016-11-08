@@ -214,7 +214,7 @@ class RunVol:
                 if x in results['columns']:
                     row_loc = results['columns'].index(x)
                     for row in results['rows']:
-                        row[row_loc] = hex(row[row_loc])
+                        row[row_loc] = hex(int(row[row_loc]))
         except Exception as e:
             logger.error('Error converting hex: {0}'.format(e))
 

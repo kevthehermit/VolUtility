@@ -53,7 +53,7 @@ class ExtractStrings(Extension):
 
     def display(self):
         # Always display first 256 bytes
-        self.render_data = None
+        self.render_data = {'HexViewer': None}
 
     def hex_html(self, hex_rows):
         html_string = ''

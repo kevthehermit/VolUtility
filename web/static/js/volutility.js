@@ -311,7 +311,7 @@ function ajaxHandler(command, postFields, spinner) {
                 console.log(postOptions["target_div"]);
                 $('#'+postOptions["target_div"]).html(html_data);
 
-            }else if (command == 'dottree' || command == "timeline") {
+            }else if (command == 'dottree' || command == "vaddot") {
                 console.log('DotTree');
 
                 // Prepare the div
@@ -347,40 +347,44 @@ function ajaxHandler(command, postFields, spinner) {
 
                 inner.attr("transform", "translate("+xCenterOffset+", "+ yCenterOffset +")");
 
+
+
                 $("svg").click(function( event ) {
 
-                    // Reset the CSS
-                    $("svg").find('rect').css("fill", "white");
-                    $("svg").find('path').css("stroke", "white");
+                    if (command == 'dottree') {
+                        // Reset the CSS
+                        $("svg").find('rect').css("fill", "white");
+                        $("svg").find('path').css("stroke", "white");
 
-                    // Get nodes and paths
-                    var node_list = inner.selectAll("g.node")[0];
-                    var path_list = inner.selectAll("g.edgePath")[0];
+                        // Get nodes and paths
+                        var node_list = inner.selectAll("g.node")[0];
+                        var path_list = inner.selectAll("g.edgePath")[0];
 
-                    // Get Selected Node
-                    var selectedNode = $(event.target).closest('.node').find('rect');
-                    var selectedNodeID = selectedNode[0].__data__;
+                        // Get Selected Node
+                        var selectedNode = $(event.target).closest('.node').find('rect');
+                        var selectedNodeID = selectedNode[0].__data__;
 
-                    // Set selected node to blue
-                    selectedNode.html("TEST");
-                    selectedNode.css("fill", "blue");
-                    // Find parents and children
+                        // Set selected node to blue
+                        selectedNode.html("TEST");
+                        selectedNode.css("fill", "blue");
+                        // Find parents and children
 
-                    for (i = 0; i < path_list.length; i++) {
+                        for (i = 0; i < path_list.length; i++) {
 
-                        var ppid = path_list[i].__data__.v;
-                        var pid = path_list[i].__data__.w;
-                        // Parent
-                        if (pid == selectedNodeID) {
-                            var ppid_int = parseInt(ppid.slice(4));
-                            $(node_list[ppid_int-1]).find('rect').css("fill", "red");
-                            $(path_list[i]).find('path').css("stroke", "red")
-                        }
-                        // Children
-                        if (ppid == selectedNodeID) {
-                            var pid_int = parseInt(pid.slice(4));
-                            $(node_list[pid_int-1]).find('rect').css("fill", "yellow");
-                            $(path_list[i]).find('path').css("stroke", "yellow")
+                            var ppid = path_list[i].__data__.v;
+                            var pid = path_list[i].__data__.w;
+                            // Parent
+                            if (pid == selectedNodeID) {
+                                var ppid_int = parseInt(ppid.slice(4));
+                                $(node_list[ppid_int - 1]).find('rect').css("fill", "red");
+                                $(path_list[i]).find('path').css("stroke", "red")
+                            }
+                            // Children
+                            if (ppid == selectedNodeID) {
+                                var pid_int = parseInt(pid.slice(4));
+                                $(node_list[pid_int - 1]).find('rect').css("fill", "yellow");
+                                $(path_list[i]).find('path').css("stroke", "yellow")
+                            }
                         }
                     }
             });
