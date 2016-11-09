@@ -241,6 +241,7 @@ class RunVol:
         if plugin_name in cmds.keys():
             command = cmds[plugin_name]
             # Set Config options
+            self.config.REGEX = None
             self.config.PID = pid
             self.config.DUMP_DIR = dump_dir
             self.config.HIVE_OFFSET = hive_offset

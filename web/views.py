@@ -574,7 +574,6 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
         ##
 
         if results:
-            print results
             # Start Counting
             counter = 1
 
@@ -689,8 +688,6 @@ def file_download(request, query_type, object_id):
 
 @csrf_exempt
 def addfiles(request):
-    for k, v in request.POST.iteritems():
-        print k, v
 
     if 'session_id' not in request.POST:
         logger.warning('No Session ID in POST')
@@ -886,8 +883,6 @@ def ajax_handler(request, command):
                     ext.set_config(config)
                     # This contains the rendered HTML
                     ext.display()
-                    print ext.render_data
-                    print extension_name
                     response_dict[extension_name] = ext.render_data[extension_name]
 
             yara_list = sorted(os.listdir('yararules'))
@@ -1168,10 +1163,12 @@ def ajax_handler(request, command):
                     except Exception as error:
                         logger.warning('Error converting hex to str: {0}'.format(error))
 
-            return render(request, 'file_details_yara.html', {'yara': results, 'error': None})
+            return render(request, 'render_yara.html', {'yara': results, 'error': None})
 
         except Exception as error:
+            print error
             logger.error(error)
+            return HttpResponse('Error: {0}'.format(error))
 
 
 
@@ -1298,33 +1295,8 @@ def ajax_handler(request, command):
 
             if search_type == 'hash':
                 pass
-            if search_type == 'string':
-                logger.debug('yarascan for string')
-                # If search string ends with .yar assume a yara rule
-                if any(ext in search_text for ext in ['.yar', '.yara']):
-                    if os.path.exists(search_text):
-                        try:
-                            session = db.get_session(session_id)
-                            vol_int = RunVol(session['session_profile'], session['session_path'])
-                            results = vol_int.run_plugin('yarascan', output_style='json',
-                                                         plugin_options={'YARA_FILE': search_text})
-                            return render(request, 'plugin_output_nohtml.html', {'plugin_results': results})
-                        except Exception as error:
-                            logger.error(error)
-                    else:
-                        logger.error('No Yara Rule Found')
-                else:
-                    try:
-                        session = db.get_session(session_id)
-                        vol_int = RunVol(session['session_profile'], session['session_path'])
-                        results = vol_int.run_plugin('yarascan', output_style='json',
-                                                     plugin_options={'YARA_RULES': search_text})
-                        return render(request, 'plugin_output_nohtml.html', {'plugin_results': results})
-                    except Exception as error:
-                        logger.error(error)
 
             if search_type == 'registry':
-
                 logger.debug('Registry Search')
                 try:
                     session = db.get_session(session_id)
@@ -1428,7 +1400,7 @@ def ajax_handler(request, command):
                 paged_data.append(row)
 
             datatables = {
-                "draw": request.POST['draw'],
+                "draw": int(request.POST['draw']),
                 "recordsTotal": resultcount,
                 "recordsFiltered": len(output),
                 "data": paged_data

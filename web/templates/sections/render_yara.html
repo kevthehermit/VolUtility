@@ -1,0 +1,22 @@
+{% if error %}
+<h4 class="text-danger">{{ error }}</h4>
+{% else %}
+
+    <table class="table table-striped table-bordered table-hover">
+        <tr>
+            <th>Rule</th>
+            <th>Process</th>
+            <th>Offset</th>
+            <th>String</th>
+        </tr>
+        {% for row in yara.rows %}
+        <tr>
+            <td>{{row.0}}</td>
+            <td>{{row.1}}</td>
+            <td>{{row.2}}</td>
+            <td>{{row.3}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+{%  endif %}
