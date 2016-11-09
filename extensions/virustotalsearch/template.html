@@ -1,8 +1,9 @@
 
 <div id="vt-out">
-<h3>VirusTotal</h3>
+<h3>VirusTotal - {{ VirusTotalSearch.state }}</h3>
+{{ VirusTotalSearch.state }}
 {% if VirusTotalSearch.state == 'complete' %}
-
+{% if VirusTotalSearch.vt_results %}
 <table class="table table-striped table-bordered table-hover">
     <tr>
         <th>PermaLink</th>
@@ -42,6 +43,9 @@
         {% endfor %}
     </tbody>
 </table>
+{% else %}
+    <h3>Something went wrong displaying results</h3>
+    {% endif %}
 
 {% elif VirusTotalSearch.state == 'pending' %}
 <h2>Analysis is Still processing on VirusTotal Please try again shortly</h2>

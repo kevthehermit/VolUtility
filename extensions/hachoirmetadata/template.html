@@ -1,0 +1,20 @@
+
+<div id="hach-out">
+    <h3>Image Details</h3>
+    {% if HachoirMetaData.results %}
+    <div class="row">
+        <div class="col-lg-12">
+            {% for row in HachoirMetaData.results %}
+            <p>{{ row }}</p>
+            {% endfor %}
+
+            {% if HachoirMetaData.img_src %}
+            <img class="img-responsive" alt="Embedded Image" src="data:image/png;base64,{{ HachoirMetaData.img_src }}" />
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+
+    <a href="#" onclick="ajaxHandler('HachoirMetaData', {'file_id':'{{HachoirMetaData.file_id}}', 'target_div':'hach-out', 'extension':true}, false ); return false" class="btn btn-info" role="button">Parse Meta</a>
+    {%  endif %}
+</div>
