@@ -792,7 +792,7 @@ function datatablesAjax(plugin_id) {
             $('#resultsTable').DataTable({
                 sDom: '<"top"flpr>rt<"bottom"ip><"clear">',
                 oLanguage:{
-                  sProcessing: '<h3 style="position:fixed;top:50%;left:50%;z-index:99999999;background:#1a242f;";>Loading. Please Wait.</h3>'
+                  sProcessing: '<h3 style="position:fixed;top:50%;left:50%;z-index:999999;background:#1a242f;";>Loading. Please Wait.</h3>'
                 },
                 processing: true,
                 serverSide: true,
@@ -803,8 +803,12 @@ function datatablesAjax(plugin_id) {
                         d.plugin_id = plugin_id;
                         d.pagination = true;
                     },
-                    dataSrc: function (json) {
-                        return json['data']['data'];
+                    dataSrc: function(json){
+                       json.draw = json.data.draw;
+                       json.recordsTotal = json.data.recordsTotal;
+                       json.recordsFiltered = json.data.recordsFiltered;
+
+                       return json.data.data;
                     }
                 },
                 createdRow: function (row, html_data, index) {
