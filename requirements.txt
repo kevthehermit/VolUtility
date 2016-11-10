@@ -5,3 +5,7 @@ yara-python
 distorm3
 virustotal-api
 pymongo
+hachoir_core
+hachoir_parser
+hachoir_metadata
+floss
