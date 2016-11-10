@@ -1,15 +1,9 @@
 from web.common import Extension, string_clean_hex
 from web.database import Database
-import os
-try:
-    from hachoir_core.error import HachoirError
-    from hachoir_core.stream import InputIOStream
-    from hachoir_parser import guessParser
-    from hachoir_metadata import extractMetadata
-    HAVEHACH = True
-except ImportError as e:
-    print e
-    HAVEHACH = False
+from hachoir_core.error import HachoirError
+from hachoir_core.stream import InputIOStream
+from hachoir_parser import guessParser
+from hachoir_metadata import extractMetadata
 
 
 class HachoirMetaData(Extension):
