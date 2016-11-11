@@ -31,7 +31,7 @@
             <label for="machine" class="col-sm-2 control-label pull-left">Machine</label>
             <div class="col-sm-5">
                 <select class="form-control" id="machine">
-                    <option class="text-muted" value="any">Select a Machine (Default First)</option>
+                    <option class="text-muted" value="">Select a Machine (Default First)</option>
                     {% for machine in CuckooSandbox.machine_list %}
                     <option value="{{machine.name}}">{{machine.display }}</option>
                     {% endfor %}
@@ -42,7 +42,7 @@
   <div class="form-group">
     <label for="package" class="col-sm-2 control-label">Package</label>
     <div class="col-sm-5">
-      <input type="text" class="form-control" id="package" placeholder="default is auto" value="auto">
+      <input type="text" class="form-control" id="package" placeholder="default is auto">
     </div>
   </div>
 

@@ -2,14 +2,15 @@ import json
 import pymongo
 from bson.objectid import ObjectId
 from gridfs import GridFS
-from common import Config
-config = Config()
+from common import parse_config
+
+config = parse_config()
 
 class Database():
     def __init__(self):
         # Create the connection
-        if config.valid:
-            mongo_uri = config.mongo_uri
+        if config['valid']:
+            mongo_uri = config['database']['mongo_uri']
         else:
             mongo_uri = 'mongodb://localhost'
 

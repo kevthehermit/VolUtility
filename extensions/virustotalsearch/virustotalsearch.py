@@ -21,7 +21,7 @@ class VirusTotalSearch(Extension):
         db = Database()
         #self.render_javascript = "function test(){  alert(1); }; test();"
         self.render_javascript = ""
-        if not self.config.api_key or not VT_LIB:
+        if not self.config['virustotal']['api_key'] or not VT_LIB:
             self.render_type = 'error'
             self.render_data = "Unable to use Virus Total. No Key or Library Missing. Check the Console for details"
 

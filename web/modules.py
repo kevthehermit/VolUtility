@@ -2,10 +2,11 @@
 import os
 import pkgutil
 import inspect
-from web.common import Extension
+from web.common import parse_config, Extension
 import logging
 
 logger = logging.getLogger(__name__)
+config = parse_config()
 
 def load_extensions():
     # Import modules package.
@@ -13,10 +14,17 @@ def load_extensions():
 
     extension_list = dict()
 
+    disable_list = config['extensions']['disabled'].split(',')
+
     # Walk recursively through all modules and packages.
     for loader, extension_name, ispkg in pkgutil.walk_packages(extensions.__path__, extensions.__name__ + '.'):
         # If current item is a package, skip.
         if ispkg:
+            continue
+
+        ext_name = extension_name.split('.')[-1]
+
+        if ext_name in disable_list:
             continue
 
         # Try to import the module, otherwise skip.
@@ -36,7 +44,6 @@ def load_extensions():
                     logger.info("Loaded Extension: {0}".format(member_object.extension_name))
                     extension_list[member_object.extension_name] = dict(obj=member_object,
                                                                         description=member_object.extension_name)
-
 
     return extension_list
 

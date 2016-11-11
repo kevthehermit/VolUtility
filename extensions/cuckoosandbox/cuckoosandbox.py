@@ -1,6 +1,5 @@
-from web.common import Extension, string_clean_hex
+from web.common import Extension
 from web.database import Database
-import os
 import requests
 
 
@@ -9,12 +8,13 @@ class CuckooSandbox(Extension):
     extension_name = 'CuckooSandbox'
     extension_type = 'filedetails'
 
-
     def api_query(self, api_method, api_uri, files=None, params=None):
         response = None
         if files:
             try:
+                print "Here"
                 response = requests.post(api_uri, files=files, data=params)
+                print response
 
             except requests.ConnectionError:
                 print "Unable to connect to Cuckoo API at '{0}'.".format(api_uri)
@@ -42,71 +42,72 @@ class CuckooSandbox(Extension):
         else:
             print "Failed to retrieve Object HTTP Status Code: {0}".format(response.status_code)
 
-
     def run(self):
         db = Database()
         # Get correct API URIS
-
-        cuckoo_modified = self.config.cuckoo_modified
-        cuckoo_host = self.config.cuckoo_host
+        cuckoo_modified = self.config['cuckoo']['modified']
+        cuckoo_host = self.config['cuckoo']['host']
 
         if cuckoo_modified:
-            search_url = '{0}/api/tasks/search/sha256'.format(cuckoo_host)
             submit_file_url = '{0}/api/tasks/create/file/'.format(cuckoo_host)
             status_url = '{0}/api/cuckoo/status'.format(cuckoo_host)
-            machine_url = '{0}/api/machines/list/'.format(cuckoo_host)
         else:
-            search_url = '{0}/tasks/list'.format(cuckoo_host)
             submit_file_url = '{0}/tasks/create/file'.format(cuckoo_host)
             status_url = '{0}/cuckoo/status'.format(cuckoo_host)
-            machine_url = '{0}/api/machines/list/'.format(cuckoo_host)
-
 
         params = {}
-        file_id = rule_file = False
         if 'file_id' in self.request.POST:
             file_id = self.request.POST['file_id']
 
             file_object = db.get_filebyid(file_id)
             file_data = file_object.read()
 
-            files = {'file': {file_object.filename, file_data}}
+            files = {'file': (file_object.filename, file_data)}
 
         if 'machine' in self.request.POST:
-            params['machine'] = self.request.POST['machine']
+            if self.request.POST['machine'] != '':
+                params['machine'] = self.request.POST['machine']
 
         if 'package' in self.request.POST:
-            params['package'] = self.request.POST['package']
+            if self.request.POST['package'] != '':
+                params['package'] = self.request.POST['package']
 
         if 'options' in self.request.POST:
-            params['options'] = self.request.POST['options']
+            if self.request.POST['options'] != '':
+                params['options'] = self.request.POST['options']
 
-        submit_file = self.api_query('post', submit_file_url, files=files, params=params).json()
+        submit_file = self.api_query('post', submit_file_url, files=files, params=params)
+
+        response_json = submit_file.json()
 
         try:
-            print "Task Submitted ID: {0}".format(submit_file['task_id'])
+            print "Task Submitted ID: {0}".format(response_json['task_id'])
+            task_id = response_json['task_id']
         except KeyError:
             try:
-                print "Task Submitted ID: {0}".format(submit_file['task_ids'][0])
+                print "Task Submitted ID: {0}".format(response_json['data']['task_ids'][0])
+                task_id = response_json['data']['task_ids'][0]
             except KeyError:
-                print submit_file
+                print response_json
+                task_id = 0
+
+        rows = [['ID', 'Pending', 'Running', '', '{0}/analysis/{1}'.format(cuckoo_host, task_id)]]
 
         self.render_type = 'file'
-        self.render_data = {'CuckooSandbox': {'machine_list': None}}
+        self.render_data = {'CuckooSandbox': {'machine_list': None, 'results': rows, 'file_id': file_id}}
 
     def display(self):
+        db = Database()
 
-        cuckoo_modified = self.config.cuckoo_modified
-        cuckoo_host = self.config.cuckoo_host
+        cuckoo_modified = self.config['cuckoo']['modified']
+        cuckoo_host = self.config['cuckoo']['host']
 
         if cuckoo_modified:
             search_url = '{0}/api/tasks/search/sha256'.format(cuckoo_host)
-            submit_file_url = '{0}/api/tasks/create/file/'.format(cuckoo_host)
             status_url = '{0}/api/cuckoo/status'.format(cuckoo_host)
             machine_url = '{0}/api/machines/list/'.format(cuckoo_host)
         else:
             search_url = '{0}/tasks/list'.format(cuckoo_host)
-            submit_file_url = '{0}/tasks/create/file'.format(cuckoo_host)
             status_url = '{0}/cuckoo/status'.format(cuckoo_host)
             machine_url = '{0}/api/machines/list/'.format(cuckoo_host)
 
@@ -126,10 +127,14 @@ class CuckooSandbox(Extension):
         else:
             machine_list.append('Unable to connect to Cuckoo')
 
+        file_id = rule_file = False
+        if 'file_id' in self.request.POST:
+            file_id = self.request.POST['file_id']
+            file_object = db.get_filebyid(file_id)
 
-        # Get any matching files in the dataset
-        file_hash = 'd0f83f8b55c8990858a775d94a15c018'
-        file_hash = '0ce826f59270141457351ff85eb6a7cecd324d42cbb0c2f7550bca880718ffe3'
+            file_hash = file_object.sha256
+        else:
+            file_hash = 'None'
 
         # Check for existing Session
         if cuckoo_modified:
@@ -138,16 +143,18 @@ class CuckooSandbox(Extension):
             if search_results['data'] != "Sample not found in database":
                 print "Found {0} Results".format(len(search_results['data']))
                 rows = []
-                header = ['ID', 'Started On', 'Status', 'Completed On']
                 for result in search_results['data']:
-                    rows.append([result['id'], result['started_on'], result['status'], result['completed_on'], '{0}/analysis/{1}'.format(cuckoo_host, result['id'])])
-                print "use -r, --resubmit to force a new analysis"
+                    rows.append([result['id'],
+                                 result['started_on'],
+                                 result['status'],
+                                 result['completed_on'],
+                                 '{0}/analysis/{1}'.format(cuckoo_host, result['id'])
+                                 ])
         else:
             search_results = self.api_query('get', search_url).json()
             count = 0
+            rows = []
             if 'tasks' in search_results:
-                rows = []
-                header = ['ID', 'Started On', 'Status', 'Completed On']
                 for result in search_results['tasks']:
                     try:
                         if result['sample']['sha256'] == file_hash:
@@ -156,8 +163,5 @@ class CuckooSandbox(Extension):
                     except:
                         pass
 
-
-        print rows
-
         self.render_type = 'file'
-        self.render_data = {'CuckooSandbox': {'machine_list': machine_list, 'results': rows}}
+        self.render_data = {'CuckooSandbox': {'machine_list': machine_list, 'results': rows, 'file_id': file_id}}

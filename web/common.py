@@ -77,34 +77,37 @@ def checksum_md5(file_path):
             md5.update(chunk)
     return md5.hexdigest()
 
+def parse_config():
+    config_dict = {}
+    config = ConfigParser.ConfigParser(allow_no_value=True)
 
-class Config:
-    def __init__(self):
-        config = ConfigParser.ConfigParser(allow_no_value=True)
+    # Order of precedence is ~/.volutility.conf, volutility.conf, volutility.conf.sample
 
-        # Order of precedence is ~/.volutility.conf, volutility.conf, volutility.conf.sample
+    if os.path.exists(os.path.join(os.path.expanduser("~"), '.volutility.conf')):
+        conf_file = os.path.join(os.path.expanduser("~"), '.volutility.conf')
 
-        if os.path.exists(os.path.join(os.path.expanduser("~"), '.volutility.conf')):
-            conf_file = os.path.join(os.path.expanduser("~"), '.volutility.conf')
+    elif os.path.exists('volutility.conf'):
+        conf_file = 'volutility.conf'
 
-        elif os.path.exists('volutility.conf'):
-            conf_file = 'volutility.conf'
+    else:
+        conf_file = 'volutility.conf.sample'
+        logger.warning('Using default config file. Check your volutility.conf file exists')
 
-        else:
-            conf_file = 'volutility.conf.sample'
-            logger.warning('Using default config file. Check your volutility.conf file exists')
+    valid = config.read(conf_file)
+    if len(valid) > 0:
+        config_dict['valid'] = True
+        for section in config.sections():
+            section_dict = {}
+            for key, value in config.items(section):
+                section_dict[key] = value
+            config_dict[section] = section_dict
+    else:
+        config_dict['valid'] = False
+        logger.error('Unable to find a valid volutility.conf file.')
 
-        valid = config.read(conf_file)
-        if len(valid) > 0:
-            self.valid = True
-            for section in config.sections():
-                for key, value in config.items(section):
-                    setattr(self, key, value)
-        else:
-            self.valid = False
-            logger.error('Unable to find a valid volutility.conf file.')
+    logger.info("Loaded configuration from {0}".format(conf_file))
 
-        logger.info("Loaded configuration from {0}".format(conf_file))
+    return config_dict
 
 
 class Extension(object):

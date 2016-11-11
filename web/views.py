@@ -4,10 +4,10 @@ import json
 from datetime import datetime
 from web.common import *
 import multiprocessing
-from common import Config, checksum_md5
+from common import parse_config, checksum_md5
 from web.modules import __extensions__
 
-config = Config()
+config = parse_config()
 
 logger = logging.getLogger(__name__)
 
@@ -125,8 +125,8 @@ def session_creation(request, mem_image, session_id):
     db.update_session(session_id, new_session)
 
     # Autorun list from config
-    if config.autorun == 'True':
-        auto_list = config.plugins.split(',')
+    if config['autorun']['enable'] == 'True':
+        auto_list = config['autorun']['plugins'].split(',')
     else:
         auto_list = False
 
