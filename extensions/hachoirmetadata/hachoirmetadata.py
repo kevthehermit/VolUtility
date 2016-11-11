@@ -13,7 +13,8 @@ class HachoirMetaData(Extension):
 
     def run(self):
         db = Database()
-        file_id = False
+        metadict = {}
+        img_src = None
         if 'file_id' in self.request.POST:
             file_id = self.request.POST['file_id']
             file_object = db.get_filebyid(file_id)
@@ -23,25 +24,28 @@ class HachoirMetaData(Extension):
             parser = guessParser(stream)
 
             if not parser:
-                metadata = None
+                metadict['error'] = 'Unable to Parse'
 
             try:
                 metadata = extractMetadata(parser)
-                metadata_list = str(metadata).split('\n')
-                for row in metadata_list:
-                    key, value = row.split(':', 1)
+                if not metadata:
+                    metadict['error'] = 'Unable to Parse any data'
+                else:
+                    for row in str(metadata).split('\n'):
+                        key, value = row.split(':', 1)
+                        metadict[key.lstrip('- ')] = value.lstrip()
 
-                if 'JPEG' in str(metadata):
-                    from base64 import b64encode
-                    img_src = b64encode(file_data)
+                    if 'MIME type' in metadict:
+
+                        if 'image' in metadict['MIME type']:
+                            from base64 import b64encode
+                            img_src = b64encode(file_data)
 
             except HachoirError as e:
-                metadata = e
-
-            results = metadata_list
+                metadict['error'] = e
 
             self.render_type = 'file'
-            self.render_data = {'HachoirMetaData': {'results': results, 'file_id': file_id, 'img_src': img_src}}
+            self.render_data = {'HachoirMetaData': {'results': metadict, 'file_id': file_id, 'img_src': img_src}}
 
     def display(self):
         file_id = self.request.POST['file_id']
