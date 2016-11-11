@@ -454,6 +454,10 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
                         img_type = 'N/A'
                     file_data = open(os.path.join(dump_dir, filename), 'rb').read()
                     sha256 = hashlib.sha256(file_data).hexdigest()
+                    # ToDo:
+                    # MIME type
+                    # SSDEEP
+                    # Header Bytes
                     file_id = db.create_file(file_data, session_id, sha256, filename)
                     results['rows'].append([plugin_options['PHYSOFFSET'],
                                             filename,

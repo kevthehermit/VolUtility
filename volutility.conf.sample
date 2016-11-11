@@ -11,3 +11,13 @@ api_key =
 #
 autorun = False
 plugins = pslist,psscan
+
+[update]
+update = True
+
+[extensions]
+disabled =
+
+[cuckoo]
+modified = True
+host = http://172.21.4.2:8181
