@@ -1,0 +1,33 @@
+
+<div id="exif-out">
+    <h3>MetaData</h3>
+    {% if ExifData.results %}
+    <div class="row">
+        <div class="col-lg-6">
+
+            <table class="table table-striped table-bordered table-hover">
+            {% for key, value in ExifData.results.items %}
+
+                <tr>
+                    <th>{{ key }}</th>
+                    <td>{{ value }}</td>
+                </tr>
+            {% endfor %}
+            </table>
+
+
+
+
+
+        </div>
+        <div class="col-lg-6">
+            {% if ExifData.img_src %}
+            <img class="img-responsive" alt="Embedded Image" src="data:image/png;base64,{{ ExifData.img_src }}" />
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+
+    <a href="#" onclick="ajaxHandler('ExifData', {'file_id':'{{ExifData.file_id}}', 'target_div':'exif-out', 'extension':true}, false ); return false" class="btn btn-info" role="button">Parse Meta</a>
+    {%  endif %}
+</div>

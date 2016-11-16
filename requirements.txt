@@ -9,3 +9,4 @@ hachoir_core
 hachoir_parser
 hachoir_metadata
 pycrypto
+git+https://github.com/smarnach/pyexiftool.git#egg=pyexiftool
