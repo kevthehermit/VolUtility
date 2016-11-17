@@ -186,11 +186,8 @@ function ajaxHandler(command, postFields, spinner) {
     }
 
 
-    if (command == 'yara'){
-        postOptions['rule_file'] = $('#rule_file').val();
-    }
-
     if (command == 'yara-string'){
+        console.log('Yara Scanner');
         postOptions['yara-string'] = $('#yara-string').val();
         postOptions['yara-hex'] = $('#yara-hex').val();
         postOptions['yara-reverse'] = $('#yara-reverse').val();
@@ -303,12 +300,19 @@ function ajaxHandler(command, postFields, spinner) {
                 // Enable table sorting
                 $('#hiveTable').DataTable();
 
-            }else if (command == "virustotal" || command == "yara" || command == "strings" || command == "yara-string") {
-                $('#'+postOptions["target_div"]).html(data);
+            // If target_div exists in the postoptions we are just writing out.
+            }else if (postOptions["extension"]) {
+                console.log("in Here");
+                // Get the HTML we want to use
+                var html_data = data['data'];
+                // add additional JS
+                var new_js = data['javascript'];
+                eval(new_js);
+                console.log(postOptions["target_div"]);
+                $('#'+postOptions["target_div"]).html(html_data);
 
-            }else if (command == 'dottree' || command == "timeline") {
-
-
+            }else if (command == 'dottree' || command == "vaddot") {
+                console.log('DotTree');
 
                 // Prepare the div
                 $('#resultsTarget').html('<svg width="100%" height="100"><g/></svg>');
@@ -343,40 +347,44 @@ function ajaxHandler(command, postFields, spinner) {
 
                 inner.attr("transform", "translate("+xCenterOffset+", "+ yCenterOffset +")");
 
+
+
                 $("svg").click(function( event ) {
 
-                    // Reset the CSS
-                    $("svg").find('rect').css("fill", "white");
-                    $("svg").find('path').css("stroke", "white");
+                    if (command == 'dottree') {
+                        // Reset the CSS
+                        $("svg").find('rect').css("fill", "white");
+                        $("svg").find('path').css("stroke", "white");
 
-                    // Get nodes and paths
-                    var node_list = inner.selectAll("g.node")[0];
-                    var path_list = inner.selectAll("g.edgePath")[0];
+                        // Get nodes and paths
+                        var node_list = inner.selectAll("g.node")[0];
+                        var path_list = inner.selectAll("g.edgePath")[0];
 
-                    // Get Selected Node
-                    var selectedNode = $(event.target).closest('.node').find('rect');
-                    var selectedNodeID = selectedNode[0].__data__;
+                        // Get Selected Node
+                        var selectedNode = $(event.target).closest('.node').find('rect');
+                        var selectedNodeID = selectedNode[0].__data__;
 
-                    // Set selected node to blue
-                    selectedNode.html("TEST");
-                    selectedNode.css("fill", "blue");
-                    // Find parents and children
+                        // Set selected node to blue
+                        selectedNode.html("TEST");
+                        selectedNode.css("fill", "blue");
+                        // Find parents and children
 
-                    for (i = 0; i < path_list.length; i++) {
+                        for (i = 0; i < path_list.length; i++) {
 
-                        var ppid = path_list[i].__data__.v;
-                        var pid = path_list[i].__data__.w;
-                        // Parent
-                        if (pid == selectedNodeID) {
-                            var ppid_int = parseInt(ppid.slice(4));
-                            $(node_list[ppid_int-1]).find('rect').css("fill", "red");
-                            $(path_list[i]).find('path').css("stroke", "red")
-                        }
-                        // Children
-                        if (ppid == selectedNodeID) {
-                            var pid_int = parseInt(pid.slice(4));
-                            $(node_list[pid_int-1]).find('rect').css("fill", "yellow");
-                            $(path_list[i]).find('path').css("stroke", "yellow")
+                            var ppid = path_list[i].__data__.v;
+                            var pid = path_list[i].__data__.w;
+                            // Parent
+                            if (pid == selectedNodeID) {
+                                var ppid_int = parseInt(ppid.slice(4));
+                                $(node_list[ppid_int - 1]).find('rect').css("fill", "red");
+                                $(path_list[i]).find('path').css("stroke", "red")
+                            }
+                            // Children
+                            if (ppid == selectedNodeID) {
+                                var pid_int = parseInt(pid.slice(4));
+                                $(node_list[pid_int - 1]).find('rect').css("fill", "yellow");
+                                $(path_list[i]).find('path').css("stroke", "yellow")
+                            }
                         }
                     }
             });
@@ -411,7 +419,6 @@ function ajaxHandler(command, postFields, spinner) {
                 $('#resultsTable').DataTable({pageLength:25,scrollX: true,drawCallback: resultscontextmenu ($, window)});
                 resultscontextmenu ($, window);
 
-
             }else if (command == 'bookmark') {
                 //
 
@@ -421,74 +428,13 @@ function ajaxHandler(command, postFields, spinner) {
             }else if (command == 'filedump') {
                 notifications('success', true, postOptions['plugin_id'], 'Check dumpfiles plugin for your file.');
 
-            }else if (command == 'hiveviewer') {
-
-                if (postOptions['reset']){
-                    //Hide Any Open Modal
-                    $('.modal').modal('hide');
-                    // Open New Modal
-                    $('#hiveViewModal').modal('show');
-
-                    //clear the nodelist
-                    $('#nodelist ul').empty();
-
-
+            }else {
+                if (postOptions['target_div']){
+                    $('#'+postOptions["target_div"]).html(data);
+                }else{
+                    alertBar('danger', 'Spaghetti-Os!', 'Unable to find a valid command')
                 }
 
-                // Prepare all the returned data.
-                var file_id = postOptions['file_id'];
-                var new_data = $.parseJSON(data);
-                var key_values = new_data['key_values'];
-                var child_keys = new_data['child_keys'];
-                var parent_key = decodeURIComponent(postOptions['key']);
-
-                // Friendly ID
-                parent_key = parent_key.replace(/\\/g, "_");
-
-
-
-                console.log("Parent Key = #"+parent_key);
-
-                // Add Nodes to Tree
-
-                $.each(child_keys, function( index, value ) {
-
-                    // Friendly ID
-                    var key_id = value.replace(/\\/g, "_");
-
-                    // If parent node exists then append to that.
-
-
-                    // If parent node exists
-                    if ( $("#"+parent_key ).length > 0) {
-                        console.log('Parent Node Exists');
-                        if ( $("#"+parent_key+"_Children" ).length < 1) {
-                             console.log('Child UL Needs Creating');
-                             $("#"+parent_key+ " label").after("<ul id='"+parent_key+"_Children'></ul>");
-                        }
-                        console.log('Appending Key');
-                        $("#"+parent_key+"_Children").append("<li id='"+key_id+"'><input type=\"checkbox\" checked=\"checked\" id=\"item-"+index+"\" /><label for=\"item-"+index+"\" onclick=\"ajaxHandler('hiveviewer', {'file_id':'"+file_id+"', 'key': '"+encodeURIComponent(value)+"', 'reset': false}, false )\">"+value+"</label>");
-
-
-
-                    // Else create new node
-
-                    } else {
-                        $('#nodelist ul').append("<li id='"+key_id+"'><input type=\"checkbox\" checked=\"checked\" id=\"item-"+index+"\" /><label for=\"item-"+index+"\" onclick=\"ajaxHandler('hiveviewer', {'file_id':'"+file_id+"', 'key': '"+encodeURIComponent(value)+"', 'reset': false}, false )\">"+value+"</label>");
-                    }
-
-                });
-
-                // Populate Values
-                $('#regValues tbody').empty();
-                $.each(key_values, function( index, value ) {
-                  $('#regValues tbody').append('<tr><td>'+value[0]+'</td><td>'+value[1]+'</td><td>'+value[2]+'</td></tr>');
-                });
-
-                // End Reg
-
-            }else {
-                alertBar('danger', 'Spaghetti-Os!', 'Unable to find a valid command')
             }
 
             // End of Done
@@ -532,6 +478,8 @@ function resultscontextmenu ($, window) {
     if (plugin_name == 'pslist') {
             $("#contextMenu").append('<li class="divider"></li>');
             $("#contextMenu").append('<li><a tabindex="-1" href="#">Store Process Mem</a></li>');
+            $("#contextMenu").append('<li class="divider"></li>');
+            $("#contextMenu").append('<li><a tabindex="-1" href="#">View VAD Tree</a></li>');
     }
 
     if (plugin_name == 'filescan') {
@@ -693,6 +641,7 @@ $("#resultsTable tbody tr").contextMenu({
             // Redraw Table
             $('#resultsTable').DataTable().draw(false);
 
+
         }
 
         if (menu_option == 'Store Process Mem') {
@@ -703,6 +652,30 @@ $("#resultsTable tbody tr").contextMenu({
         if (menu_option == 'Store File Object') {
             var session_id = $('#sessionID').html();
             ajaxHandler('filedump', {'row_id':row_id, 'session_id':session_id}, true);
+        }
+
+        if (menu_option == 'View VAD Tree') {
+            // Get PID from Row
+            // Lets find it properly get the column number using search then use this as index for the row.
+            // This is because we can manipulate rows now.
+            var pid_index = $('th:contains("PID")').index();
+
+            var row_elem = $invokedOn.closest("tr");
+            console.log(row_elem);
+            //var pid = row_elem.cells[pid_index];
+            //var pid = $invokedOn.closest("tr td:eq("+row_elem+")").text();
+            var pid = row_elem.find('td:eq('+pid_index+')').text();
+
+
+            console.log(pid);
+
+
+            // Get session
+            var session_id = $('#sessionID').html();
+
+            // reset search bar
+            ajaxHandler('vaddot', {'session_id':session_id,'target_div':'dotimage', 'pid': pid}, true );
+
         }
 
     },
@@ -807,14 +780,19 @@ function datatablesAjax(plugin_id) {
 
         // Success
         .done(function(data) {
+                // Get the HTML we want to use
+                var html_data = data['data'];
+                // add additional JS
+                var new_js = data['javascript'];
+
             // Fill first 25 rows
-            $('#resultsTarget').html(data);
+            $('#resultsTarget').html(html_data);
 
             // then handover to ajax
             $('#resultsTable').DataTable({
                 sDom: '<"top"flpr>rt<"bottom"ip><"clear">',
                 oLanguage:{
-                  sProcessing: '<h3 style="position:fixed;top:50%;left:50%;z-index:99999999;background:#1a242f;";>Loading. Please Wait.</h3>'
+                  sProcessing: '<h3 style="position:fixed;top:50%;left:50%;z-index:999999;background:#1a242f;";>Loading. Please Wait.</h3>'
                 },
                 processing: true,
                 serverSide: true,
@@ -824,10 +802,17 @@ function datatablesAjax(plugin_id) {
                     data: function (d) {
                         d.plugin_id = plugin_id;
                         d.pagination = true;
+                    },
+                    dataSrc: function(json){
+                       json.draw = json.data.draw;
+                       json.recordsTotal = json.data.recordsTotal;
+                       json.recordsFiltered = json.data.recordsFiltered;
+
+                       return json.data.data;
                     }
                 },
-                createdRow: function (row, data, index) {
-                    if ($.inArray(parseInt(data[0]), vBookMarks) > -1) {
+                createdRow: function (row, html_data, index) {
+                    if ($.inArray(parseInt(html_data[0]), vBookMarks) > -1) {
                         $(row).addClass('success');
                     }
                 },
@@ -837,6 +822,9 @@ function datatablesAjax(plugin_id) {
                 deferLoading: vresultCount
             });
             resultscontextmenu ($, window);
+
+            // Now run any additional JavaScript thats been added
+            eval(new_js);
 
             // End of Done
         })

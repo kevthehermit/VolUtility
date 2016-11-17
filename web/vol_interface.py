@@ -5,6 +5,8 @@ import copy
 import StringIO
 import json
 
+from web.common import string_clean_hex
+
 # Need to do this before importing Volatility
 
 volrc_file = os.path.join(os.path.expanduser('~'), '.volatilityrc')
@@ -86,8 +88,8 @@ class RunVol:
 
     def init_config(self):
         """Creates a volatility configuration."""
-        if self.config is not None and self.addr_space is not None:
-            return self.config
+        #if self.config is not None and self.addr_space is not None:
+            #return self.config
 
         self.config = conf.ConfObject()
         self.config.optparser.set_conflict_handler("resolve")
@@ -177,7 +179,7 @@ class RunVol:
         strio = StringIO.StringIO()
         plugin = plugin_class(copy.deepcopy(self.config))
         plugin.render_json(strio, plugin.calculate())
-        return json.loads(strio.getvalue())
+        return json.loads(strio.getvalue(), parse_int=str)
 
     def get_text(self, plugin_class):
         """
@@ -189,6 +191,9 @@ class RunVol:
         plugin = plugin_class(copy.deepcopy(self.config))
         plugin.render_text(strio, plugin.calculate())
         plugin_data = strio.getvalue()
+
+        # AS this is all text lets clean it up a bit so its viable to store in json
+        plugin_data = string_clean_hex(plugin_data)
 
         # Return a json object from our string so it matches the json output.
         # Also going to drop in pre tags here
@@ -209,7 +214,7 @@ class RunVol:
                 if x in results['columns']:
                     row_loc = results['columns'].index(x)
                     for row in results['rows']:
-                        row[row_loc] = hex(row[row_loc])
+                        row[row_loc] = hex(int(row[row_loc]))
         except Exception as e:
             logger.error('Error converting hex: {0}'.format(e))
 
@@ -236,6 +241,7 @@ class RunVol:
         if plugin_name in cmds.keys():
             command = cmds[plugin_name]
             # Set Config options
+            self.config.REGEX = None
             self.config.PID = pid
             self.config.DUMP_DIR = dump_dir
             self.config.HIVE_OFFSET = hive_offset

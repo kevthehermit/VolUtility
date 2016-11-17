@@ -9,5 +9,16 @@ api_key =
 #
 # Volutility will try to run these plugins as soon as the image is loaded.
 #
-autorun = False
+enable = False
 plugins = pslist,psscan
+
+[update]
+update = True
+
+[extensions]
+disabled = cuckoo
+
+[cuckoo]
+# set modified to True for brads fork
+modified = False
+host = http://192.168.1.200:8000

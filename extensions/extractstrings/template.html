@@ -1,0 +1,9 @@
+<h3>Strings</h3>
+<div id="strings-out">
+    {% if ExtractStrings.string_id %}
+        <td><a class="btn btn-success" role="button" href="/download/file/{{ExtractStrings.string_id}}">Download</a></td>
+    {% else %}
+    <a href="#" onclick="ajaxHandler('ExtractStrings', {'file_id':'{{file_id}}', 'target_div':'strings-out', 'extension':true}, true ); return false" class="btn btn-info" role="button">Extract Strings</a>
+
+    {%  endif %}
+</div>

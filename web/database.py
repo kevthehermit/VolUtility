@@ -2,14 +2,15 @@ import json
 import pymongo
 from bson.objectid import ObjectId
 from gridfs import GridFS
-from common import Config
-config = Config()
+from common import parse_config
+
+config = parse_config()
 
 class Database():
     def __init__(self):
         # Create the connection
-        if config.valid:
-            mongo_uri = config.mongo_uri
+        if config['valid']:
+            mongo_uri = config['database']['mongo_uri']
         else:
             mongo_uri = 'mongodb://localhost'
 
@@ -43,26 +44,30 @@ class Database():
         sessions = self.vol_sessions.find()
         return [x for x in sessions]
 
-    def get_session(self, sess_id):
-        session = self.vol_sessions.find_one({'_id': sess_id})
+    def get_session(self, session_id):
+        session_id = ObjectId(session_id)
+        session = self.vol_sessions.find_one({'_id': session_id})
         return session
 
-    def create_session(self, sess_data):
-        sess_id = self.vol_sessions.insert_one(sess_data).inserted_id
-        return sess_id
+    def create_session(self, session_data):
+        session_id = self.vol_sessions.insert_one(session_data).inserted_id
+        return session_id
 
-    def update_session(self, sess_id, new_values):
-        self.vol_sessions.update_one({'_id': sess_id}, {"$set": new_values })
+    def update_session(self, session_id, new_values):
+        session_id = ObjectId(session_id)
+        self.vol_sessions.update_one({'_id': session_id}, {"$set": new_values })
         return True
 
     ##
     # Comments
     ##
     def get_commentbyid(self, comment_id):
+        comment_id = ObjectId(comment_id)
         comment = self.vol_comments.find({'_id': comment_id})
         return comment
 
-    def get_commentbysession(self,session_id):
+    def get_commentbysession(self, session_id):
+        session_id = ObjectId(session_id)
         comments = self.vol_comments.find({'session_id': session_id}).sort("created", -1)
         return [row for row in comments]
 
@@ -75,6 +80,7 @@ class Database():
         rows = self.vol_comments.find({"$text": {"$search": search_text}})
         for row in rows:
             if session_id:
+                session_id = ObjectId(session_id)
                 if row['session_id'] == session_id:
                     results.append(row)
             else:
@@ -86,6 +92,7 @@ class Database():
     ##
 
     def get_pluginbysession(self, session_id):
+        session_id = ObjectId(session_id)
         result_rows = []
         plugin_output = self.vol_plugins.find({'session_id': session_id}).sort("created", -1)
         for row in plugin_output:
@@ -96,6 +103,7 @@ class Database():
         return result_rows
 
     def get_pluginbyid(self, plugin_id):
+        plugin_id = ObjectId(plugin_id)
         plugin_output = self.vol_plugins.find_one({'_id': plugin_id})
         if 'largedoc' in plugin_output:
             large_document_id = plugin_output['plugin_output']
@@ -104,6 +112,7 @@ class Database():
         return plugin_output
 
     def get_plugin_byname(self, plugin_name, session_id):
+        session_id = ObjectId(session_id)
         plugin_output = self.vol_plugins.find_one({'session_id': session_id, 'plugin_name': plugin_name})
         if 'largedoc' in plugin_output:
             large_document_id = plugin_output['plugin_output']
@@ -112,7 +121,10 @@ class Database():
         return plugin_output
 
     def create_plugin(self, plugin_data):
+        # Force session ID
+        plugin_data['session_id'] = ObjectId(plugin_data['session_id'])
         plugin_id = self.vol_plugins.insert_one(plugin_data).inserted_id
+        print plugin_id
         return plugin_id
 
     def search_plugins(self, search_text, session_id=None, plugin_name=None):
@@ -120,6 +132,7 @@ class Database():
         rows = self.vol_plugins.find({"$text": {"$search": search_text}})
         for row in rows:
             if session_id:
+                session_id = ObjectId(session_id)
                 if row['session_id'] == session_id:
                     results.append(row)
             # This is the session filter from the main page.
@@ -133,6 +146,7 @@ class Database():
         return results
 
     def update_plugin(self, plugin_id, new_values):
+        plugin_id = ObjectId(plugin_id)
         if len(str(new_values)) > 12000000:
             print "Storing Large Document in GridFS"
             large_document = json.dumps(new_values['plugin_output'])
@@ -148,11 +162,13 @@ class Database():
     # File System
     ##
     def get_filebyid(self, file_id):
+        file_id = ObjectId(file_id)
         file_object = self.vol_files.get(file_id)
         return file_object
 
-    def list_files(self, sess_id):
-        results = self.vol_files.find({'session_id': sess_id})
+    def list_files(self, session_id):
+        session_id = ObjectId(session_id)
+        results = self.vol_files.find({'session_id': session_id})
         return [row for row in results]
 
     def search_files(self, search_query):
@@ -160,14 +176,18 @@ class Database():
         return [row for row in results]
 
     def get_strings(self, file_id):
+        file_id = ObjectId(file_id)
         results = self.vol_files.find_one({'filename': '{0}_strings.txt'.format(str(file_id))})
         return results
 
-    def create_file(self, file_data, sess_id, sha256, filename, pid=None, file_meta=None):
-        file_id = self.vol_files.put(file_data, filename=filename, sess_id=sess_id, sha256=sha256, pid=pid, file_meta=file_meta)
+    def create_file(self, file_data, session_id, sha256, filename, pid=None, file_meta=None):
+        if len(session_id) == 24:
+            session_id = ObjectId(session_id)
+        file_id = self.vol_files.put(file_data, filename=filename, sess_id=session_id, sha256=sha256, pid=pid, file_meta=file_meta)
         return file_id
 
     def drop_file(self, file_id):
+        file_id = ObjectId(file_id)
         self.vol_files.delete(file_id)
         return True
 
@@ -197,6 +217,7 @@ class Database():
     # Drop Session
     ##
     def drop_session(self, session_id):
+        session_id = ObjectId(session_id)
 
         # Drop Plugins
         self.vol_plugins.delete_many({'session_id': session_id})

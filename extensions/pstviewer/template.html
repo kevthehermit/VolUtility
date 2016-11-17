@@ -1,0 +1,55 @@
+<h3>PST Viewer</h3>
+<div id="pst-out">
+    {% if PSTViewer.email_dict %}
+        {% for folder, emails in PSTViewer.email_dict.items %}
+
+            <h4>{{ folder }}</h4>
+            {% for email in emails %}
+
+                <div class="panel panel-default">
+                  <div class="panel-heading">
+                    <h3 class="panel-title">Subject: {{ email.subject }}</h3>
+                  </div>
+                  <div class="panel-body">
+                    <table class="table table-bordered">
+                      <tr>
+                          <td>Date</td>
+                          <td>{{ email.delivery_time }}</td>
+                      </tr>
+
+                      <tr>
+                          <td>Sender</td>
+                          <td>{{ email.sender_name }} | {{ email.display_name }}</td>
+                      </tr>
+
+                      <tr>
+                          <td>Subject</td>
+                          <td>{{ email.subject }}</td>
+                      </tr>
+
+                      <tr>
+                          <td>Headers</td>
+                          <td>{{ email.headers }}</td>
+                      </tr>
+
+                      <tr>
+                          <td>Body</td>
+                          <td>{{ email.plain_body }}</td>
+                      </tr>
+
+                      <tr>
+                          <td>Att Count</td>
+                          <td>{{ email.att_count }}</td>
+                      </tr>
+
+
+                    </table>
+                  </div>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    {% else %}
+    <a href="#" onclick="ajaxHandler('PSTViewer', {'file_id':'{{file_id}}', 'target_div':'pst-out', 'extension':true}, true ); return false" class="btn btn-info" role="button">View PST</a>
+
+    {%  endif %}
+</div>

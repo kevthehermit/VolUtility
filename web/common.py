@@ -77,34 +77,70 @@ def checksum_md5(file_path):
             md5.update(chunk)
     return md5.hexdigest()
 
+def parse_config():
+    config_dict = {}
+    config = ConfigParser.ConfigParser(allow_no_value=True)
 
-class Config:
+    # Order of precedence is ~/.volutility.conf, volutility.conf, volutility.conf.sample
+
+    if os.path.exists(os.path.join(os.path.expanduser("~"), '.volutility.conf')):
+        conf_file = os.path.join(os.path.expanduser("~"), '.volutility.conf')
+
+    elif os.path.exists('volutility.conf'):
+        conf_file = 'volutility.conf'
+
+    else:
+        conf_file = 'volutility.conf.sample'
+        logger.warning('Using default config file. Check your volutility.conf file exists')
+
+    valid = config.read(conf_file)
+    if len(valid) > 0:
+        config_dict['valid'] = True
+        for section in config.sections():
+            section_dict = {}
+            for key, value in config.items(section):
+                section_dict[key] = value
+            config_dict[section] = section_dict
+    else:
+        config_dict['valid'] = False
+        logger.error('Unable to find a valid volutility.conf file.')
+
+    logger.info("Loaded configuration from {0}".format(conf_file))
+
+    return config_dict
+
+
+class Extension(object):
+
+    '''
+    ToDo: Need to load the HTML and put it in the right place
+    extension_inject_point = None
+
+    Need a single place in the DB so we can always call it out. Or do i?
+    Look at this
+
+    '''
+
+    extension_name = None
+    extension_type = None
+    render_type = None
+    render_data = None
+    render_file = None
+    render_javascript = None
+    extra_js = None
+
     def __init__(self):
-        config = ConfigParser.ConfigParser(allow_no_value=True)
+        pass
 
-        # Order of precedence is ~/.volutility.conf, volutility.conf, volutility.conf.sample
+    def set_request(self, request):
+        self.request = request
 
-        if os.path.exists(os.path.join(os.path.expanduser("~"), '.volutility.conf')):
-            conf_file = os.path.join(os.path.expanduser("~"), '.volutility.conf')
+    def set_config(self, config):
+        self.config = config
 
-        elif os.path.exists('volutility.conf'):
-            conf_file = 'volutility.conf'
+    def set_plugin_results(self, data):
+        self.plugin_results = data
 
-        else:
-            conf_file = 'volutility.conf.sample'
-            logger.warning('Using default config file. Check your volutility.conf file exists')
-
-        valid = config.read(conf_file)
-        if len(valid) > 0:
-            self.valid = True
-            for section in config.sections():
-                for key, value in config.items(section):
-                    setattr(self, key, value)
-        else:
-            self.valid = False
-            logger.error('Unable to find a valid volutility.conf file.')
-
-        logger.info("Loaded configuration from {0}".format(conf_file))
 
 
 def rec(key, depth=0, all_nodes=''):

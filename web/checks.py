@@ -51,9 +51,9 @@ def compat_check(app_configs=None, **kwargs):
 
     # Config
     try:
-        from common import Config
-        config = Config()
-        if config.valid:
+        from common import parse_config
+        config = parse_config()
+        if config['valid']:
             pass
 
     except:
@@ -63,8 +63,8 @@ def compat_check(app_configs=None, **kwargs):
     # Database Connection finally
     if have_mongo:
         try:
-            if config.valid:
-                mongo_uri = config.mongo_uri
+            if config['valid']:
+                mongo_uri = config['database']['mongo_uri']
             else:
                 mongo_uri = 'mongodb://localhost'
 

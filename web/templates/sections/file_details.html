@@ -2,24 +2,33 @@
 
 
 
-<div class="modal fade" id="fileModal" tabindex="-1" role="dialog" aria-labelledby="fileModal" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+<div class="modal modal-wide fade" id="fileModal" tabindex="-1" role="dialog" aria-labelledby="fileModal" aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                <h4 class="modal-title" id="fileModal">File Details</h4>
+                <h4 class="modal-title" id="fileModal">File Details - {{file_details.filename}}</h4>
             </div>
             <div class="modal-body">
 
-  <ul class="nav nav-pills">
+<div class="row">
+    <div class="col-lg-3">
+  <ul class="nav nav-pills nav-stacked">
     <li class="active"><a data-toggle="pill" href="#home">Details</a></li>
-    <li><a data-toggle="pill" href="#menu1">VirusTotal</a></li>
-    <li><a data-toggle="pill" href="#menu2">Strings</a></li>
-    <li><a data-toggle="pill" href="#menu3">Yara</a></li>
-    <li><a data-toggle="pill" href="#menu4">Cuckoo</a></li>
+    {% for inc in includes %}
+        <li><a data-toggle="pill" href="#{{ inc.1 }}">{{ inc.1 }}</a></li>
 
-    <li><a data-toggle="pill" href="#" onclick="ajaxHandler('hiveviewer', {'file_id':'{{file_id}}', 'key': 'root', 'reset': true}, false )">Registry</a></li>
+    {% endfor %}
+
+
+    <!-- <li><a data-toggle="pill" href="#" onclick="ajaxHandler('HiveViewer', {'file_id':'{{file_id}}', 'key': 'root', 'reset': true, 'extension':true}, false )">Registry</a></li> -->
   </ul>
+    </div>
+
+    <div class="col-lg-9">
+
+
+
 
   <div class="tab-content">
     <div id="home" class="tab-pane fade in active">
@@ -56,62 +65,19 @@
             </table>
     </div>
 
-
-    <div id="menu1" class="tab-pane fade">
-      <h3>VirusTotal</h3>
-        <div id="vt-out">
-        {% include "file_details_vt.html" %}
-
-        </div>
+{% for inc in includes %}
+    <div id="{{ inc.1 }}" class="tab-pane fade">
+    {% include ""|add:inc.0|stringformat:"s" %}
     </div>
 
-
-    <div id="menu2" class="tab-pane fade">
-      <h3>Strings</h3>
-        <div id="strings-out">
-            {% if string_list %}
-                <td><a class="btn btn-success" role="button" href="/download/file/{{string_list}}">Download</a></td>
-            {% else %}
-            <a href="#" onclick="ajaxHandler('strings', {'file_id':'{{file_id}}', 'target_div':'strings-out'}, true ); return false" class="btn btn-info" role="button">Extract Strings</a>
-
-            {%  endif %}
-        </div>
-
-    </div>
-
-
-    <div id="menu3" class="tab-pane fade">
-      <h3>Yara</h3>
-        <div id="yara-out">
-            {% if yara %}
-            {% include "file_details_yara.html" %}
-            {% endif %}
-        </div>
-          <div class="form-group">
-              <select class="form-control" id="rule_file">
-                  <option class="text-muted">Select a Yara File</option>
-                  {% for rulefile in yara_list %}
-                    <option value="{{rulefile}}">{{rulefile}}</option>
-                  {% endfor %}
-              </select>
-          </div>
-
-            <div class="form-group">
-                <a href="#" onclick="ajaxHandler('yara', {'file_id':'{{file_id}}', 'target_div':'yara-out'}, false ); return false" class="btn btn-info" role="button">Yara Scan</a>
-            </div>
-
-    </div>
-
-    <div id="menu4" class="tab-pane fade">
-      <h3>Cuckoo</h3>
-        <div id="vt-out">
-        {% include "file_details_cuckoo.html" %}
-
-        </div>
-    </div>
+{% endfor %}
 
 
   </div>
+
+    </div>
+</div>
+
 
             </div>
             <div class="modal-footer">

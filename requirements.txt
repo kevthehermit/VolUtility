@@ -1,6 +1,9 @@
 django
-python-registry
-yara-python
 distorm3
-virustotal-api
+geoip2
+pycrypto
 pymongo
+python-registry
+virustotal-api
+yara-python
+git+https://github.com/smarnach/pyexiftool.git#egg=pyexiftool

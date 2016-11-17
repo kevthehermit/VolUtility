@@ -1,0 +1,32 @@
+{% load template_dict %}
+<h3>Hive Viewer</h3>
+<div id="hiveviewcontainer">
+<a id="parsereg" href="#" onclick="ajaxHandler('HiveViewer', {'file_id':'{{file_id}}', 'key': 'root', 'reset': true, 'extension':true}, false ); return false" class="btn btn-info" role="button">Parse Registry</a>
+
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="css-treeview" id="nodelist">
+            <ul></ul>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+
+        <table class="table" id="regValues">
+            <thead>
+            <tr>
+                <td>Name</td>
+                <td>Type</td>
+                <td>Data</td>
+            </tr>
+            </thead>
+            <tbody>
+            <tr></tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+</div>

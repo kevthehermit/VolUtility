@@ -11,18 +11,6 @@
 <link href="{% static 'css/style.css' %}" rel="stylesheet">
 <link href="{% static 'css/treeview.css' %}" rel="stylesheet">
 
-<!-- include libries(jQuery, bootstrap, fileview) -->
-<script src="{% static 'js/jquery.min.js' %}"></script>
-<script src="{% static 'js/bootstrap.js' %}"></script>
-<script src="{% static 'js/pagination.js' %}"></script>
-<script src="{% static 'js/datatables.min.js' %}"></script>
-<script src="{% static 'js/volutility.js' %}"></script>
-<!-- <script src="{% static 'js/viz.js' %}"></script> -->
-
-<script src="{% static 'js/d3.min.js' %}"></script>
-<script src="{% static 'js/graphlib-dot.min.js' %}"></script>
-<script src="{% static 'js/dagre-d3.min.js' %}"></script>
-
 
 </head>
  
@@ -55,7 +43,7 @@
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Help <span class="caret"></span></a>
           <ul class="dropdown-menu" role="menu">
-            <li><a href="https://github.com/kevthehermit/VolUtility">Docs</a></li>
+            <li><a href="https://github.com/kevthehermit/VolUtility/wiki">Wiki</a></li>
             <li><a href="https://github.com/kevthehermit/VolUtility/issues">Issues</a></li>
             <li class="divider"></li>
             <li><a href="#" data-toggle="modal" data-target="#aboutModal">About</a></li>
@@ -105,13 +93,19 @@
     </div>
 </div>
 
-
-
-
 {% include 'about_modal.html' %}
-{% include 'registry_modal.html' %}
 
+<!-- include libries(jQuery, bootstrap, fileview) -->
+<script src="{% static 'js/jquery.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.min.js' %}"></script>
+<script src="{% static 'js/pagination.js' %}"></script>
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script src="{% static 'js/volutility.js' %}"></script>
+<!-- <script src="{% static 'js/viz.js' %}"></script> -->
 
+<script src="{% static 'js/d3.min.js' %}"></script>
+<script src="{% static 'js/graphlib-dot.min.js' %}"></script>
+<script src="{% static 'js/dagre-d3.min.js' %}"></script>
 
 </body>
 </html>
