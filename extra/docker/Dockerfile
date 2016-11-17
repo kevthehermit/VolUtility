@@ -24,7 +24,8 @@ RUN apt-get update && apt-get install -yq \
  git \
  libtool \
  python-dev \
- python-pip
+ python-pip \
+ libimage-exiftool-perl
 
 # Install Mongo
 # Ref: https://jira.mongodb.org/browse/SERVER-21812
@@ -81,20 +82,19 @@ RUN groupadd -r volutility && \
  mkdir /home/volutility && \
  chown -R volutility:volutility /home/volutility
 
-# Install PIP Requirements.
-RUN pip install django distorm3 pymongo pycrypto virustotal-api python-registry
-
 # Get VolUtility
 RUN cd /opt && \
  git clone https://github.com/kevthehermit/VolUtility.git && \
- cp VolUtility/volutility.conf.sample VolUtility/volutility.conf && \
  chown -R mongodb:mongodb /opt/VolUtility
+
+# Install PIP Requirements.
+RUN cd /opt/VolUtility && \
+ pip install -r requirements.txt
 
 # Setup some file paths
 RUN mkdir /home/mongodb && \
  mkdir /home/mongodb/dbpath && \
  mkdir /home/mongodb/images && \
- ln -s /opt/VolUtility/volutility.conf /home/mongodb/volutility.conf && \
  chown -R mongodb:mongodb /home/mongodb
 
 VOLUME /home/mongodb/dbpath

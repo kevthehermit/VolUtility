@@ -1,12 +1,9 @@
-geoip2
 django
-python-registry
-yara-python
 distorm3
-virustotal-api
-pymongo
-hachoir_core
-hachoir_parser
-hachoir_metadata
+geoip2
 pycrypto
+pymongo
+python-registry
+virustotal-api
+yara-python
 git+https://github.com/smarnach/pyexiftool.git#egg=pyexiftool
