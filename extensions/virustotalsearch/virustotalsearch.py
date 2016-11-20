@@ -32,7 +32,7 @@ class VirusTotalSearch(Extension):
             sha256 = file_object.sha256
 
             # Init the API with key from config
-            vt = PublicApi(self.config.api_key)
+            vt = PublicApi(self.config['virustotal']['api_key'])
 
             # If we upload
             if 'upload' in self.request.POST:
