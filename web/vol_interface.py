@@ -52,7 +52,16 @@ debug.error = new_error
 
 # Stop these plugins being listed as we can or will not handle them
 plugin_filters = {
-    "drop": ['crashdump', 'crashinfo', 'volshell', 'chromecookies', 'poolpeek', 'impscan', 'hivedump', 'pstree', 'yarascan']
+    "drop": ['crashdump',
+             'crashinfo',
+             'volshell',
+             'chromecookies',
+             'poolpeek',
+             'impscan',
+             'hivedump',
+             'pstree',
+             'yarascan'
+             ]
 }
 
 vol_version = constants.VERSION
@@ -88,8 +97,6 @@ class RunVol:
 
     def init_config(self):
         """Creates a volatility configuration."""
-        #if self.config is not None and self.addr_space is not None:
-            #return self.config
 
         self.config = conf.ConfObject()
         self.config.optparser.set_conflict_handler("resolve")
@@ -291,22 +298,3 @@ class RunVol:
                     return output_data
         else:
             return 'Error: Not a valid plugin'
-
-
-    def read_memory(self, offset=0, length=0):
-        self.addr_space = utils.load_as(copy.deepcopy(self.config), 'virtual')
-
-        this = self.addr_space
-
-        print dir(this)
-
-        print "hello"
-
-        #print this.read(0, 100).encode('hex')
-
-        a = self.addr_space.get_available_addresses()
-
-        for b, c in a:
-            print hex(b),c
-
-

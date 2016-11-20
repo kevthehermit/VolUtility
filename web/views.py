@@ -8,14 +8,12 @@ from common import parse_config, checksum_md5
 from web.modules import __extensions__
 
 config = parse_config()
-
 logger = logging.getLogger(__name__)
 
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse, HttpResponseServerError, StreamingHttpResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
-
 
 try:
     import yara
@@ -39,9 +37,7 @@ except Exception as e:
 
 def session_creation(request, mem_image, session_id):
     # Get some vars
-
     new_session = db.get_session(session_id)
-
     file_hash = False
     if 'description' in request.POST:
         new_session['session_description'] = request.POST['description']
@@ -49,27 +45,22 @@ def session_creation(request, mem_image, session_id):
         new_session['plugin_path'] = request.POST['plugin_path']
     if 'file_hash' in request.POST:
         file_hash = True
-
     # Check for mem file
     if not os.path.exists(mem_image):
         logger.error('Unable to find an image file at {0}'.format(mem_image))
         new_session['status'] = 'Unable to find an image file at {0}'.format(request.POST['sess_path'])
         return
-
     new_session['session_path'] = mem_image
-
     # Generate FileHash (MD5 for now)
     if file_hash:
         logger.debug('Generating MD5 for Image')
         # Update the status
         new_session['status'] = 'Calculating MD5'
         db.update_session(session_id, new_session)
-
         md5_hash = checksum_md5(new_session['session_path'])
         new_session['file_hash'] = md5_hash
 
     # Get a list of plugins we can use. and prepopulate the list.
-
     if 'profile' in request.POST:
         if request.POST['profile'] != 'AutoDetect':
             profile = request.POST['profile']
@@ -80,9 +71,7 @@ def session_creation(request, mem_image, session_id):
         profile = None
 
     vol_int = RunVol(profile, new_session['session_path'])
-
     image_info = {}
-
     if not profile:
         logger.debug('AutoDetecting Profile')
         # kdbg scan to get a profile suggestion
@@ -91,45 +80,31 @@ def session_creation(request, mem_image, session_id):
         db.update_session(session_id, new_session)
         # Doesnt support json at the moment
         kdbg_results = vol_int.run_plugin('kdbgscan', output_style='text')
-
         lines = kdbg_results['rows'][0][0]
-
         profiles = []
-
         for line in lines.split('\n'):
             if 'Profile suggestion' in line:
                 profiles.append(line.split(':')[1].strip())
-
         if len(profiles) == 0:
             logger.error('Unable to find a valid profile with kdbg scan')
             return main_page(request, error_line='Unable to find a valid profile with kdbg scan')
-
         profile = profiles[0]
-
         # Re initialize with correct profile
         vol_int = RunVol(profile, new_session['session_path'])
-
     # Get compatible plugins
-
     plugin_list = vol_int.list_plugins()
-
     new_session['session_profile'] = profile
-
     new_session['image_info'] = image_info
-
     # Plugin Options
     plugin_filters = vol_interface.plugin_filters
-
     # Update Session
     new_session['status'] = 'Complete'
     db.update_session(session_id, new_session)
-
     # Autorun list from config
     if config['autorun']['enable'] == 'True':
         auto_list = config['autorun']['plugins'].split(',')
     else:
         auto_list = False
-
     # Merge Autorun from manual post with config
     if 'auto_run' in request.POST:
         run_list = request.POST['auto_run'].split(',')
@@ -139,19 +114,23 @@ def session_creation(request, mem_image, session_id):
             for run in run_list:
                 if run not in auto_list:
                     auto_list.append(run)
-
     # For each plugin create the entry
     for plugin in plugin_list:
         plugin_name = plugin[0]
         db_results = {'session_id': session_id, 'plugin_name': plugin_name}
-
         # Ignore plugins we cant handle
         if plugin_name in plugin_filters['drop']:
             continue
-
+        # Create placeholders for dumpfiles and memdump
+        if plugin_name == 'dumpfiles':
+            plugin_output = {'columns': ['Offset', 'File Name', 'Image Type', 'StoredFile'], 'rows': []}
+        elif plugin_name == 'memdump':
+            plugin_output = {'columns': ['Process', 'PID', 'StoredFile'], 'rows': []}
+        else:
+            plugin_output = None
         db_results['help_string'] = plugin[1]
         db_results['created'] = None
-        db_results['plugin_output'] = None
+        db_results['plugin_output'] = plugin_output
         db_results['status'] = None
         # Write to DB
         plugin_id = db.create_plugin(db_results)
@@ -164,7 +143,6 @@ def session_creation(request, mem_image, session_id):
 ##
 # Page Views
 ##
-
 def main_page(request, error_line=None):
     """
     Returns the main vol page
@@ -174,7 +152,6 @@ def main_page(request, error_line=None):
     """
 
     # Check Vol Version
-
     try:
         vol_ver = vol_interface.vol_version.split('.')
         if int(vol_ver[1]) < 5:
@@ -182,7 +159,6 @@ def main_page(request, error_line=None):
     except Exception as error:
         error_line = 'Unable to find a volatility version'
         logger.error(error_line)
-
     # Set Pagination
     page = request.GET.get('page')
     if not page:
@@ -190,24 +166,19 @@ def main_page(request, error_line=None):
     page_count = request.GET.get('count')
     if not page_count:
         page_count = 30
-
     # Get All Sessions
     session_list = db.get_allsessions()
-
     # Paginate
     session_count = len(session_list)
     first_session = int(page) * int(page_count) - int(page_count) + 1
     last_session = int(page) * int(page_count)
-
     paginator = Paginator(session_list, page_count)
-
     try:
         sessions = paginator.page(page)
     except PageNotAnInteger:
         sessions = paginator.page(1)
     except EmptyPage:
         sessions = paginator.page(paginator.num_pages)
-
     # Show any extra loaded plugins
     plugin_dirs = []
     if os.path.exists(volrc_file):
@@ -238,7 +209,6 @@ def session_page(request, session_id):
     error_line = False
     includes = []
 
-
     # Check Vol Version
     if float(vol_interface.vol_version) < 2.5:
         error_line = 'UNSUPPORTED VOLATILITY VERSION. REQUIRES 2.5 FOUND {0}'.format(vol_interface.vol_version)
@@ -250,16 +220,13 @@ def session_page(request, session_id):
     extra_files = []
     for upload in extra_search:
         extra_files.append({'filename': upload.filename, 'file_id': upload._id})
-
     plugin_list = []
     yara_list = os.listdir('yararules')
     plugin_text = db.get_pluginbysession(session_id)
     version_info = {'python': str(sys.version).split()[0],
                     'volatility': vol_interface.vol_version,
                     'volutility': volutility_version}
-
     # Check if file still exists
-
     if not os.path.exists(session_details['session_path']):
         error_line = 'Memory Image can not be found at {0}'.format(session_details['session_path'])
 
@@ -285,14 +252,10 @@ def create_session(request):
         recursive_dir = True
     else:
         recursive_dir = False
-
     dir_listing = []
-
-    if not 'sess_path' in request.POST:
+    if 'sess_path' not in request.POST:
         logger.error('No path or file selected')
         return main_page(request, error_line='No path or file selected')
-
-
     if recursive_dir:
         for root, subdir, filename in os.walk(request.POST['sess_path']):
             for name in filename:
@@ -301,12 +264,9 @@ def create_session(request):
                 for ext in extensions:
                     if name.lower().endswith(ext):
                         dir_listing.append(os.path.join(root, name))
-
     else:
         dir_listing.append(request.POST['sess_path'])
-
     for mem_image in dir_listing:
-
         # Create session in DB and set to pending
         new_session = {'created': datetime.now(),
                        'modified': datetime.now(),
@@ -314,20 +274,15 @@ def create_session(request):
                        'status': 'Processing',
                        'session_profile': request.POST['profile']
                        }
-
         if 'sess_name' in request.POST:
             new_session['session_name'] = '{0} ({1})'.format(request.POST['sess_name'], mem_image.split('/')[-1])
         else:
             new_session['session_name'] = mem_image.split('/')[-1]
-
         # Store it
         session_id = db.create_session(new_session)
-
         # Run the multiprocessing
         p = multiprocessing.Process(target=session_creation, args=(request, mem_image, session_id)).start()
-
         # Add search all on main page filter sessions that match.
-
     return redirect('/')
 
 
@@ -350,18 +305,13 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
         session = db.get_session(session_id)
         # Get details from the plugin
         plugin_row = db.get_pluginbyid(plugin_id)
-
         plugin_name = plugin_row['plugin_name'].lower()
-
         logger.debug('Running Plugin: {0}'.format(plugin_name))
-
         # Set plugin status
         new_values = {'status': 'processing'}
         db.update_plugin(plugin_id, new_values)
-
         # set vol interface
         vol_int = RunVol(session['session_profile'], session['session_path'])
-
         # Run the plugin with json as normal
         output_style = 'json'
         try:
@@ -373,8 +323,6 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
         except Exception as error:
             results = False
             logger.error('Json Output error in {0} - {1}'.format(plugin_name, error))
-
-
 
         # If we need a DumpDir
         if '--dump-dir' in str(error) or 'specify a dump directory' in str(error):
@@ -396,10 +344,8 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
                 db.update_plugin(plugin_id, new_values)
                 logger.error('Error: Unable to run plugin {0} - {1}'.format(plugin_name, error))
 
-
         # Check for result set
         if not results:
-            # if 'unified output format has not been implemented' in str(error) or 'JSON output for trees' in str(error):
             output_style = 'text'
             try:
                 results = vol_int.run_plugin(plugin_name,
@@ -411,18 +357,15 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
             except Exception as error:
                 logger.error('Json Output error in {0}, {1}'.format(plugin_name, error))
                 results = False
-
             # If still no results fail
             if not results:
                 # Set plugin status
                 new_values = {'status': 'completed'}
                 db.update_plugin(plugin_id, new_values)
                 return 'Warning: No output from Plugin {0}'.format(plugin_name)
-
         ##
         # Files that dump output to disk
         ##
-
         if dump_dir:
             file_list = os.listdir(dump_dir)
             '''
@@ -723,34 +666,22 @@ def ajax_handler(request, command):
     :return:
     """
 
-
     if command in __extensions__:
         extension = __extensions__[command]['obj']()
         extension.set_request(request)
         extension.set_config(config)
         extension.run()
-
         if extension.render_type == 'file':
-            #rendered_data = render(extension.request, extension.render_file, extension.render_data)
-
             template_name = '{0}/template.html'.format(extension.extension_name.lower())
-
             rendered_data = render(extension.request, template_name, extension.render_data)
-
             if rendered_data.status_code == 200:
                 return_data = rendered_data.content
             else:
                 return_data = str(rendered_data.status_code)
-
         else:
             return_data = extension.render_data
-
-
         json_response = {'data': return_data, 'javascript': extension.render_javascript}
-
         return JsonResponse(json_response, safe=False)
-
-
 
     if command == 'pollplugins':
         if 'session_id' in request.POST:
@@ -758,15 +689,12 @@ def ajax_handler(request, command):
             session_id = request.POST['session_id']
             session = db.get_session(session_id)
             plugin_rows = db.get_pluginbysession(session_id)
-
             # Check for new registered plugins
             # Get compatible plugins
-
             profile = session['session_profile']
             session_path = session['session_path']
             vol_int = RunVol(profile, session_path)
             plugin_list = vol_int.list_plugins()
-
             # Plugin Options
             plugin_filters = vol_interface.plugin_filters
             refresh_rows = False
@@ -776,7 +704,6 @@ def ajax_handler(request, command):
 
             # For each plugin create the entry
             for plugin in plugin_list:
-                #print plugin
 
                 # Ignore plugins we cant handle
                 if plugin[0] in plugin_filters['drop']:
@@ -815,7 +742,6 @@ def ajax_handler(request, command):
         json_response = json.dumps(matching_sessions)
 
         return JsonResponse(matching_sessions, safe=False)
-
 
     if command == 'dropplugin':
         if 'plugin_id' in request.POST:
@@ -876,18 +802,20 @@ def ajax_handler(request, command):
             for extension in __extensions__:
                 if __extensions__[extension]['obj'].extension_type == 'filedetails':
                     extension_name = __extensions__[extension]['obj'].extension_name
-                    #template_name = __extensions__[extension]['obj'].template_name
                     template_name = '{0}/template.html'.format(extension_name.lower())
-                    includes.append([template_name, extension_name])
+                    try:
+                        includes.append([template_name, extension_name])
 
-                    ext = __extensions__[extension]['obj']()
-                    ext.set_request(request)
-                    ext.set_config(config)
-                    # This contains the rendered HTML
-                    ext.display()
-                    response_dict[extension_name] = ext.render_data[extension_name]
+                        ext = __extensions__[extension]['obj']()
+                        ext.set_request(request)
+                        ext.set_config(config)
+                        # This contains the rendered HTML
+                        ext.display()
+                        response_dict[extension_name] = ext.render_data[extension_name]
+                    except Exception as e:
+                        logger.error('Error getting data from extension: {0} - {1}'.format(extension_name, e))
+                        pass
 
-            yara_list = sorted(os.listdir('yararules'))
             return render(request, 'file_details.html', response_dict)
 
     if command == 'vaddot':
@@ -1134,12 +1062,8 @@ def ajax_handler(request, command):
             return render(request, 'render_yara.html', {'yara': results, 'error': None})
 
         except Exception as error:
-            print error
             logger.error(error)
             return HttpResponse('Error: {0}'.format(error))
-
-
-
 
     if command == 'deleteobject':
         if 'droptype' in request.POST:
@@ -1337,7 +1261,6 @@ def ajax_handler(request, command):
                     output = extension.render_data['plugin_output']['rows']
                     final_javascript += '\n\n{0}'.format(extension.render_javascript)
 
-
         # If we are paging with datatables
         if 'pagination' in request.POST:
             paged_data = []
@@ -1379,8 +1302,6 @@ def ajax_handler(request, command):
         # Else return standard 25 rows
         else:
             plugin_results['plugin_output']['rows'] = plugin_results['plugin_output']['rows'][start:length]
-
-
             rendered_data = render(request, 'plugin_output.html', {'plugin_results': plugin_results['plugin_output'],
                                                           'plugin_id': plugin_id,
                                                           'bookmarks': bookmarks,
@@ -1394,7 +1315,6 @@ def ajax_handler(request, command):
         json_response = {'data': return_data, 'javascript': final_javascript}
 
         return JsonResponse(json_response, safe=False)
-
 
     if command == 'bookmark':
         if 'row_id' in request.POST:
