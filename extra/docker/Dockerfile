@@ -1,42 +1,38 @@
-FROM ubuntu:14.04
+FROM ubuntu:16.04
 MAINTAINER kevthehermit (https://github.com/kevthehermit/VolUtility)
 
 # Version Vars
 ENV YARA_VERSION        3.4.0
 ENV SSDEEP_VERSION      2.13
-ENV VOLATILITY_VERSION  2.5
-ENV MONGO_MAJOR 3.2
-ENV MONGO_VERSION 3.2.6
-
-
-# Avoid ERROR: invoke-rc.d: policy-rc.d denied execution of start.
-RUN dpkg-divert --local --rename --add /sbin/initctl
-RUN ln -sf /bin/true /sbin/initctl
-RUN echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d
 
 # Switch to user root
 USER root
 
 # Install OS Dependancies
 RUN apt-get update && apt-get install -yq \
+ autoconf \
  automake \
+ autopoint \
  curl \
+ gettext \
  git \
+ libimage-exiftool-perl \
  libtool \
+ nano \
+ pkg-config \
  python-dev \
  python-pip \
- libimage-exiftool-perl
+ sudo
+
 
 # Install Mongo
-# Ref: https://jira.mongodb.org/browse/SERVER-21812
-RUN dpkg-divert --local --rename --add /etc/init.d/mongod
-RUN ln -s /bin/true /etc/init.d/mongod
 RUN \
 apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927 && \
-echo 'deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.2 multiverse' > /etc/apt/sources.list.d/mongodb.list && \
+echo "deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.2 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-3.2.list && \
 apt-get update && \
 apt-get install -yq mongodb-org
 
+# Install packages from source
 # Make Tmp Dir
 RUN mkdir ~/tmp_build
 
@@ -65,44 +61,61 @@ RUN cd ~/tmp_build &&\
  cd .. && \
  rm -rf ssdeep-${SSDEEP_VERSION}
 
+# Get the maxmind database for ip lookup
+RUN cd ~/tmp_build && \
+ curl -sSL http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz > GeoLite2-City.mmdb.gz && \
+ gzip -d GeoLite2-City.mmdb.gz && \
+ mkdir /usr/share/GeoIP/ && \
+ mv GeoLite2-City.mmdb /usr/share/GeoIP/
+
+# Install and Build libpff
+RUN cd ~/tmp_build && \
+ git clone https://github.com/libyal/libpff.git &&\
+ cd libpff/ && \
+ ./synclibs.sh && \
+ ./autogen.sh && \
+ ./configure --enable-python && \
+ make && \
+ make install && \
+ ldconfig
+
 # Install Volatility
 RUN cd ~/tmp_build &&\
- git clone -b ${VOLATILITY_VERSION} https://github.com/volatilityfoundation/volatility.git && \
+ git clone https://github.com/volatilityfoundation/volatility.git && \
  cd volatility && \
- python setup.py install && \
- cd ../.. && \
- rm -rf volatility
-
-# Clean Up
-RUN rm -rf ~/tmp_build
+ python setup.py install
 
 # Create Volutility User
 RUN groupadd -r volutility && \
  useradd -r -g volutility -d /home/volutility -s /sbin/nologin -c "Volutility User" volutility && \
+ usermod -a -G sudo volutility  && \
  mkdir /home/volutility && \
  chown -R volutility:volutility /home/volutility
 
 # Get VolUtility
 RUN cd /opt && \
  git clone https://github.com/kevthehermit/VolUtility.git && \
- chown -R mongodb:mongodb /opt/VolUtility
+ chown -R volutility:volutility /opt/VolUtility
 
 # Install PIP Requirements.
 RUN cd /opt/VolUtility && \
  pip install -r requirements.txt
 
-# Setup some file paths
-RUN mkdir /home/mongodb && \
- mkdir /home/mongodb/dbpath && \
- mkdir /home/mongodb/images && \
- chown -R mongodb:mongodb /home/mongodb
-
-VOLUME /home/mongodb/dbpath
-
-WORKDIR /opt/VolUtility
-ADD start.sh start.sh
+ # Clean Up
+RUN rm -rf ~/tmp_build
+RUN apt-get remove -yq \
+ automake \
+ autopoint \
+ gettext \
+ autoconf \
+ gettext \
+ pkg-config \
+ libtool
 
 # Setup and Run
-USER mongodb
-EXPOSE 8080
+USER volutility
+WORKDIR /opt/VolUtility
+ADD start.sh start.sh
+RUN mkdir ~/dbpath
+RUN chmod 755 ~/dbpath
 CMD /bin/bash /opt/VolUtility/start.sh

@@ -16,7 +16,7 @@ plugins = pslist,psscan
 update = True
 
 [extensions]
-disabled = cuckoo
+disabled = cuckoosandbox
 
 [cuckoo]
 # set modified to True for brads fork
