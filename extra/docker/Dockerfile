@@ -111,6 +111,7 @@ RUN apt-get remove -yq \
  gettext \
  pkg-config \
  libtool
+RUN sudo apt-get clean
 
 # Setup and Run
 USER volutility

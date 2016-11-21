@@ -124,7 +124,6 @@ class Database():
         # Force session ID
         plugin_data['session_id'] = ObjectId(plugin_data['session_id'])
         plugin_id = self.vol_plugins.insert_one(plugin_data).inserted_id
-        print plugin_id
         return plugin_id
 
     def search_plugins(self, search_text, session_id=None, plugin_name=None):

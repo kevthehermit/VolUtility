@@ -1,3 +1,4 @@
+pexpect
 django
 distorm3
 geoip2

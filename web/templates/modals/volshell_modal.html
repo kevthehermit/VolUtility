@@ -1,0 +1,37 @@
+{% load template_dict %}
+<div class="modal modal-wide fade" id="volShell" tabindex="-1" role="dialog" aria-labelledby="volShell" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">VolShell</h4>
+            </div>
+
+            <div class="modal-body">
+                <div id="volstart">
+                    <p>To create a volshell instance click Start VolShell. The first load will take a moment while it creates the shell. </p>
+                    <p>Every subsequent load will use the existing session, until the application is closed or you click the reset button</p>
+                    <a id="volshell" href="#" onclick="ajaxHandler('VolShell', {'shell_input': 'ps()', 'extension':true}, true ); return false" class="btn btn-info" role="button">Start VolShell</a>
+                </div>
+
+                <hr>
+                <div class="well">
+                    <div id="volshell-out"></div>
+                </div>
+
+                <form class="form-inline">
+                  <div class="form-group">
+                    <input type="text" class="form-control" id="shell_input" placeholder="hh()">
+                  </div>
+                 <a id="volshell" href="#" onclick="ajaxHandler('VolShell', {'shell_input': $('#shell_input').val(), 'extension':true}, true ); return false" class="btn-sm btn-info" role="button">Send Command</a>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

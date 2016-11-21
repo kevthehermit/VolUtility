@@ -3,7 +3,7 @@ mongo_uri = mongodb://localhost
 
 [virustotal]
 api_type = public
-api_key =
+api_key = None
 
 [autorun]
 #
