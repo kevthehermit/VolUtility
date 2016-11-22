@@ -124,14 +124,17 @@ def session_creation(request, mem_image, session_id):
         # Create placeholders for dumpfiles and memdump
         if plugin_name == 'dumpfiles':
             plugin_output = {'columns': ['Offset', 'File Name', 'Image Type', 'StoredFile'], 'rows': []}
+            plugin_status = 'complete'
         elif plugin_name == 'memdump':
             plugin_output = {'columns': ['Process', 'PID', 'StoredFile'], 'rows': []}
+            plugin_status = 'complete'
         else:
             plugin_output = None
+            plugin_status = None
         db_results['help_string'] = plugin[1]
         db_results['created'] = None
         db_results['plugin_output'] = plugin_output
-        db_results['status'] = None
+        db_results['status'] = plugin_status = 'complete'
         # Write to DB
         plugin_id = db.create_plugin(db_results)
 
@@ -358,6 +361,12 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
         results = plugin_return[0]
         dump_dir = plugin_return[1]
 
+        if 'error' in results:
+            new_values = {'status': 'error'}
+            db.update_plugin(plugin_id, new_values)
+            logger.error('Error: Unable to run plugin {0} - {1}'.format(plugin_name, results['error']))
+            return 'Error: Unable to Store Output for {0} - {1}'.format(plugin_name, results['error'])
+
 
         ##
         # Files that dump output to disk
@@ -515,6 +524,7 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
         # Extra processing output
         # Do everything in one loop to save time
         ##
+
 
         if results:
             # Start Counting
