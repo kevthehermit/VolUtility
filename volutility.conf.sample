@@ -22,3 +22,7 @@ disabled = cuckoosandbox
 # set modified to True for brads fork
 modified = False
 host = http://192.168.1.200:8000
+
+[style]
+theme = slate.min.css
+spinner = cat_spinner.gif

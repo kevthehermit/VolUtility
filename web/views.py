@@ -314,7 +314,7 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
             return [results, dump_dir]
 
         except Exception as error:
-            print "ERROR: ", error
+            logger.error('{0}'.format(error))
             if 'unified output format has not been implemented' in str(error) or 'JSON output for trees' in str(error):
                 plugin_style = 'text'
                 return try_run(plugin_name, dump_dir=dump_dir, output_style='text', pid=pid, plugin_options=plugin_options)

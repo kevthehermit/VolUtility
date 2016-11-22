@@ -15,7 +15,7 @@ def theme(mapping, key):
         style_elements = config['style']
     else:
         # Backwards compat
-        style_elements = {'spinner': 'cat_spinner.gif'}
+        style_elements = {'spinner': 'cat_spinner.gif', 'theme': 'slate.min.css'}
 
     if key == 'spinner':
         return 'img/{0}'.format(style_elements['spinner'])
