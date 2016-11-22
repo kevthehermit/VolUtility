@@ -7,7 +7,7 @@
 function sessionCreate() {
     //jQuery.noConflict();
     $('#sessionModal').modal('hide');
-    spinnerControl('open', 'Cats are preparing your image for analysis');
+    spinnerControl('open', 'Preparing your image for analysis');
 }
 
 
@@ -23,11 +23,6 @@ Params:
     postFields: str(json) = json string of POST options
     spinner: Bool = Overlay a loading spinner or not.'
  */
-
-function changeCSS(cssname){
-    var newcss = '/static/css/bootstrap_' + cssname + '.min.css';
-    $('#bootswatch').attr('href', newcss);
-}
 
 
 /*
