@@ -124,14 +124,17 @@ def session_creation(request, mem_image, session_id):
         # Create placeholders for dumpfiles and memdump
         if plugin_name == 'dumpfiles':
             plugin_output = {'columns': ['Offset', 'File Name', 'Image Type', 'StoredFile'], 'rows': []}
+            plugin_status = 'complete'
         elif plugin_name == 'memdump':
             plugin_output = {'columns': ['Process', 'PID', 'StoredFile'], 'rows': []}
+            plugin_status = 'complete'
         else:
             plugin_output = None
+            plugin_status = None
         db_results['help_string'] = plugin[1]
         db_results['created'] = None
         db_results['plugin_output'] = plugin_output
-        db_results['status'] = None
+        db_results['status'] = plugin_status = 'complete'
         # Write to DB
         plugin_id = db.create_plugin(db_results)
 
@@ -295,6 +298,39 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
     :param plugin_options:
     :return:
     """
+
+    def try_run(plugin_name, dump_dir=None, output_style=None, pid=None, plugin_options=None):
+        global plugin_stlye
+        plugin_style = output_style
+        print "Testing: ", plugin_style
+        try:
+            results = vol_int.run_plugin(plugin_name,
+                                         dump_dir=dump_dir,
+                                         output_style=plugin_style,
+                                         pid=pid,
+                                         plugin_options=plugin_options
+                                         )
+
+            return [results, dump_dir]
+
+        except Exception as error:
+            logger.error('{0}'.format(error))
+            if 'unified output format has not been implemented' in str(error) or 'JSON output for trees' in str(error):
+                plugin_style = 'text'
+                return try_run(plugin_name, dump_dir=dump_dir, output_style='text', pid=pid, plugin_options=plugin_options)
+
+
+            elif '--dump-dir' in str(error) or 'specify a dump directory' in str(error):
+                # Create Temp Dir
+                logger.debug('{0} - Creating Temp Directory'.format(plugin_name))
+                temp_dir = tempfile.mkdtemp()
+                dump_dir = temp_dir
+                return try_run(plugin_name, dump_dir=dump_dir, output_style=output_style, pid=pid, plugin_options=plugin_options)
+            else:
+                results = {'error': error}
+                return [results, None]
+
+
     dump_dir = None
     error = None
     if pid:
@@ -314,55 +350,24 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
         vol_int = RunVol(session['session_profile'], session['session_path'])
         # Run the plugin with json as normal
         output_style = 'json'
-        try:
-            results = vol_int.run_plugin(plugin_name,
-                                         output_style=output_style,
-                                         pid=pid,
-                                         plugin_options=plugin_options
-                                         )
-        except Exception as error:
-            results = False
-            logger.error('Json Output error in {0} - {1}'.format(plugin_name, error))
 
-        # If we need a DumpDir
-        if '--dump-dir' in str(error) or 'specify a dump directory' in str(error):
-            # Create Temp Dir
-            logger.debug('{0} - Creating Temp Directory'.format(plugin_name))
-            temp_dir = tempfile.mkdtemp()
-            dump_dir = temp_dir
-            try:
-                results = vol_int.run_plugin(plugin_name,
-                                             dump_dir=dump_dir,
-                                             output_style=output_style,
-                                             pid=pid,
-                                             plugin_options=plugin_options
-                                             )
-            except Exception as error:
-                results = False
-                # Set plugin status
-                new_values = {'status': 'error'}
-                db.update_plugin(plugin_id, new_values)
-                logger.error('Error: Unable to run plugin {0} - {1}'.format(plugin_name, error))
+        plugin_return = try_run(plugin_name,
+                                    dump_dir=dump_dir,
+                                    output_style='json',
+                                    pid=pid,
+                                    plugin_options=plugin_options
+                                    )
 
-        # Check for result set
-        if not results:
-            output_style = 'text'
-            try:
-                results = vol_int.run_plugin(plugin_name,
-                                             output_style=output_style,
-                                             pid=pid,
-                                             plugin_options=plugin_options
-                                             )
-                error = None
-            except Exception as error:
-                logger.error('Json Output error in {0}, {1}'.format(plugin_name, error))
-                results = False
-            # If still no results fail
-            if not results:
-                # Set plugin status
-                new_values = {'status': 'completed'}
-                db.update_plugin(plugin_id, new_values)
-                return 'Warning: No output from Plugin {0}'.format(plugin_name)
+        results = plugin_return[0]
+        dump_dir = plugin_return[1]
+
+        if 'error' in results:
+            new_values = {'status': 'error'}
+            db.update_plugin(plugin_id, new_values)
+            logger.error('Error: Unable to run plugin {0} - {1}'.format(plugin_name, results['error']))
+            return 'Error: Unable to Store Output for {0} - {1}'.format(plugin_name, results['error'])
+
+
         ##
         # Files that dump output to disk
         ##
@@ -519,6 +524,7 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
         # Extra processing output
         # Do everything in one loop to save time
         ##
+
 
         if results:
             # Start Counting

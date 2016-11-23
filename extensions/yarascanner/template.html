@@ -38,6 +38,6 @@
             </select>
     </div>
 
-    <a href="#" onclick="ajaxHandler('YaraScanner', {'file_id':'{{file_id}}', 'target_div':'yara-out', 'rule_file': $('#rule_file').val(), 'extension':true}, false ); return false" class="btn btn-info" role="button">Yara Scan</a>
+    <a href="#" onclick="ajaxHandler('YaraScanner', {'file_id':'{{file_id}}', 'target_div':'yara-out', 'rule_file': $('#rule_file').val(), 'extension':true}, true ); return false" class="btn btn-info" role="button">Yara Scan</a>
     {%  endif %}
 </div>

@@ -1,0 +1,16 @@
+{% load template_dict %}
+<h3>Voll Shell</h3>
+<a id="volshell" href="#" onclick="ajaxHandler('VolShell', {'file_id':'{{file_id}}', 'shell_input': 'ps()', 'extension':true}, true ); return false" class="btn btn-info" role="button">Start VolShell</a>
+
+<form class="form-inline">
+  <div class="form-group">
+    <input type="text" class="form-control" id="shell_input" placeholder="hh()">
+  </div>
+ <a id="volshell" href="#" onclick="ajaxHandler('VolShell', {'file_id':'{{file_id}}', 'shell_input': $('#shell_input').val(), 'extension':true}, true ); return false" class="btn-sm btn-info" role="button">Send Command</a>
+
+</form>
+
+
+<div class="well">
+    <div id="volshell-out"></div>
+</div>

@@ -105,6 +105,7 @@ This is a mid level nav bar to hold tool links
         <li><a href="#" onclick="ajaxHandler('dottree', {'session_id':'{{session_details|get:"_id"}}','target_div':'dotimage'}, true )" >Process map</a></li>
         <li><a href="#" data-toggle="modal" data-target="#memoryModal">View Raw Memory</a></li>
         <li><a href="#" data-toggle="modal" data-target="#yaraModal">Yara Scan Memory</a></li>
+          <li><a href="#" data-toggle="modal" data-target="#volShell">VolShell</a></li>
 
 
         <li class="dropdown">
@@ -126,7 +127,6 @@ This is a mid level nav bar to hold tool links
       <form class="navbar-form navbar-left" role="search">
 
         <div class="form-group">
-            <label for="search_type">Extra Tools</label>
             <select class="form-control" id="search_type" name="SearchType">
               <option value="plugin">Search Plugins</option>
               <option value="hash">Find Hash</option>
@@ -214,6 +214,7 @@ This is a mid level nav bar to hold tool links
 {% include "raw_memory_modal.html" %}
 {% include "yara_modal.html" %}
 {% include "fileupload_modal.html" %}
+{% include "volshell_modal.html" %}
 
 <div class="comment-modal">
 {% include "comments_modal.html" %}

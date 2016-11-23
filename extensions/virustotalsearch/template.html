@@ -1,7 +1,6 @@
 
 <div id="vt-out">
 <h3>VirusTotal - {{ VirusTotalSearch.state }}</h3>
-{{ VirusTotalSearch.state }}
 {% if VirusTotalSearch.state == 'complete' %}
 {% if VirusTotalSearch.vt_results %}
 <table class="table table-striped table-bordered table-hover">
@@ -56,6 +55,11 @@
 {% elif VirusTotalSearch.state == 'missing' %}
     <h2>Not present in VT Would you like to upload?</h2>
     <a href="#" onclick="ajaxHandler('VirusTotalSearch', {'file_id':'{{VirusTotalSearch.file_id}}', 'upload':'true', 'target_div':'vt-out', 'extension':true}, false ); return false" class="btn btn-info" role="button">Upload to VirusTotal</a>
+
+{% elif VirusTotalSearch.state == 'error' %}
+    <h2>{{ VirusTotalSearch.vt_results }}</h2>
+    <a href="#" onclick="ajaxHandler('VirusTotalSearch', {'file_id':'{{VirusTotalSearch.file_id}}', 'upload':'true', 'target_div':'vt-out', 'extension':true}, false ); return false" class="btn btn-info" role="button">Upload to VirusTotal</a>
+
 
 {% else %}
 <a href="#" onclick="ajaxHandler('VirusTotalSearch', {'file_id':'{{VirusTotalSearch.file_id}}', 'target_div':'vt-out', 'extension':true}, false ); return false" class="btn btn-info" role="button">Search VirusTotal</a>

@@ -25,6 +25,7 @@ def load_extensions():
         ext_name = extension_name.split('.')[-1]
 
         if ext_name in disable_list:
+            logger.info("Disabled Extension: {0}".format(ext_name))
             continue
 
         # Try to import the module, otherwise skip.

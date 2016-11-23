@@ -8,8 +8,6 @@ class PSTViewer(Extension):
     # Paths should be relative to the extensions folder
     extension_type = 'filedetails'
     extension_name = 'PSTViewer'
-    template_name = 'pstviewer/pstviewer.html'
-    #extra_js = 'hiveviewer/hiveviewer.js'
 
     def recursive_walk_folders(self, node, path):
         if node.get_display_name():
@@ -34,8 +32,6 @@ class PSTViewer(Extension):
                     'creation_time': msg.creation_time
                 }
 
-                print msg_dict['subject']
-
                 if node.get_display_name() in self.email_dict:
                     self.email_dict[node.get_display_name()].append(msg_dict)
                 else:
@@ -46,7 +42,6 @@ class PSTViewer(Extension):
         for i in range(0, node.get_number_of_sub_folders()):
             folder = node.get_sub_folder(i)
             folder_name = folder.get_display_name()
-            print folder_name
             self.recursive_walk_folders(node.get_sub_folder(i), node_path)
 
     def run(self):
@@ -65,11 +60,8 @@ class PSTViewer(Extension):
 
         base_path = u""
         root_node = self.pst.get_root_folder()
-
         self.email_dict = {}
-
         self.recursive_walk_folders(root_node, base_path)
-
 
         # Store in DB Now
         store_data = {'file_id': file_id, 'pst': self.email_dict}
