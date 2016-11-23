@@ -29,7 +29,6 @@ class VirusTotalSearch(Extension):
                 state = 'error'
                 vt_results = 'No API Key set in volutility.conf'
             else:
-                print "a"
                 # Init the API with key from config
                 vt = PublicApi(self.config['virustotal']['api_key'])
 
@@ -76,7 +75,8 @@ class VirusTotalSearch(Extension):
                         # Store the results in datastore
                         state = 'complete'
 
-                store_data = {'file_id': file_id, 'vt': vt_results, 'state': state}
+
+                store_data = {'file_id': file_id, 'vt': vt_results}
                 db.create_datastore(store_data)
 
             self.render_type = 'file'
@@ -90,9 +90,11 @@ class VirusTotalSearch(Extension):
         vt_results = None
         state = 'Not Checked'
         for row in file_datastore:
-
             if 'vt' in row:
                 vt_results = row['vt']
-                state = 'complete'
+                if vt_results:
+                    state = 'complete'
+                else:
+                    state = 'pending'
 
         self.render_data = {'VirusTotalSearch': {'state': state, 'vt_results': vt_results, 'file_id': file_id}}

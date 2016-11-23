@@ -121,6 +121,7 @@ def session_creation(request, mem_image, session_id):
         # Ignore plugins we cant handle
         if plugin_name in plugin_filters['drop']:
             continue
+        plugin_output = plugin_status = None
         # Create placeholders for dumpfiles and memdump
         if plugin_name == 'dumpfiles':
             plugin_output = {'columns': ['Offset', 'File Name', 'Image Type', 'StoredFile'], 'rows': []}
@@ -128,13 +129,10 @@ def session_creation(request, mem_image, session_id):
         elif plugin_name == 'memdump':
             plugin_output = {'columns': ['Process', 'PID', 'StoredFile'], 'rows': []}
             plugin_status = 'complete'
-        else:
-            plugin_output = None
-            plugin_status = None
         db_results['help_string'] = plugin[1]
         db_results['created'] = None
         db_results['plugin_output'] = plugin_output
-        db_results['status'] = plugin_status = 'complete'
+        db_results['status'] = plugin_status
         # Write to DB
         plugin_id = db.create_plugin(db_results)
 
@@ -550,7 +548,7 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
                 if plugin_name == 'memdump':
                     if len(row) == 3:
                         row.insert(0, counter)
-                elif plugin_name == 'dumpfiles':
+                elif plugin_name in ['dumpfiles', 'mac_dump_files']:
                     if len(row) == 4:
                         row.insert(0, counter)
                 else:
