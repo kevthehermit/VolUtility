@@ -9,12 +9,13 @@ class CuckooSandbox(Extension):
     extension_type = 'filedetails'
 
     def api_query(self, api_method, api_uri, files=None, params=None):
+
+        print api_uri, api_method
+
         response = None
         if files:
             try:
-                print "Here"
                 response = requests.post(api_uri, files=files, data=params)
-                print response
 
             except requests.ConnectionError:
                 print "Unable to connect to Cuckoo API at '{0}'.".format(api_uri)
@@ -48,12 +49,10 @@ class CuckooSandbox(Extension):
         cuckoo_modified = self.config['cuckoo']['modified']
         cuckoo_host = self.config['cuckoo']['host']
 
-        if cuckoo_modified:
+        if cuckoo_modified == 'True':
             submit_file_url = '{0}/api/tasks/create/file/'.format(cuckoo_host)
-            status_url = '{0}/api/cuckoo/status'.format(cuckoo_host)
         else:
             submit_file_url = '{0}/tasks/create/file'.format(cuckoo_host)
-            status_url = '{0}/cuckoo/status'.format(cuckoo_host)
 
         params = {}
         if 'file_id' in self.request.POST:
@@ -101,22 +100,26 @@ class CuckooSandbox(Extension):
         cuckoo_modified = self.config['cuckoo']['modified']
         cuckoo_host = self.config['cuckoo']['host']
 
-        if cuckoo_modified:
+        if cuckoo_modified == 'True':
             search_url = '{0}/api/tasks/search/sha256'.format(cuckoo_host)
-            status_url = '{0}/api/cuckoo/status'.format(cuckoo_host)
             machine_url = '{0}/api/machines/list/'.format(cuckoo_host)
         else:
             search_url = '{0}/tasks/list'.format(cuckoo_host)
-            status_url = '{0}/cuckoo/status'.format(cuckoo_host)
-            machine_url = '{0}/api/machines/list/'.format(cuckoo_host)
+            machine_url = '{0}/machines/list'.format(cuckoo_host)
 
         # Get a list of machines from the API to populate a dropdown
         machine_list = []
         json_response = self.api_query('get', machine_url)
+
         if json_response:
             json_response = json_response.json()
 
-            json_data = json_response['data']
+            if cuckoo_modified == 'True':
+
+                json_data = json_response['data']
+
+            else:
+                json_data = json_response['machines']
 
             for machine in json_data:
 
@@ -125,6 +128,9 @@ class CuckooSandbox(Extension):
                 machine_list.append(machine_dict)
         else:
             machine_list.append('Unable to connect to Cuckoo')
+
+
+
 
         file_id = rule_file = False
         if 'file_id' in self.request.POST:
