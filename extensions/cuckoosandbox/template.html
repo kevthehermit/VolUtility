@@ -33,7 +33,7 @@
                 <select class="form-control" id="machine">
                     <option class="text-muted" value="">Select a Machine (Default First)</option>
                     {% for machine in CuckooSandbox.machine_list %}
-                    <option value="{{machine.name}}">{{machine.display }}</option>
+                    <option value="{{machine.label}}">{{machine.display }}</option>
                     {% endfor %}
                     </select>
             </div>

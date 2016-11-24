@@ -75,23 +75,22 @@ class CuckooSandbox(Extension):
         if 'options' in self.request.POST:
             if self.request.POST['options'] != '':
                 params['options'] = self.request.POST['options']
-
         submit_file = self.api_query('post', submit_file_url, files=files, params=params)
-
         response_json = submit_file.json()
-
-        try:
-            print "Task Submitted ID: {0}".format(response_json['task_id'])
-            task_id = response_json['task_id']
-        except KeyError:
+        if 'error' in response_json and response_json['error']:
+            rows = [['ID', 'Error', response_json['error_value'], '', '']]
+        else:
             try:
-                print "Task Submitted ID: {0}".format(response_json['data']['task_ids'][0])
-                task_id = response_json['data']['task_ids'][0]
+                print "Task Submitted ID: {0}".format(response_json['task_id'])
+                task_id = response_json['task_id']
             except KeyError:
-                print response_json
-                task_id = 0
+                try:
+                    print "Task Submitted ID: {0}".format(response_json['data']['task_ids'][0])
+                    task_id = response_json['data']['task_ids'][0]
+                except KeyError:
+                    task_id = 0
 
-        rows = [['ID', 'Pending', 'Running', '', '{0}/analysis/{1}'.format(cuckoo_host, task_id)]]
+                rows = [[task_id, 'Pending', 'Running', '', '{0}/analysis/{1}'.format(cuckoo_host, task_id)]]
 
         self.render_type = 'file'
         self.render_data = {'CuckooSandbox': {'machine_list': None, 'results': rows, 'file_id': file_id}}
@@ -122,7 +121,7 @@ class CuckooSandbox(Extension):
             for machine in json_data:
 
                 machine_string = '{0}: {1}'.format(machine['name'], ','.join(machine['tags']))
-                machine_dict = {'name': machine['name'], 'display': machine_string}
+                machine_dict = {'name': machine['name'], 'display': machine_string, 'label': machine['label']}
                 machine_list.append(machine_dict)
         else:
             machine_list.append('Unable to connect to Cuckoo')
