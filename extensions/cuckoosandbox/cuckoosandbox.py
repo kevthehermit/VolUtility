@@ -10,8 +10,6 @@ class CuckooSandbox(Extension):
 
     def api_query(self, api_method, api_uri, files=None, params=None):
 
-        print api_uri, api_method
-
         response = None
         if files:
             try:
@@ -76,6 +74,7 @@ class CuckooSandbox(Extension):
                 params['options'] = self.request.POST['options']
         submit_file = self.api_query('post', submit_file_url, files=files, params=params)
         response_json = submit_file.json()
+
         if 'error' in response_json and response_json['error']:
             rows = [['ID', 'Error', response_json['error_value'], '', '']]
         else:
@@ -89,7 +88,7 @@ class CuckooSandbox(Extension):
                 except KeyError:
                     task_id = 0
 
-                rows = [[task_id, 'Pending', 'Running', '', '{0}/analysis/{1}'.format(cuckoo_host, task_id)]]
+            rows = [[task_id, 'Pending', 'Running', '', '{0}/analysis/{1}'.format(cuckoo_host, task_id)]]
 
         self.render_type = 'file'
         self.render_data = {'CuckooSandbox': {'machine_list': None, 'results': rows, 'file_id': file_id}}
@@ -121,6 +120,7 @@ class CuckooSandbox(Extension):
             else:
                 json_data = json_response['machines']
 
+
             for machine in json_data:
 
                 machine_string = '{0}: {1}'.format(machine['name'], ','.join(machine['tags']))
@@ -128,9 +128,6 @@ class CuckooSandbox(Extension):
                 machine_list.append(machine_dict)
         else:
             machine_list.append('Unable to connect to Cuckoo')
-
-
-
 
         file_id = rule_file = False
         if 'file_id' in self.request.POST:
@@ -141,8 +138,8 @@ class CuckooSandbox(Extension):
         else:
             file_hash = 'None'
 
-        # Check for existing Session
-        if cuckoo_modified:
+        # Check for existing Entry
+        if cuckoo_modified == 'True':
             search_results = self.api_query('get',
                                             '{0}/{1}'.format(search_url, file_hash)).json()
             if search_results['data'] != "Sample not found in database":
