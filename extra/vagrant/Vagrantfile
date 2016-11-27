@@ -19,31 +19,67 @@ Vagrant.configure(2) do |config|
 
    config.vm.provision "shell", inline: <<-SHELL
      sudo apt-get update
-     sudo apt-get install -y linux-headers-$(uname -r) build-essential dkms
-     wget "http://download.virtualbox.org/virtualbox/5.0.14/VBoxGuestAdditions_5.0.14.iso"
-     sudo mkdir /media/VBoxGuestAdditions
-     sudo mount -o loop,ro VBoxGuestAdditions_5.0.14.iso /media/VBoxGuestAdditions
-     sudo sh /media/VBoxGuestAdditions/VBoxLinuxAdditions.run
-     rm VBoxGuestAdditions_5.0.14.iso
-     sudo umount /media/VBoxGuestAdditions
-     sudo rmdir /media/VBoxGuestAdditions
-     sudo apt-get install -y python2.7 python-dev python-pip git
-     sudo pip install distorm3 pycrypto
+     #install guest tools
+     #sudo apt-get install -y linux-headers-$(uname -r) build-essential dkms
+     #wget "http://download.virtualbox.org/virtualbox/5.0.26/VBoxGuestAdditions_5.0.26.iso"
+     #sudo mkdir /media/VBoxGuestAdditions
+     #sudo mount -o loop,ro VBoxGuestAdditions_5.0.26.iso /media/VBoxGuestAdditions
+     #sudo sh /media/VBoxGuestAdditions/VBoxLinuxAdditions.run
+     #rm VBoxGuestAdditions_5.0.26.iso
+     #sudo umount /media/VBoxGuestAdditions
+     #sudo rmdir /media/VBoxGuestAdditions
+     #install volatility
+     sudo apt-get install -y python2.7 python-dev python-setuptools build-essential autoconf automake autopoint libtool pkg-config git
+     sudo easy_install -U pip
+     sudo pip install openpyxl pycrypto distorm3
      cd /opt
      sudo git clone https://github.com/volatilityfoundation/volatility
      cd /opt/volatility
      sudo python setup.py install
      cd /opt
+     #install mongo
      sudo apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10
      sudo echo "deb http://repo.mongodb.org/apt/debian wheezy/mongodb-org/3.0 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.0.list
      sudo apt-get update
      apt-get install -y mongodb-org
-     sudo pip install pymongo django virustotal-api yara-python
+     #add support for extensions
+     #build libpff
+     cd /opt
+     git clone https://github.com/libyal/libpff.git
+     cd libpff/
+     ./synclibs.sh
+     ./autogen.sh
+     ./configure --enable-python
+     make
+     sudo make install
+     sudo ldconfig
+     cd /opt
+     wget https://github.com/maxmind/libmaxminddb/releases/download/1.2.0/libmaxminddb-1.2.0.tar.gz
+     tar zxvf libmaxminddb-1.2.0.tar.gz
+     rm libmaxminddb-1.2.0.tar.gz
+     mv libmaxminddb-1.2.0 libmaxminddb
+     cd libmaxminddb/
+     ./configure
+     make
+     make check
+     sudo make install
+     sudo ldconfig
+     cd /opt
+     wget http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz
+     gunzip GeoLite2-City.mmdb.gz
+     mv GeoLite2-City.mmdb /usr/share/GeoIP
+     sudo apt-get install -y libimage-exiftool-perl
+     #install volutility
      cd /opt
      sudo git clone https://github.com/kevthehermit/VolUtility
      sudo chown -R vagrant:vagrant /opt/VolUtility
      cd /opt/VolUtility
+     sudo pip install -r requirements.txt
+     #add yara rules
+     #
+     #add service
      echo '#!/bin/bash' > /usr/local/bin/volutilstart.sh
+     echo 'cd /opt/VolUtility' >> /usr/local/bin/volutilstart.sh
      echo '/opt/VolUtility/manage.py runserver 0.0.0.0:8765' >> /usr/local/bin/volutilstart.sh
      echo 'exit 0' >> /usr/local/bin/volutilstart.sh
      chmod +x /usr/local/bin/volutilstart.sh
@@ -65,6 +101,8 @@ Vagrant.configure(2) do |config|
      sudo systemctl daemon-reload
      sleep 10
      sudo systemctl enable volutility.service
-     sudo systemctl start volutility.service
+     #sleep 10
+     #sudo systemctl start volutility.service
+     /usr/local/bin/volutilstart.sh&
    SHELL
 end
