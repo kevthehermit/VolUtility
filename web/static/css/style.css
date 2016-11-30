@@ -54,8 +54,8 @@ padding: 0px
     z-index: 9999; /* Sit on top */
     left: 0;
     top: 0;
-    background-color: rgb(255,255,255); /* Black fallback color */
-    background-color: rgba(255,255,255, 0.5); /* Black w/opacity */
+    background-color: rgb(51,51,51); /* Black fallback color */
+    background-color: rgba(51,51,51, 0.5); /* Black w/opacity */
     overflow-x: hidden; /* Disable horizontal scroll */
     transition: 0.5s; /* 0.5 second transition effect to slide in or slide down the overlay (height or width, depending on reveal) */
 }
