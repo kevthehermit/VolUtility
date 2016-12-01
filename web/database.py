@@ -114,7 +114,7 @@ class Database():
     def get_plugin_byname(self, plugin_name, session_id):
         session_id = ObjectId(session_id)
         plugin_output = self.vol_plugins.find_one({'session_id': session_id, 'plugin_name': plugin_name})
-        if 'largedoc' in plugin_output:
+        if plugin_output and 'largedoc' in plugin_output:
             large_document_id = plugin_output['plugin_output']
             large_document = self.get_filebyid(large_document_id)
             plugin_output['plugin_output'] = json.loads(large_document.read())

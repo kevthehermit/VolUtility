@@ -4,6 +4,7 @@ import json
 from datetime import datetime
 from web.common import *
 import multiprocessing
+import tempfile
 from common import parse_config, checksum_md5
 from web.modules import __extensions__
 
@@ -317,17 +318,20 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
                 plugin_style = 'text'
                 return try_run(plugin_name, dump_dir=dump_dir, output_style='text', pid=pid, plugin_options=plugin_options)
 
-
             elif '--dump-dir' in str(error) or 'specify a dump directory' in str(error):
                 # Create Temp Dir
                 logger.debug('{0} - Creating Temp Directory'.format(plugin_name))
                 temp_dir = tempfile.mkdtemp()
                 dump_dir = temp_dir
                 return try_run(plugin_name, dump_dir=dump_dir, output_style=output_style, pid=pid, plugin_options=plugin_options)
+
+
             else:
                 results = {'error': error}
                 return [results, None]
 
+
+    print "im Here"
 
     dump_dir = None
     error = None
@@ -1375,6 +1379,74 @@ def ajax_handler(request, command):
                                                                             'NAME': True,
                                                                             'REGEX': None,
                                                                             'UNSAFE': True})
+            return HttpResponse(res)
+
+    if command == 'linux_find_file':
+        if 'row_id' in request.POST and 'session_id' in request.POST:
+            plugin_id, row_id = request.POST['row_id'].split('_')
+            session_id = request.POST['session_id']
+            row_id = int(row_id)
+            plugin_data = db.get_pluginbyid(plugin_id)['plugin_output']
+
+            row = plugin_data['rows'][row_id - 1]
+
+            print "Base Row: ", row
+
+            inode = row[1]
+
+            print "Inode: ", inode
+
+            temp_dir = tempfile.mkdtemp()
+            dump_dir = temp_dir
+
+            filename = row[-1].split('/')[-1]
+
+            outfile = os.path.join(temp_dir, filename)
+
+            print "Outfile", outfile
+
+
+            results_plugin = db.get_plugin_byname('linux_find_file', session_id)
+
+            if not results_plugin['plugin_output']:
+                results = {'columns': ['Inode Address', 'Inode Number', 'Path', 'StoredFile'], 'rows': []}
+            else:
+                results = results_plugin['plugin_output']
+
+            logger.debug('Running Plugin: linux_find_file with inode {0}'.format(inode))
+
+            res = run_plugin(session_id, results_plugin['_id'], plugin_options={'INODE': int(inode, 0), 'OUTFILE': outfile})
+
+
+            print "Checking for file"
+
+            if os.path.exists(outfile):
+                file_data = open(outfile, 'rb').read()
+                print "FileData: ", file_data[:5]
+                sha256 = hashlib.sha256(file_data).hexdigest()
+                file_id = db.create_file(file_data, session_id, sha256, filename)
+                row.append('<a class="text-success" href="#" '
+                           'onclick="ajaxHandler(\'filedetails\', {\'file_id\':\'' + str(file_id) +
+                           '\'}, false ); return false">'
+                           'File Details</a>')
+            else:
+                row.append('Not Stored')
+                print "Not Found"
+
+
+            results['rows'].append(row[1:])
+
+            # update the plugin
+            new_values = {'created': datetime.now(), 'plugin_output': results, 'status': 'completed'}
+
+            db.update_plugin(results_plugin['_id'], new_values)
+
+
+            # Remove the dumpdir
+            shutil.rmtree(temp_dir)
+
+
+
             return HttpResponse(res)
 
     return HttpResponse('No valid search query found.')
