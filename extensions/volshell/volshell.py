@@ -3,7 +3,11 @@ import re
 import pexpect
 from web.common import Extension
 from web.database import Database
-v = {'volshell_id': None, 'volshell_object': None}
+
+v = {}
+
+
+#v = {'volshell_id': None, 'volshell_object': None}
 
 class VolShell(Extension):
 
@@ -24,9 +28,20 @@ class VolShell(Extension):
             v = {'volshell_id': None, 'volshell_object': None}
 
         session = db.get_session(session_id)
-        vol_shell_cmd = 'vol.py --profile={0} -f {1} volshell'.format(session['session_profile'],
-                                                                       session['session_path']
-                                                                       )
+
+        # Shell type
+
+        if session['session_profile'].lower().startswith('linux'):
+            shell_type = 'linux_volshell'
+        elif session['session_profile'].lower().startswith('mac'):
+            shell_type = 'mac_volshell'
+        else:
+            shell_type = 'volshell'
+
+        vol_shell_cmd = 'vol.py --profile={0} -f {1} {2}'.format(session['session_profile'],
+                                                                 session['session_path'],
+                                                                 shell_type
+                                                                 )
 
         # Determine if ipython is installed as this will change the expect regex
         try:
@@ -38,12 +53,12 @@ class VolShell(Extension):
 
         # Start or restore a shell
 
-        if v['volshell_id']:
-            voll_shell = v['volshell_object']
+        if session_id in v:
+            voll_shell = v[session_id]['volshell_object']
         else:
             voll_shell = pexpect.spawn(vol_shell_cmd)
             voll_shell.expect(expect_regex)
-            v['volshell_id'] = session_id
+            v[session_id] = {'volshell_object': None}
 
         # Now run the inputs
 
@@ -51,7 +66,7 @@ class VolShell(Extension):
 
         voll_shell.expect(expect_regex, timeout=60)
 
-        v['volshell_object'] = voll_shell
+        v[session_id]['volshell_object'] = voll_shell
 
         before_data = self.strip_ansi_codes(voll_shell.before)
         after_data = self.strip_ansi_codes(voll_shell.after)
