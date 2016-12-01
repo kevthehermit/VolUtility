@@ -422,7 +422,8 @@ function ajaxHandler(command, postFields, spinner) {
 
             }else if (command == 'filedump') {
                 notifications('success', true, postOptions['plugin_id'], 'Check dumpfiles plugin for your file.');
-
+            }else if (command == 'linux_find_file') {
+                notifications('success', true, postOptions['plugin_id'], 'Check linux_find_file plugin for your file.');
             }else {
                 if (postOptions['target_div']){
                     $('#'+postOptions["target_div"]).html(data);

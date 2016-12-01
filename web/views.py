@@ -299,8 +299,8 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
     """
 
     def try_run(plugin_name, dump_dir=None, output_style=None, pid=None, plugin_options=None):
-        global plugin_stlye
-        plugin_style = output_style
+        global plugin_style
+        logger.debug("Testing: {0}".format(plugin_style))
         print "Testing: ", plugin_style
         try:
             results = vol_int.run_plugin(plugin_name,
@@ -325,13 +325,9 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
                 dump_dir = temp_dir
                 return try_run(plugin_name, dump_dir=dump_dir, output_style=output_style, pid=pid, plugin_options=plugin_options)
 
-
             else:
                 results = {'error': error}
                 return [results, None]
-
-
-    print "im Here"
 
     dump_dir = None
     error = None
@@ -1447,6 +1443,6 @@ def ajax_handler(request, command):
 
 
 
-            return HttpResponse(res)
+            return HttpResponse("200 OK")
 
     return HttpResponse('No valid search query found.')
