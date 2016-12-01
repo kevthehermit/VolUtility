@@ -11,6 +11,7 @@
 
 **Fixed bugs:**
 
+- Cuckoo machine name vs label [\#56](https://github.com/kevthehermit/VolUtility/issues/56)
 - dumpfiles NoneType is not iterable [\#55](https://github.com/kevthehermit/VolUtility/issues/55)
 - dumpregistry failure [\#52](https://github.com/kevthehermit/VolUtility/issues/52)
 - Procdump "File Detail" Empty [\#46](https://github.com/kevthehermit/VolUtility/issues/46)
@@ -20,6 +21,7 @@
 - vangrant repo not found  [\#51](https://github.com/kevthehermit/VolUtility/issues/51)
 - Update vagrant file [\#50](https://github.com/kevthehermit/VolUtility/issues/50)
 - VirustotalSearch returns 500 error [\#48](https://github.com/kevthehermit/VolUtility/issues/48)
+- Volshell interface [\#45](https://github.com/kevthehermit/VolUtility/issues/45)
 - Hivelist/ Hivescan error [\#43](https://github.com/kevthehermit/VolUtility/issues/43)
 - ImportError: No module named Registry [\#41](https://github.com/kevthehermit/VolUtility/issues/41)
 
