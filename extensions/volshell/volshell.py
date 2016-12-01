@@ -1,10 +1,8 @@
 import os
 import re
-import string
 import pexpect
 from web.common import Extension
 from web.database import Database
-from Registry import Registry
 v = {'volshell_id': None, 'volshell_object': None}
 
 class VolShell(Extension):
@@ -19,67 +17,49 @@ class VolShell(Extension):
 
     def run(self):
         global v
-        print v
         db = Database()
         session_id = self.request.POST['session_id']
         shell_input = self.request.POST['shell_input']
-
         if shell_input == 'resetvolshellsession':
             v = {'volshell_id': None, 'volshell_object': None}
-
-
 
         session = db.get_session(session_id)
         vol_shell_cmd = 'vol.py --profile={0} -f {1} volshell'.format(session['session_profile'],
                                                                        session['session_path']
                                                                        )
 
+        # Determine if ipython is installed as this will change the expect regex
+        try:
+            import IPython
+            expect_regex = '.*In .*\[[0-9]{1,3}.*\]:'
 
+        except ImportError:
+            expect_regex = '.*>>>'
+
+        # Start or restore a shell
 
         if v['volshell_id']:
-            print "a is a stored object"
             voll_shell = v['volshell_object']
         else:
-            print "a is a new object"
             voll_shell = pexpect.spawn(vol_shell_cmd)
-            print "b"
-
-            voll_shell.expect('m.\[0m.\[J.\[0;38;5;28mIn')
+            voll_shell.expect(expect_regex)
             v['volshell_id'] = session_id
 
-
+        # Now run the inputs
 
         voll_shell.sendline(shell_input)
 
-        print "c"
-
-        voll_shell.expect('m.\[0m.\[J.\[0;38;5;28mIn', timeout=60)
-
-        print "d"
-
+        voll_shell.expect(expect_regex, timeout=60)
 
         v['volshell_object'] = voll_shell
-        #returndata = voll_shell.read()
-
-        print "e"
 
         before_data = self.strip_ansi_codes(voll_shell.before)
         after_data = self.strip_ansi_codes(voll_shell.after)
+        #print "Before Data: ", before_data
+        #print "After Data: ", after_data
 
-
-        print "Before Data: ", before_data
-
-        print "After Data: ", after_data
-
-
-
-
-        # lets start by getting input and saving it
-
-
-
-
+        # lets start by getting input and returning it
 
         self.render_type = 'html'
-        self.render_data = '<pre>{0}</pre>'.format(str(before_data))
+        self.render_data = '<pre>{0}</pre>'.format(str(after_data))
         self.render_javascript = open(os.path.join('extensions', self.extra_js), 'rb').read()

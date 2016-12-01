@@ -422,7 +422,8 @@ function ajaxHandler(command, postFields, spinner) {
 
             }else if (command == 'filedump') {
                 notifications('success', true, postOptions['plugin_id'], 'Check dumpfiles plugin for your file.');
-
+            }else if (command == 'linux_find_file') {
+                notifications('success', true, postOptions['plugin_id'], 'Check linux_find_file plugin for your file.');
             }else {
                 if (postOptions['target_div']){
                     $('#'+postOptions["target_div"]).html(data);
@@ -480,6 +481,12 @@ function resultscontextmenu ($, window) {
     if (plugin_name == 'filescan') {
             $("#contextMenu").append('<li class="divider"></li>');
             $("#contextMenu").append('<li><a tabindex="-1" href="#">Store File Object</a></li>');
+
+    }
+
+    if (plugin_name == 'linux_enumerate_files') {
+            $("#contextMenu").append('<li class="divider"></li>');
+            $("#contextMenu").append('<li><a tabindex="-1" href="#">Store Linux File Object</a></li>');
 
     }
 
@@ -647,6 +654,11 @@ $("#resultsTable tbody tr").contextMenu({
         if (menu_option == 'Store File Object') {
             var session_id = $('#sessionID').html();
             ajaxHandler('filedump', {'row_id':row_id, 'session_id':session_id}, true);
+        }
+
+        if (menu_option == 'Store Linux File Object') {
+            var session_id = $('#sessionID').html();
+            ajaxHandler('linux_find_file', {'row_id':row_id, 'session_id':session_id, 'linux': true}, true);
         }
 
         if (menu_option == 'View VAD Tree') {

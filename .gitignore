@@ -77,3 +77,6 @@ volutility.conf
 
 # Test Rule
 yararules/testing.yar
+
+# Backup Files
+*.bak

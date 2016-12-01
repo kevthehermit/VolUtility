@@ -212,11 +212,9 @@ class RunVol:
         :param results:
         :return:
         """
-
-
         # Convert Hex ints to 0x Values
         try:
-            for x in ['Offset', 'Offset (V)', 'Offset(V)', 'Offset(P)', 'Process(V)', 'ImageBase', 'Base', 'Address']:
+            for x in ['Offset', 'Offset (V)', 'Offset(V)', 'Offset(P)', 'Process(V)', 'ImageBase', 'Base', 'Address', 'Inode Address']:
 
                 if x in results['columns']:
                     row_loc = results['columns'].index(x)
