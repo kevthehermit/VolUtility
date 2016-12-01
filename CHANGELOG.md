@@ -2,7 +2,45 @@
 
 ## [Unreleased](https://github.com/kevthehermit/VolUtility/tree/HEAD)
 
-[Full Changelog](https://github.com/kevthehermit/VolUtility/compare/v0.2...HEAD)
+[Full Changelog](https://github.com/kevthehermit/VolUtility/compare/v1.0...HEAD)
+
+**Implemented enhancements:**
+
+- Submit to Sandbox [\#24](https://github.com/kevthehermit/VolUtility/issues/24)
+- Threat Score [\#10](https://github.com/kevthehermit/VolUtility/issues/10)
+
+**Fixed bugs:**
+
+- dumpfiles NoneType is not iterable [\#55](https://github.com/kevthehermit/VolUtility/issues/55)
+- dumpregistry failure [\#52](https://github.com/kevthehermit/VolUtility/issues/52)
+- Procdump "File Detail" Empty [\#46](https://github.com/kevthehermit/VolUtility/issues/46)
+
+**Closed issues:**
+
+- vangrant repo not found  [\#51](https://github.com/kevthehermit/VolUtility/issues/51)
+- Update vagrant file [\#50](https://github.com/kevthehermit/VolUtility/issues/50)
+- VirustotalSearch returns 500 error [\#48](https://github.com/kevthehermit/VolUtility/issues/48)
+- Hivelist/ Hivescan error [\#43](https://github.com/kevthehermit/VolUtility/issues/43)
+- ImportError: No module named Registry [\#41](https://github.com/kevthehermit/VolUtility/issues/41)
+
+**Merged pull requests:**
+
+- Update Vagrant file [\#58](https://github.com/kevthehermit/VolUtility/pull/58) ([kevthehermit](https://github.com/kevthehermit))
+- Update CuckooSandbox Extension [\#57](https://github.com/kevthehermit/VolUtility/pull/57) ([kevthehermit](https://github.com/kevthehermit))
+- Update VirusTotal Extension [\#54](https://github.com/kevthehermit/VolUtility/pull/54) ([kevthehermit](https://github.com/kevthehermit))
+- Merge Develop [\#53](https://github.com/kevthehermit/VolUtility/pull/53) ([kevthehermit](https://github.com/kevthehermit))
+- Fix VirusTotal config location [\#49](https://github.com/kevthehermit/VolUtility/pull/49) ([kevthehermit](https://github.com/kevthehermit))
+- For release 1.1 [\#47](https://github.com/kevthehermit/VolUtility/pull/47) ([kevthehermit](https://github.com/kevthehermit))
+
+## [v1.0](https://github.com/kevthehermit/VolUtility/tree/v1.0) (2016-11-17)
+[Full Changelog](https://github.com/kevthehermit/VolUtility/compare/v0.3...v1.0)
+
+**Merged pull requests:**
+
+- Merge develop [\#44](https://github.com/kevthehermit/VolUtility/pull/44) ([kevthehermit](https://github.com/kevthehermit))
+
+## [v0.3](https://github.com/kevthehermit/VolUtility/tree/v0.3) (2016-09-30)
+[Full Changelog](https://github.com/kevthehermit/VolUtility/compare/v0.2...v0.3)
 
 **Implemented enhancements:**
 
