@@ -300,8 +300,8 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
 
     def try_run(plugin_name, dump_dir=None, output_style=None, pid=None, plugin_options=None):
         global plugin_style
+        plugin_style = output_style
         logger.debug("Testing: {0}".format(plugin_style))
-        print "Testing: ", plugin_style
         try:
             results = vol_int.run_plugin(plugin_name,
                                          dump_dir=dump_dir,
