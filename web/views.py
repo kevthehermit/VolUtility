@@ -39,7 +39,7 @@ except Exception as e:
 
 def session_creation(request, mem_image, session_id):
 
-    if config['auth']['enable'] == 'True' and not request.user.is_authenticated:
+    if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
         return HttpResponse('Auth Required.')
 
     # Get some vars
@@ -168,7 +168,7 @@ def main_page(request, error_line=None):
         logger.error(error_line)
 
 
-    if config['auth']['enable'] == 'True' and not request.user.is_authenticated:
+    if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
         return HttpResponse('Auth Required.')
 
 
@@ -219,7 +219,7 @@ def session_page(request, session_id):
     :return:
     """
 
-    if config['auth']['enable'] == 'True' and not request.user.is_authenticated:
+    if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
         return HttpResponse('Auth Required.')
 
     error_line = False
@@ -264,7 +264,7 @@ def create_session(request):
     :return:
     """
 
-    if config['auth']['enable'] == 'True' and not request.user.is_authenticated:
+    if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
         return HttpResponse('Auth Required.')
 
     if 'process_dir' in request.POST:
@@ -625,7 +625,7 @@ def file_download(request, query_type, object_id):
     :return:
     """
 
-    if config['auth']['enable'] == 'True' and not request.user.is_authenticated:
+    if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
         return HttpResponse('Auth Required.')
 
     if query_type == 'file':
@@ -658,7 +658,7 @@ def file_download(request, query_type, object_id):
 @csrf_exempt
 def addfiles(request):
 
-    if config['auth']['enable'] == 'True' and not request.user.is_authenticated:
+    if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
         return HttpResponse('Auth Required.')
 
     if 'session_id' not in request.POST:
@@ -693,7 +693,7 @@ def ajax_handler(request, command):
     :return:
     """
 
-    if config['auth']['enable'] == 'True' and not request.user.is_authenticated:
+    if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
         return HttpResponse('Auth Required.')
 
     if command in __extensions__:

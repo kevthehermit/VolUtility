@@ -28,4 +28,4 @@ theme = slate.min.css
 spinner = cat_spinner.gif
 
 [auth]
-enable = true
+enable = True
