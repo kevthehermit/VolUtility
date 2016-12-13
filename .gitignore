@@ -80,3 +80,6 @@ yararules/testing.yar
 
 # Backup Files
 *.bak
+
+# DB
+voladmin

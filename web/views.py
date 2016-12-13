@@ -15,6 +15,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse, HttpResponseServerError, StreamingHttpResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
 
 try:
     import yara
@@ -37,6 +38,10 @@ except Exception as e:
 
 
 def session_creation(request, mem_image, session_id):
+
+    if config['auth']['enable'] == 'True' and not request.user.is_authenticated:
+        return HttpResponse('Auth Required.')
+
     # Get some vars
     new_session = db.get_session(session_id)
     file_hash = False
@@ -161,6 +166,12 @@ def main_page(request, error_line=None):
     except Exception as error:
         error_line = 'Unable to find a volatility version'
         logger.error(error_line)
+
+
+    if config['auth']['enable'] == 'True' and not request.user.is_authenticated:
+        return HttpResponse('Auth Required.')
+
+
     # Set Pagination
     page = request.GET.get('page')
     if not page:
@@ -200,7 +211,6 @@ def main_page(request, error_line=None):
                                           'error_line': error_line
                                           })
 
-
 def session_page(request, session_id):
     """
     returns the session page thats used to run plugins
@@ -208,6 +218,10 @@ def session_page(request, session_id):
     :param session_id:
     :return:
     """
+
+    if config['auth']['enable'] == 'True' and not request.user.is_authenticated:
+        return HttpResponse('Auth Required.')
+
     error_line = False
     includes = []
 
@@ -249,6 +263,9 @@ def create_session(request):
     :param request:
     :return:
     """
+
+    if config['auth']['enable'] == 'True' and not request.user.is_authenticated:
+        return HttpResponse('Auth Required.')
 
     if 'process_dir' in request.POST:
         recursive_dir = True
@@ -608,6 +625,9 @@ def file_download(request, query_type, object_id):
     :return:
     """
 
+    if config['auth']['enable'] == 'True' and not request.user.is_authenticated:
+        return HttpResponse('Auth Required.')
+
     if query_type == 'file':
         file_object = db.get_filebyid(object_id)
         file_name = '{0}.bin'.format(file_object.filename)
@@ -637,6 +657,9 @@ def file_download(request, query_type, object_id):
 
 @csrf_exempt
 def addfiles(request):
+
+    if config['auth']['enable'] == 'True' and not request.user.is_authenticated:
+        return HttpResponse('Auth Required.')
 
     if 'session_id' not in request.POST:
         logger.warning('No Session ID in POST')
@@ -669,6 +692,9 @@ def ajax_handler(request, command):
     :param command:
     :return:
     """
+
+    if config['auth']['enable'] == 'True' and not request.user.is_authenticated:
+        return HttpResponse('Auth Required.')
 
     if command in __extensions__:
         extension = __extensions__[command]['obj']()

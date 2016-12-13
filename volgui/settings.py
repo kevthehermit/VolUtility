@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.admin',
     'web'
 ]
 
@@ -79,7 +80,12 @@ WSGI_APPLICATION = 'volgui.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
-DATABASES = {}
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'voladmin',
+    }
+}
 
 
 # Password validation
@@ -149,9 +155,9 @@ LOGGING = {
     },
     'loggers': {
         'django': {
-            'handlers':['file', 'console'],
+            'handlers': ['file', 'console'],
             'propagate': True,
-            'level':'DEBUG',
+            'level': 'ERROR',
         },
         'web': {
             'handlers': ['file', 'console'],
