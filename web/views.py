@@ -16,6 +16,7 @@ from django.http import HttpResponse, JsonResponse, HttpResponseServerError, Str
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login, logout
 
 try:
     import yara
@@ -150,6 +151,35 @@ def session_creation(request, mem_image, session_id):
 ##
 # Page Views
 ##
+# Login Page
+def login_page(request):
+    try:
+        user_name = request.POST['username']
+        password = request.POST['password']
+        if user_name and password:
+            user = authenticate(username=user_name, password=password)
+            if user is not None:
+                if user.is_active:
+                    login(request, user)
+                    return redirect('/')
+                else:
+                    message = "This account is currently disabled. Please check with your admin."
+                    return main_page(request, error_line=message)
+            else:
+                message = "User does not exist or incorrect password."
+                return main_page(request, error_line=message)
+    except Exception as error:
+        logger.error(error)
+        message = "Unable to login to the Web Panel"
+        return main_page(request, error_line=message)
+
+
+# Logout Page
+def logout_page(request):
+    logout(request)
+    return redirect('/')
+
+
 def main_page(request, error_line=None):
     """
     Returns the main vol page
@@ -169,7 +199,9 @@ def main_page(request, error_line=None):
 
 
     if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
-        return HttpResponse('Auth Required.')
+        return render(request, 'index.html', {'reqauth': True,
+                                              'error_line': error_line
+                                              })
 
 
     # Set Pagination
@@ -208,7 +240,8 @@ def main_page(request, error_line=None):
                                           'session_counts': [session_count, first_session, last_session],
                                           'profile_list': profile_list,
                                           'plugin_dirs': plugin_dirs,
-                                          'error_line': error_line
+                                          'error_line': error_line,
+                                          'reqauth': False
                                           })
 
 def session_page(request, session_id):

@@ -28,5 +28,7 @@ urlpatterns = [
     url(r'^ajaxhandler/(?P<command>.+)/$', views.ajax_handler),
     url(r'addfiles', views.addfiles),
     url(r'^admin/', admin.site.urls),
+    url(r'^login/', views.login_page),
+    url(r'^logout/', views.logout_page)
 
 ]
