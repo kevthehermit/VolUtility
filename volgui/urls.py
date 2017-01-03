@@ -14,7 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url
-# from django.contrib import admin
+from django.contrib import admin
 from web import views
 
 urlpatterns = [
@@ -27,5 +27,8 @@ urlpatterns = [
     # AjaxHandlers
     url(r'^ajaxhandler/(?P<command>.+)/$', views.ajax_handler),
     url(r'addfiles', views.addfiles),
+    url(r'^admin/', admin.site.urls),
+    url(r'^login/', views.login_page),
+    url(r'^logout/', views.logout_page)
 
 ]

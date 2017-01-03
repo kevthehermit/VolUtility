@@ -15,6 +15,8 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse, HttpResponseServerError, StreamingHttpResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login, logout
 
 try:
     import yara
@@ -37,6 +39,10 @@ except Exception as e:
 
 
 def session_creation(request, mem_image, session_id):
+    if 'auth' in config:
+        if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
+            return HttpResponse('Auth Required.')
+
     # Get some vars
     new_session = db.get_session(session_id)
     file_hash = False
@@ -145,6 +151,35 @@ def session_creation(request, mem_image, session_id):
 ##
 # Page Views
 ##
+# Login Page
+def login_page(request):
+    try:
+        user_name = request.POST['username']
+        password = request.POST['password']
+        if user_name and password:
+            user = authenticate(username=user_name, password=password)
+            if user is not None:
+                if user.is_active:
+                    login(request, user)
+                    return redirect('/')
+                else:
+                    message = "This account is currently disabled. Please check with your admin."
+                    return main_page(request, error_line=message)
+            else:
+                message = "User does not exist or incorrect password."
+                return main_page(request, error_line=message)
+    except Exception as error:
+        logger.error(error)
+        message = "Unable to login to the Web Panel"
+        return main_page(request, error_line=message)
+
+
+# Logout Page
+def logout_page(request):
+    logout(request)
+    return redirect('/')
+
+
 def main_page(request, error_line=None):
     """
     Returns the main vol page
@@ -161,6 +196,15 @@ def main_page(request, error_line=None):
     except Exception as error:
         error_line = 'Unable to find a volatility version'
         logger.error(error_line)
+
+
+    if 'auth' in config:
+        if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
+            return render(request, 'index.html', {'reqauth': True,
+                                                  'error_line': error_line
+                                                  })
+
+
     # Set Pagination
     page = request.GET.get('page')
     if not page:
@@ -197,9 +241,9 @@ def main_page(request, error_line=None):
                                           'session_counts': [session_count, first_session, last_session],
                                           'profile_list': profile_list,
                                           'plugin_dirs': plugin_dirs,
-                                          'error_line': error_line
+                                          'error_line': error_line,
+                                          'reqauth': False
                                           })
-
 
 def session_page(request, session_id):
     """
@@ -208,6 +252,10 @@ def session_page(request, session_id):
     :param session_id:
     :return:
     """
+    if 'auth' in config:
+        if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
+            return HttpResponse('Auth Required.')
+
     error_line = False
     includes = []
 
@@ -249,6 +297,9 @@ def create_session(request):
     :param request:
     :return:
     """
+    if 'auth' in config:
+        if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
+            return HttpResponse('Auth Required.')
 
     if 'process_dir' in request.POST:
         recursive_dir = True
@@ -608,6 +659,10 @@ def file_download(request, query_type, object_id):
     :return:
     """
 
+    if 'auth' in config:
+        if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
+            return HttpResponse('Auth Required.')
+
     if query_type == 'file':
         file_object = db.get_filebyid(object_id)
         file_name = '{0}.bin'.format(file_object.filename)
@@ -637,6 +692,9 @@ def file_download(request, query_type, object_id):
 
 @csrf_exempt
 def addfiles(request):
+    if 'auth' in config:
+        if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
+            return HttpResponse('Auth Required.')
 
     if 'session_id' not in request.POST:
         logger.warning('No Session ID in POST')
@@ -669,6 +727,9 @@ def ajax_handler(request, command):
     :param command:
     :return:
     """
+    if 'auth' in config:
+        if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
+            return HttpResponse('Auth Required.')
 
     if command in __extensions__:
         extension = __extensions__[command]['obj']()

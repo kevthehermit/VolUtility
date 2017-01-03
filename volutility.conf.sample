@@ -26,3 +26,6 @@ host = http://192.168.1.200:8000
 [style]
 theme = slate.min.css
 spinner = cat_spinner.gif
+
+[auth]
+enable = False
