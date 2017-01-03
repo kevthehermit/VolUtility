@@ -39,9 +39,9 @@ except Exception as e:
 
 
 def session_creation(request, mem_image, session_id):
-
-    if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
-        return HttpResponse('Auth Required.')
+    if 'auth' in config:
+        if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
+            return HttpResponse('Auth Required.')
 
     # Get some vars
     new_session = db.get_session(session_id)
@@ -198,10 +198,11 @@ def main_page(request, error_line=None):
         logger.error(error_line)
 
 
-    if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
-        return render(request, 'index.html', {'reqauth': True,
-                                              'error_line': error_line
-                                              })
+    if 'auth' in config:
+        if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
+            return render(request, 'index.html', {'reqauth': True,
+                                                  'error_line': error_line
+                                                  })
 
 
     # Set Pagination
@@ -251,9 +252,9 @@ def session_page(request, session_id):
     :param session_id:
     :return:
     """
-
-    if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
-        return HttpResponse('Auth Required.')
+    if 'auth' in config:
+        if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
+            return HttpResponse('Auth Required.')
 
     error_line = False
     includes = []
@@ -296,9 +297,9 @@ def create_session(request):
     :param request:
     :return:
     """
-
-    if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
-        return HttpResponse('Auth Required.')
+    if 'auth' in config:
+        if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
+            return HttpResponse('Auth Required.')
 
     if 'process_dir' in request.POST:
         recursive_dir = True
@@ -658,8 +659,9 @@ def file_download(request, query_type, object_id):
     :return:
     """
 
-    if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
-        return HttpResponse('Auth Required.')
+    if 'auth' in config:
+        if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
+            return HttpResponse('Auth Required.')
 
     if query_type == 'file':
         file_object = db.get_filebyid(object_id)
@@ -690,9 +692,9 @@ def file_download(request, query_type, object_id):
 
 @csrf_exempt
 def addfiles(request):
-
-    if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
-        return HttpResponse('Auth Required.')
+    if 'auth' in config:
+        if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
+            return HttpResponse('Auth Required.')
 
     if 'session_id' not in request.POST:
         logger.warning('No Session ID in POST')
@@ -725,9 +727,9 @@ def ajax_handler(request, command):
     :param command:
     :return:
     """
-
-    if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
-        return HttpResponse('Auth Required.')
+    if 'auth' in config:
+        if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
+            return HttpResponse('Auth Required.')
 
     if command in __extensions__:
         extension = __extensions__[command]['obj']()
