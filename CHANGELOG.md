@@ -2,7 +2,26 @@
 
 ## [Unreleased](https://github.com/kevthehermit/VolUtility/tree/HEAD)
 
-[Full Changelog](https://github.com/kevthehermit/VolUtility/compare/v1.0...HEAD)
+[Full Changelog](https://github.com/kevthehermit/VolUtility/compare/v1.1...HEAD)
+
+**Implemented enhancements:**
+
+- Authentication request [\#66](https://github.com/kevthehermit/VolUtility/issues/66)
+
+**Closed issues:**
+
+- MD5 calculations not correct when recursively adding memory images [\#70](https://github.com/kevthehermit/VolUtility/issues/70)
+- 3rd Party Plugins not seen if memory image already loaded [\#69](https://github.com/kevthehermit/VolUtility/issues/69)
+- Refresh Timer Issue [\#68](https://github.com/kevthehermit/VolUtility/issues/68)
+- KeyError: 'extensions' [\#65](https://github.com/kevthehermit/VolUtility/issues/65)
+- Error 500 issues on most plugins [\#64](https://github.com/kevthehermit/VolUtility/issues/64)
+
+**Merged pull requests:**
+
+- Authentication [\#72](https://github.com/kevthehermit/VolUtility/pull/72) ([kevthehermit](https://github.com/kevthehermit))
+
+## [v1.1](https://github.com/kevthehermit/VolUtility/tree/v1.1) (2016-12-01)
+[Full Changelog](https://github.com/kevthehermit/VolUtility/compare/v1.0...v1.1)
 
 **Implemented enhancements:**
 
@@ -27,6 +46,11 @@
 
 **Merged pull requests:**
 
+- Merge Devlop with Master [\#63](https://github.com/kevthehermit/VolUtility/pull/63) ([kevthehermit](https://github.com/kevthehermit))
+- Merge pull request \#61 from kevthehermit/develop [\#62](https://github.com/kevthehermit/VolUtility/pull/62) ([kevthehermit](https://github.com/kevthehermit))
+- Merge pull request \#60 from kevthehermit/master [\#61](https://github.com/kevthehermit/VolUtility/pull/61) ([kevthehermit](https://github.com/kevthehermit))
+- Merge [\#60](https://github.com/kevthehermit/VolUtility/pull/60) ([kevthehermit](https://github.com/kevthehermit))
+- Change the spinner overlay colour [\#59](https://github.com/kevthehermit/VolUtility/pull/59) ([kevthehermit](https://github.com/kevthehermit))
 - Update Vagrant file [\#58](https://github.com/kevthehermit/VolUtility/pull/58) ([kevthehermit](https://github.com/kevthehermit))
 - Update CuckooSandbox Extension [\#57](https://github.com/kevthehermit/VolUtility/pull/57) ([kevthehermit](https://github.com/kevthehermit))
 - Update VirusTotal Extension [\#54](https://github.com/kevthehermit/VolUtility/pull/54) ([kevthehermit](https://github.com/kevthehermit))
