@@ -83,3 +83,4 @@ yararules/testing.yar
 
 # DB
 voladmin
+secret_key.py
