@@ -339,6 +339,17 @@ def create_session(request):
     return redirect('/')
 
 
+def get_pslist_dict(session_id):
+    # returns {'pid' : 'ADDRESS', ...} dict
+    old_result = db.get_plugin_byname('pslist', session_id)
+    if old_result:
+        pid_addr = {}
+        for result in old_result['plugin_output']['rows']:
+            pid_addr[result[3]] = result[1]
+        return pid_addr
+    return None
+
+
 def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
     """
     return the results json from a plugin
@@ -391,6 +402,8 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
         # Get details from the plugin
         plugin_row = db.get_pluginbyid(plugin_id)
         plugin_name = plugin_row['plugin_name'].lower()
+        if plugin_name in ["malfind"]:
+            dump_dir = tempfile.mkdtemp()
         logger.debug('Running Plugin: {0}'.format(plugin_name))
         # Set plugin status
         new_values = {'status': 'processing'}
@@ -543,28 +556,35 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
 
                 results = new_results
 
-            # ToDo
-            '''
             if plugin_row['plugin_name'] in ['malfind']:
-                logger.debug('Processing Rows')
-                # Convert text to rows
-                new_results = plugin_row['plugin_output']
+                try:
+                    pslist = get_pslist_dict(session_id)
+                except TypeError:
+                    pslist = None
+                if pslist:
+                    logger.debug('Processing Rows')
+                    logger.debug('Store malfind injections')
+                    # Convert text to rows
+                    new_results = []
 
-                if len(file_list) == 0:
-                    new_results['rows'].append([process, pid, 'Not Stored'])
+                    for row in results['rows']:
+                        pid = row[1]
+                        injection_address = row[2]
+                        proc_addr = pslist[pid]
+                        injection_name = "process.{0}.{1}.dmp".format(proc_addr, injection_address)
+                        injection_path = os.path.join(dump_dir, injection_name)
+                        if os.path.exists(injection_path):
+                            file_data = open(injection_path, 'rb').read()
+                            sha256 = hashlib.sha256(file_data).hexdigest()
+                            file_id = db.create_file(file_data, session_id, sha256, injection_name)
+                            row_file = '<a class="text-success" href="/download/file/' + str(file_id) + '/"> Download</a>'
+                            row.append(row_file)
+                        else:
+                            logger.debug('Injection {0}.{1} has not been found'.format(proc_addr, injection_address))
+                            row_file = '<a disabled class="text-success" href="#">Download</a>'
+                            row.append(row_file)
                 else:
-                    for dump_file in file_list:
-                        logger.debug('Store memdump file')
-                        file_data = open(os.path.join(temp_dir, dump_file), 'rb').read()
-                        sha256 = hashlib.sha256(file_data).hexdigest()
-                        file_id = db.create_file(file_data, session_id, sha256, dump_file)
-                        row_file = '<a class="text-success" href="#" ' \
-                              'onclick="ajaxHandler(\'filedetails\', {\'file_id\':\'' + str(file_id) + '\'}, false ); return false">' \
-                              'File Details</a>'
-                        new_results['rows'].append([process, pid, row_file])
-
-                results = new_results
-            '''
+                    logger.error('In order to generate malfind downloads, please run pslist first!')
 
             # Remove the dumpdir
             shutil.rmtree(dump_dir)
@@ -608,11 +628,11 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
                 if plugin_row['plugin_name'] in ['hivelist', 'hivescan']:
                     row.append('Use the "dumpregistry" plugin to view hive keys')
 
-                # Add option to process malfind
-                if plugin_row['plugin_name'] in ['malfind']:
-                    ajax_string = "onclick=\"ajaxHandler('malfind_export', {'plugin_id':'" + str(plugin_id) + \
-                                  "', 'rowid':'" + str(counter) + "'}, true )\"; return false"
-                    row.append('<a class="text-success" href="#" ' + ajax_string + '>Extract Injected</a>')
+                # # Add option to process malfind
+                # if plugin_row['plugin_name'] in ['malfind']:
+                #     ajax_string = "onclick=\"ajaxHandler('malfind_export', {'plugin_id':'" + str(plugin_id) + \
+                #                   "', 'rowid':'" + str(counter) + "'}, true )\"; return false"
+                #     row.append('<a class="text-success" href="#" ' + ajax_string + '>Extract Injected</a>')
 
                 counter += 1
 
