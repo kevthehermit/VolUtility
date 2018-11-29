@@ -83,6 +83,7 @@ RUN cd ~/tmp_build && \
 RUN cd ~/tmp_build &&\
  git clone https://github.com/volatilityfoundation/volatility.git && \
  cd volatility && \
+ git checkout tags/2.6.1 && \
  python setup.py install
 
 # Create Volutility User
