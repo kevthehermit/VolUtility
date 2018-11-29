@@ -1,5 +1,5 @@
 FROM ubuntu:16.04
-MAINTAINER kevthehermit (https://github.com/kevthehermit/VolUtility)
+MAINTAINER kisec (https://github.com/kisec/VolUtility)
 
 # Version Vars
 ENV YARA_VERSION        3.4.0
@@ -94,7 +94,7 @@ RUN groupadd -r volutility && \
 
 # Get VolUtility
 RUN cd /opt && \
- git clone https://github.com/kevthehermit/VolUtility.git && \
+ git clone https://github.com/kisec/VolUtility.git && \
  chown -R volutility:volutility /opt/VolUtility
 
 # Install PIP Requirements.
@@ -116,6 +116,7 @@ RUN sudo apt-get clean
 # Setup and Run
 USER volutility
 WORKDIR /opt/VolUtility
+RUN cp /opt/VolUtility/volutility.conf.sample ~/.volutility.conf
 ADD start.sh start.sh
 RUN mkdir ~/dbpath
 RUN chmod 755 ~/dbpath
