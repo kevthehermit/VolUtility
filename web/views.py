@@ -7,6 +7,7 @@ import multiprocessing
 import tempfile
 from common import parse_config, checksum_md5
 from web.modules import __extensions__
+from bson.objectid import ObjectId
 
 config = parse_config()
 logger = logging.getLogger(__name__)
@@ -1202,7 +1203,7 @@ def ajax_handler(request, command):
     if command == 'addcomment':
         html_resp = ''
         if 'session_id' and 'comment_text' in request.POST:
-            session_id = request.POST['session_id']
+            session_id = ObjectId(request.POST['session_id'])
             comment_text = request.POST['comment_text']
             comment_data = {'session_id': session_id,
                             'comment_text': comment_text,
