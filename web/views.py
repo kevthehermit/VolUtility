@@ -1205,6 +1205,7 @@ def ajax_handler(request, command):
         if 'session_id' and 'comment_text' in request.POST:
             session_id = ObjectId(request.POST['session_id'])
             comment_text = request.POST['comment_text']
+            comment_text = comment_text if isinstance(comment_text, unicode) else comment_text.decode('utf8')
             comment_data = {'session_id': session_id,
                             'comment_text': comment_text,
                             'date_added': datetime.now()}
@@ -1213,7 +1214,7 @@ def ajax_handler(request, command):
             # now return all the comments for the ajax update
 
             for comment in db.get_commentbysession(session_id):
-                html_resp += '<pre>{0}</pre>'.format(comment['comment_text'])
+                html_resp += u'<pre>{0}</pre>'.format(comment['comment_text'])
 
         return HttpResponse(html_resp)
 
