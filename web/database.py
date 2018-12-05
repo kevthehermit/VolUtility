@@ -149,7 +149,7 @@ class Database():
         if len(str(new_values)) > 12000000:
             print "Storing Large Document in GridFS"
             large_document = json.dumps(new_values['plugin_output'])
-            large_document_id = self.create_file(large_document, 'sess_id', 'sha256', 'filename', pid=None, file_meta=None)
+            large_document_id = self.create_file(large_document, 'session_id', 'sha256', 'filename', pid=None, file_meta=None)
             new_values['plugin_output'] = large_document_id
             new_values['largedoc'] = 'True'
 
@@ -181,8 +181,8 @@ class Database():
 
     def create_file(self, file_data, session_id, sha256, filename, pid=None, file_meta=None):
         if len(session_id) == 24:
-            session_id = ObjectId(session_id)
-        file_id = self.vol_files.put(file_data, filename=filename, sess_id=session_id, sha256=sha256, pid=pid, file_meta=file_meta)
+            session_id = session_id if isinstance(session_id, ObjectId) else ObjectId(session_id)
+        file_id = self.vol_files.put(file_data, filename=filename, session_id=session_id, sha256=sha256, pid=pid, file_meta=file_meta)
         return file_id
 
     def drop_file(self, file_id):

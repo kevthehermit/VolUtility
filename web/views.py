@@ -265,6 +265,7 @@ def session_page(request, session_id):
         error_line = 'UNSUPPORTED VOLATILITY VERSION. REQUIRES 2.5 FOUND {0}'.format(vol_interface.vol_version)
 
     # Get the session
+    session_id = session_id if isinstance(session_id, ObjectId) else ObjectId(session_id)
     session_details = db.get_session(session_id)
     comments = db.get_commentbysession(session_id)
     extra_search = db.search_files({'file_meta': 'ExtraFile', 'session_id': session_id})
@@ -659,22 +660,21 @@ def file_download(request, query_type, object_id):
     :param object_id:
     :return:
     """
-
     if 'auth' in config:
         if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
             return HttpResponse('Auth Required.')
 
     if query_type == 'file':
         file_object = db.get_filebyid(object_id)
-        file_name = '{0}.bin'.format(file_object.filename)
+        file_name = u'{0}'.format(file_object.filename)
         response = StreamingHttpResponse((chunk for chunk in file_object), content_type='application/octet-stream')
-        response['Content-Disposition'] = 'attachment; filename="{0}"'.format(file_name)
+        response['Content-Disposition'] = u'attachment; filename="{0}"'.format(file_name)
         return response
 
     if query_type == 'plugin':
         plugin_object = db.get_pluginbyid(object_id)
 
-        file_name = '{0}.csv'.format(plugin_object['plugin_name'])
+        file_name = u'{0}.csv'.format(plugin_object['plugin_name'])
         plugin_data = plugin_object['plugin_output']
 
         file_data = ""
@@ -682,12 +682,12 @@ def file_download(request, query_type, object_id):
         file_data += "\n"
         for row in plugin_data['rows']:
             for item in row:
-                file_data += "{0},".format(item)
+                file_data += u"{0},".format(item)
             file_data.rstrip(',')
             file_data += "\n"
 
         response = HttpResponse(file_data, content_type='application/octet-stream')
-        response['Content-Disposition'] = 'attachment; filename="{0}"'.format(file_name)
+        response['Content-Disposition'] = u'attachment; filename="{0}"'.format(file_name)
         return response
 
 
@@ -702,9 +702,10 @@ def addfiles(request):
         return HttpResponseServerError
 
     session_id = request.POST['session_id']
-
+    session_id = session_id if isinstance(session_id, ObjectId) else ObjectId(session_id)
     for upload in request.FILES.getlist('files[]'):
-        logger.debug('Storing File: {0}'.format(upload.name))
+        upload.name = upload.name if isinstance(upload.name, unicode) else (upload.name).decode('utf8')
+        logger.debug(u'Storing File: {0}'.format(upload.name))
         file_data = upload.read()
         sha256 = hashlib.sha256(file_data).hexdigest()
 
@@ -712,7 +713,7 @@ def addfiles(request):
         db.create_file(file_data, session_id, sha256, upload.name, pid=None, file_meta='ExtraFile')
 
     # Return the new list
-    extra_search = db.search_files({'file_meta': 'ExtraFile', 'sess_id': session_id})
+    extra_search = db.search_files({'file_meta': 'ExtraFile', 'session_id': session_id})
     extra_files = []
     for upload in extra_search:
         extra_files.append({'filename': upload.filename, 'file_id': upload._id})
@@ -738,7 +739,7 @@ def ajax_handler(request, command):
         extension.set_config(config)
         extension.run()
         if extension.render_type == 'file':
-            template_name = '{0}/template.html'.format(extension.extension_name.lower())
+            template_name = u'{0}/template.html'.format(extension.extension_name.lower())
             rendered_data = render(extension.request, template_name, extension.render_data)
             if rendered_data.status_code == 200:
                 return_data = rendered_data.content
@@ -835,13 +836,13 @@ def ajax_handler(request, command):
 
             if os.path.exists(volrc_file):
                 with open(volrc_file, 'a') as out:
-                    output = '{0}{1}'.format(seperator, plugin_dir)
+                    output = u'{0}{1}'.format(seperator, plugin_dir)
                     out.write(output)
                 return HttpResponse(' No Plugin Path Provided')
             else:
                 # Create new file.
                 with open(volrc_file, 'w') as out:
-                    output = '[DEFAULT]\nPLUGINS = {0}'.format(plugin_dir)
+                    output = u'[DEFAULT]\nPLUGINS = {0}'.format(plugin_dir)
                     out.write(output)
                 return HttpResponse(' No Plugin Path Provided')
         else:
@@ -868,7 +869,7 @@ def ajax_handler(request, command):
             for extension in __extensions__:
                 if __extensions__[extension]['obj'].extension_type == 'filedetails':
                     extension_name = __extensions__[extension]['obj'].extension_name
-                    template_name = '{0}/template.html'.format(extension_name.lower())
+                    template_name = u'{0}/template.html'.format(extension_name.lower())
                     try:
                         includes.append([template_name, extension_name])
 
@@ -879,7 +880,7 @@ def ajax_handler(request, command):
                         ext.display()
                         response_dict[extension_name] = ext.render_data[extension_name]
                     except Exception as e:
-                        logger.error('Error getting data from extension: {0} - {1}'.format(extension_name, e))
+                        logger.error(u'Error getting data from extension: {0} - {1}'.format(extension_name, e))
                         pass
 
             return render(request, 'file_details.html', response_dict)
