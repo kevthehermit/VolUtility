@@ -4,6 +4,7 @@ MAINTAINER kisec (https://github.com/kisec/VolUtility)
 # Version Vars
 ENV YARA_VERSION        3.4.0
 ENV SSDEEP_VERSION      2.13
+ENV VOLATILITY_VERSION  2.6.1
 
 # Switch to user root
 USER root
@@ -84,7 +85,7 @@ RUN cd ~/tmp_build && \
 RUN cd ~/tmp_build &&\
  git clone https://github.com/volatilityfoundation/volatility.git && \
  cd volatility && \
- git checkout tags/2.6.1 && \
+ git checkout tags/$VOLATILITY_VERSION && \
  python setup.py install
 
 # Create Volutility User
