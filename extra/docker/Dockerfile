@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -yq \
  pkg-config \
  python-dev \
  python-pip \
+ bsdmainutils \
  sudo
 
 

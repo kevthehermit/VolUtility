@@ -403,7 +403,22 @@ function ajaxHandler(command, postFields, spinner) {
             }else if (command == 'addcomment') {
                 $('#comment-block').html(data);
 
-            }else if (command == 'pluginresults' || command == 'searchbar') {
+            }else if (command == 'pluginresults') {
+                // Close the spinner
+                spinnerControl('close', 'Loading Data');
+                // Load the data
+                // Get the HTML we want to use
+                var html_data = data['data'];
+                // add additional JS
+                var new_js = data['javascript'];
+                $('#resultsTarget').html(html_data);
+                // Enable table sorting
+
+                // Return JQuery
+                $('#resultsTable').DataTable({pageLength:25,scrollX: true,drawCallback: resultscontextmenu ($, window)});
+                resultscontextmenu ($, window);
+
+            }else if (command == 'searchbar') {
                 // Close the spinner
                 spinnerControl('close', 'Loading Data');
                 // Load the data

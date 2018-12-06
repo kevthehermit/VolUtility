@@ -1246,7 +1246,7 @@ def ajax_handler(request, command):
                 results = {'columns': ['Plugin Name', 'View Results'], 'rows': []}
                 rows = db.search_plugins(search_text, session_id=session_id)
                 for row in rows:
-                    results['rows'].append([row['plugin_name'], '<a href="#" onclick="ajaxHandler(\'pluginresults\', \{{\'plugin_id\':\'{0}\'}}, false ); return false">View Output</a>'.format(row['_id'])])
+                    results['rows'].append([row['plugin_name'], '<a href="#" onclick="ajaxHandler(\'pluginresults\', {{\'plugin_id\':\'{0}\'}}, false ); return false">View Output</a>'.format(row['_id'])])
                 return render(request, 'plugin_output.html', {'plugin_results': results,
                                                               'bookmarks': [],
                                                               'plugin_id': 'None',
