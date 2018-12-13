@@ -38,7 +38,9 @@
       </ul>
 
       <ul class="nav navbar-nav navbar-right">
-          <li><a href="/logout/">Logout</a></li>
+        {% if not reqauth %}
+            <li><a href="/logout/">Logout</a></li>
+        {% endif %}
         <li><a href="#" data-toggle="modal" data-target="#pluginModal">Add Plugins</a></li>
         <li><a href="#" data-toggle="modal" data-target="#aboutModal">About</a></li>
         <li class="dropdown">

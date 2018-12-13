@@ -10,6 +10,45 @@ function sessionCreate() {
     spinnerControl('open', 'Preparing your image for analysis');
 }
 
+$.ajaxTransport("+binary", function(options, originalOptions, jqXHR){
+    // check for conditions and support for blob / arraybuffer response type
+  if (window.FormData && ((options.dataType && (options.dataType == 'binary')) ||
+                          (options.data && ((window.ArrayBuffer && options.data instanceof ArrayBuffer) ||
+                                            (window.Blob && options.data instanceof Blob)))))
+    {
+        return {
+            // create new XMLHttpRequest
+            send: function(headers, callback){
+		// setup all variables
+                var xhr = new XMLHttpRequest(),
+		url = options.url,
+		type = options.type,
+		async = options.async || true,
+		// blob or arraybuffer. Default is blob
+		dataType = options.responseType || "blob",
+		data = options.data || null,
+		username = options.username || null,
+		password = options.password || null;
+                xhr.addEventListener('load', function(){
+			var data = {};
+			data[options.dataType] = xhr.response;
+			// make callback and send data
+			callback(xhr.status, xhr.statusText, data, xhr.getAllResponseHeaders());
+                });
+                xhr.open(type, url, async, username, password);
+		// setup custom headers
+		for (var i in headers ) {
+			xhr.setRequestHeader(i, headers[i] );
+		}
+                xhr.responseType = dataType;
+                xhr.send(data);
+            },
+            abort: function(){
+                jqXHR.abort();
+            }
+        };
+    }
+});
 
 
 // New Stuff Starts Here =========================================================================== //
@@ -160,7 +199,7 @@ Params:
 
 
 function ajaxHandler(command, postFields, spinner) {
-
+    var dataType = '';
     // Convert postFields to json
     if (typeof postFields != 'string'){
         postOptions = postFields
@@ -193,9 +232,14 @@ function ajaxHandler(command, postFields, spinner) {
         postOptions['yara-pid'] = $('#yara-pid').val();
     }
 
-    if (command == 'memhex' || command == 'memhexdump'){
+    if (command == 'memhex'){
         postOptions['start_offset'] = $('#start_offset').val();
         postOptions['end_offset'] = $('#end_offset').val();
+    }
+    if (command == 'memhexdump'){
+        postOptions['start_offset'] = $('#start_offset').val();
+        postOptions['end_offset'] = $('#end_offset').val();
+        dataType = 'binary';
     }
 
     if (command == 'searchbar'){
@@ -206,6 +250,7 @@ function ajaxHandler(command, postFields, spinner) {
 
     if (command == 'addcomment'){
         postOptions['comment_text'] = document.getElementById('commentText').value;
+        document.getElementById('commentText').value="";
     }
 
     // if selected show the loading image
@@ -238,8 +283,14 @@ function ajaxHandler(command, postFields, spinner) {
         }
     }
 
-    $.post("/ajaxhandler/" + command + "/", postOptions)
-
+  // $.post("/ajaxhandler/" + command + "/", postOptions, {responseType: 'binary'})
+  $.ajax({
+                url: "/ajaxhandler/" + command + "/",
+                async: true,
+                type: 'POST',
+                data: postOptions,
+                dataType: dataType,
+  })
         // Success
         .done(function(data) {
             // POLL PLUGINS
@@ -298,6 +349,13 @@ function ajaxHandler(command, postFields, spinner) {
             // If target_div exists in the postoptions we are just writing out.
             }else if (postOptions["extension"]) {
                 console.log("in Here");
+
+
+                if (typeof data != 'string'){
+                  data = data;
+                } else {
+                    var data = JSON.parse(data);
+                }
                 // Get the HTML we want to use
                 var html_data = data['data'];
                 // add additional JS
@@ -357,6 +415,9 @@ function ajaxHandler(command, postFields, spinner) {
 
                         // Get Selected Node
                         var selectedNode = $(event.target).closest('.node').find('rect');
+                        if (selectedNode.length == 0) {
+                            return false;
+                        }
                         var selectedNodeID = selectedNode[0].__data__;
 
                         // Set selected node to blue
@@ -398,8 +459,56 @@ function ajaxHandler(command, postFields, spinner) {
                 $('#'+postOptions["target_div"]).html(data);
 
             }else if (command == 'memhexdump') {
-                var empty = true;
+               var empty = true;
+               var pom = document.createElement('a');
+               var url = URL.createObjectURL(data);
+               pom.href=url;
+               pom.setAttribute('download', 'dump.bin');
+               pom.click();
+               pom.remove();
+              
+              
+              // $.ajax({
+              //   url: "/ajaxhandler/" + command + "/",
+              //   async: true,
+              //   type: 'POST',
+              //   data: postOptions,
+              //   dataType: 'binary',
+              // }).done(function(response){
+              //   console.log(response);
+              //     var pom = document.createElement('a');
+              //     var url = URL.createObjectURL(response);
+              //     pom.href=url;
+              //     pom.setAttribute('download', 'dump.bin');
+              //     pom.click();
 
+              
+                
+              // });
+              // function dictToURI(dict) {
+              //   var str = [];
+              //   for(var p in dict){
+              //     str.push(encodeURIComponent(p) + "=" + encodeURIComponent(dict[p]));
+              //   }
+              //   return str.join("&");
+              // };
+              // var postdata = dictToURI(postOptions);
+              // var xhr = new XMLHttpRequest();
+              // xhr.open('POST', "/ajaxhandler/" + command + "/", true);
+              // xhr.responseType = 'blob';
+ 
+              // xhr.onload = function(e) {
+              //   if (this.status == 200) {
+              //     var blob = this.response;
+              //     var pom = document.createElement('a');
+              //     var url = URL.createObjectURL(blob);
+              //     pom.href=url;
+              //     pom.setAttribute('download', 'dump.bin');
+              //     pom.click();
+              //   }
+              // };
+              // xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+              // xhr.send(postdata);
             }else if (command == 'addcomment') {
                 $('#comment-block').html(data);
 

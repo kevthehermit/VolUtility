@@ -625,6 +625,8 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
             imageinfo_text = results['rows'][0][1]
             image_info = {}
             for line in imageinfo_text.split('\n'):
+                if ":" not in line:
+                    continue
                 try:
                     key, value = line.split(' : ')
                     image_info[key.strip()] = value.strip()
@@ -1246,7 +1248,7 @@ def ajax_handler(request, command):
                 results = {'columns': ['Plugin Name', 'View Results'], 'rows': []}
                 rows = db.search_plugins(search_text, session_id=session_id)
                 for row in rows:
-                    results['rows'].append([row['plugin_name'], '<a href="#" onclick="ajaxHandler(\'pluginresults\', {{\'plugin_id\':\'{0}\'}}, false ); return false">View Output</a>'.format(row['_id'])])
+                    results['rows'].append([row['plugin_name'], '<a href="#" onclick="datatablesAjax(\'{0}\'); return false">View Output</a>'.format(row['_id'])])
                 return render(request, 'plugin_output.html', {'plugin_results': results,
                                                               'bookmarks': [],
                                                               'plugin_id': 'None',
