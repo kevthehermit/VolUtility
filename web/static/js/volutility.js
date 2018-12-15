@@ -466,49 +466,6 @@ function ajaxHandler(command, postFields, spinner) {
                pom.setAttribute('download', 'dump.bin');
                pom.click();
                pom.remove();
-              
-              
-              // $.ajax({
-              //   url: "/ajaxhandler/" + command + "/",
-              //   async: true,
-              //   type: 'POST',
-              //   data: postOptions,
-              //   dataType: 'binary',
-              // }).done(function(response){
-              //   console.log(response);
-              //     var pom = document.createElement('a');
-              //     var url = URL.createObjectURL(response);
-              //     pom.href=url;
-              //     pom.setAttribute('download', 'dump.bin');
-              //     pom.click();
-
-              
-                
-              // });
-              // function dictToURI(dict) {
-              //   var str = [];
-              //   for(var p in dict){
-              //     str.push(encodeURIComponent(p) + "=" + encodeURIComponent(dict[p]));
-              //   }
-              //   return str.join("&");
-              // };
-              // var postdata = dictToURI(postOptions);
-              // var xhr = new XMLHttpRequest();
-              // xhr.open('POST', "/ajaxhandler/" + command + "/", true);
-              // xhr.responseType = 'blob';
- 
-              // xhr.onload = function(e) {
-              //   if (this.status == 200) {
-              //     var blob = this.response;
-              //     var pom = document.createElement('a');
-              //     var url = URL.createObjectURL(blob);
-              //     pom.href=url;
-              //     pom.setAttribute('download', 'dump.bin');
-              //     pom.click();
-              //   }
-              // };
-              // xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-              // xhr.send(postdata);
             }else if (command == 'addcomment') {
                 $('#comment-block').html(data);
 

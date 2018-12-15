@@ -223,7 +223,7 @@ class Database():
         # Drop Files
         results = self.vol_files.find({'session_id': session_id})
         for row in results:
-            self.vol_files.delete(row['file_id'])
+            self.vol_files.delete(row._id)
         # Drop DataStore
         self.vol_datastore.delete_many({'session_id': session_id})
         # Drop Notes

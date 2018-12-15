@@ -124,7 +124,7 @@ This is a mid level nav bar to hold tool links
 
       <ul class="nav navbar-nav navbar-right">
 
-      <form class="navbar-form navbar-left" role="search">
+      <form class="navbar-form navbar-left" role="search" action="javascript:void(0);" onsubmit="ajaxHandler('searchbar', {'session_id':'{{session_details|get:"_id"}}'}, true )">
 
         <div class="form-group">
             <select class="form-control" id="search_type" name="SearchType">

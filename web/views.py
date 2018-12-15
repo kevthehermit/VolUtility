@@ -198,11 +198,14 @@ def main_page(request, error_line=None):
         error_line = 'Unable to find a volatility version'
         logger.error(error_line)
 
-
     if 'auth' in config:
+        display_logout = True
+        if config['auth']['enable'].lower() == 'false':
+            display_logout = False
         if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
             return render(request, 'index.html', {'reqauth': True,
-                                                  'error_line': error_line
+                                                  'error_line': error_line,
+                                                  'display_logout': False,
                                                   })
 
 
@@ -243,7 +246,8 @@ def main_page(request, error_line=None):
                                           'profile_list': profile_list,
                                           'plugin_dirs': plugin_dirs,
                                           'error_line': error_line,
-                                          'reqauth': False
+                                          'reqauth': False,
+                                          'display_logout': display_logout
                                           })
 
 def session_page(request, session_id):
