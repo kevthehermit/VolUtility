@@ -59,9 +59,12 @@ RUN cd ~/tmp_build &&\
  cd ssdeep-${SSDEEP_VERSION} && \
  ./configure && \
  make install && \
- pip install pydeep && \
  cd .. && \
- rm -rf ssdeep-${SSDEEP_VERSION}
+ rm -rf ssdeep-${SSDEEP_VERSION} && \
+ ldconfig
+
+# Install pydeep
+RUN pip install pydeep
 
 # Get the maxmind database for ip lookup
 RUN cd ~/tmp_build && \
