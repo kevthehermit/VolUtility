@@ -433,13 +433,13 @@ function ajaxHandler(command, postFields, spinner) {
                             if (pid == selectedNodeID) {
                                 var ppid_int = parseInt(ppid.slice(4));
                                 $(node_list[ppid_int - 1]).find('rect').css("fill", "red");
-                                $(path_list[i]).find('path').css("stroke", "red")
+                                $(path_list[i]).find('path').css("stroke", "red");
                             }
                             // Children
                             if (ppid == selectedNodeID) {
                                 var pid_int = parseInt(pid.slice(4));
                                 $(node_list[pid_int - 1]).find('rect').css("fill", "yellow");
-                                $(path_list[i]).find('path').css("stroke", "yellow")
+                                $(path_list[i]).find('path').css("stroke", "yellow");
                             }
                         }
                     }
@@ -451,10 +451,13 @@ function ajaxHandler(command, postFields, spinner) {
                 //$('#resultsTarget').html(image);
                 //$('#'+postOptions["target_div"]).append(image);
 
-            }else if (command == "deleteobject" || command == "dropsession") {
-                $('.modal').modal('hide');
-                datatablesAjax(vActivePluginID)
-
+            }else if (command == "deleteobject") {
+                if (postOptions['droptype'] == 'dumpfiles') {
+                    $('.modal').modal('hide');
+                    datatablesAjax(vActivePluginID);
+                } else {
+                    location.reload();
+                }
             }else if (command == 'memhex') {
                 $('#'+postOptions["target_div"]).html(data);
 

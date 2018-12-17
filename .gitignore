@@ -70,7 +70,6 @@ target/
 vt_key.py
 test.py
 plugins/overlays/*.zip
-plugins/*
 !plugins/overlays/__init__.py
 !plugins/__init__.py
 volutility.conf

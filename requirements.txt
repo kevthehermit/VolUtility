@@ -1,5 +1,6 @@
 certifi==2018.10.15
 chardet==3.0.4
+construct==2.9.45
 distorm3==3.3.8
 Django==1.11.16
 django-developer-panel==0.1.2
