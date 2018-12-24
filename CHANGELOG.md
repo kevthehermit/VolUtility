@@ -1,8 +1,13 @@
 # Change Log
 
 ## [Unreleased](https://github.com/kevthehermit/VolUtility/tree/HEAD)
+[Full Changelog](https://github.com/kevthehermit/VolUtility/compare/v1.3...HEAD)
 
-[Full Changelog](https://github.com/kevthehermit/VolUtility/compare/v1.1...HEAD)
+## [v1.3](https://github.com/kevthehermit/VolUtility/tree/v1.3) (2018-12-24)
+[Full Changelog](https://github.com/kevthehermit/VolUtility/compare/v1.2...v1.3)
+
+## [v1.2](https://github.com/kevthehermit/VolUtility/tree/v1.2) (2017-01-20)
+[Full Changelog](https://github.com/kevthehermit/VolUtility/compare/v1.1...v1.2)
 
 **Implemented enhancements:**
 
