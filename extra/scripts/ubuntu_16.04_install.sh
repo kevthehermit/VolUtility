@@ -1,7 +1,13 @@
 #!/bin/bash
+if [[ $EUID -ne 0 ]]; then
+    echo "This script must be run as root"
+    echo "sudo ./$(basename $0)"
+   exit 1
+fi
 export YARA_VERSION=3.4.0
 export SSDEEP_VERSION=2.13
 export VOLATILITY_VERSION=2.6.1
+export VOLUTILITY_VERSION=1.2.1
 
 # Install OS Dependancies
 apt update
@@ -73,7 +79,8 @@ python setup.py install
 
 # Get VolUtility
 cd /opt
-git clone https://github.com/kisec/VolUtility.git
+curl -SL https://github.com/kisec/VolUtility/archive/v${VOLUTILITY_VERSION}.tar.gz | tar -xz
+mv VolUtility-${VOLUTILITY_VERSION} VolUtility
 
 # Install PIP Requirements.
 cd /opt/VolUtility
@@ -94,15 +101,23 @@ apt clean
 cp /opt/VolUtility/volutility.conf.sample ~/.volutility.conf
 mkdir ~/dbpath
 chmod 755 ~/dbpath
-systemctl start mongod
+systemctl start mongod.service
 sleep 5
 cd /opt/VolUtility/
 python manage.py migrate
 sleep 5
-systemctl stop mongod
+systemctl stop mongod.service
+systemctl disable mongod.service
+chown $SUDO_USER:$SUDO_USER ~/.volutility.conf
+chown $SUDO_USER:$SUDO_USER ~/.volatilityrc
+chown $SUDO_USER:$SUDO_USER ~/dbpath -R
+chown $SUDO_USER:$SUDO_USER /opt/VolUtility -R
 
+echo
+echo
 echo Starting VolUtility...
 echo ===================
-echo systemctl start mongod
+echo sudo systemctl start mongod.service
 echo cd /opt/VolUtility/
+echo optional VT_APIKEY add in ~/.volutility.conf
 echo python manage.py runserver 127.0.0.1:8080
