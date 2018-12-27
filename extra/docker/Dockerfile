@@ -5,6 +5,7 @@ MAINTAINER kisec (https://github.com/kisec/VolUtility)
 ENV YARA_VERSION        3.4.0
 ENV SSDEEP_VERSION      2.13
 ENV VOLATILITY_VERSION  2.6.1
+ENV VOLUTILITY_VERSION  1.2.1
 
 # Switch to user root
 USER root
@@ -100,7 +101,8 @@ RUN groupadd -r volutility && \
 
 # Get VolUtility
 RUN cd /opt && \
- git clone https://github.com/kisec/VolUtility.git && \
+ curl -SL https://github.com/kisec/VolUtility/archive/v${VOLUTILITY_VERSION}.tar.gz | tar -xz && \
+ mv VolUtility-${VOLUTILITY_VERSION} VolUtility && \
  chown -R volutility:volutility /opt/VolUtility
 
 # Install PIP Requirements.

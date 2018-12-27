@@ -265,8 +265,13 @@ def session_page(request, session_id):
     includes = []
 
     # Check Vol Version
-    if float(vol_interface.vol_version) < 2.5:
-        error_line = 'UNSUPPORTED VOLATILITY VERSION. REQUIRES 2.5 FOUND {0}'.format(vol_interface.vol_version)
+    try:
+        vol_ver = vol_interface.vol_version.split('.')
+        if int(vol_ver[1]) < 5:
+            error_line = 'UNSUPPORTED VOLATILITY VERSION. REQUIRES 2.5 FOUND {0}'.format(vol_interface.vol_version)
+    except Exception as error:
+        error_line = 'Unable to find a volatility version'
+        logger.error(error_line)
 
     # Get the session
     session_id = session_id if isinstance(session_id, ObjectId) else ObjectId(session_id)
