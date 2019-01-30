@@ -1265,7 +1265,19 @@ def ajax_handler(request, command):
                                                               'resultcount': len(results['rows'])})
 
             if search_type == 'hash':
-                pass
+                results = {'columns': ['Filename', 'MD5', 'SHA256', 'Length', 'File Details'], 'rows': []}
+                rows = db.search_hashfiles(search_text, session_id=session_id)
+                for row in rows:
+                    results['rows'].append([row['filename'], row['md5'], row['sha256'], row['length'],
+                                            '<a class="text-success" href="#" '
+                                            'onclick="ajaxHandler(\'filedetails\', {\'file_id\':\'' +
+                                            str(row['_id']) + '\'}, false ); return false">'
+                                            'File Details</a>'])
+                return render(request, 'plugin_output.html', {'plugin_results': results,
+                                                              'bookmarks': [],
+                                                              'plugin_id': 'None',
+                                                              'plugin_name': 'Search Results',
+                                                              'resultcount': len(results['rows'])})
 
             if search_type == 'registry':
                 logger.debug('Registry Search')

@@ -160,6 +160,21 @@ class Database():
     ##
     # File System
     ##
+    def search_hashfiles(self, search_text, session_id=None):
+        results = []
+        rows = self.vol_files.find({"$or": [{"md5":{"$regex":search_text}},
+                                            {"sha256":{"$regex":search_text}}]})
+        for row in rows:
+            if session_id:
+                session_id = ObjectId(session_id)
+                if row.session_id == session_id:
+                    results.append({"_id": row._id,
+                                    "filename":row.filename,
+                                    "md5":row.md5,
+                                    "sha256":row.sha256,
+                                    "length": row.length})
+        return results
+
     def get_filebyid(self, file_id):
         file_id = ObjectId(file_id)
         file_object = self.vol_files.get(file_id)
