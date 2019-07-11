@@ -1,6 +1,7 @@
 import logging
 import sys
 import os
+import re
 import copy
 import StringIO
 import json
@@ -282,6 +283,13 @@ class RunVol:
                 return output_data
             elif plugin_name == 'clipboard':
                 output_data = self.get_text(command)
+                return output_data
+            elif plugin_name == 'iehistory':
+                output_data = self.get_text(command)
+                p = re.compile("Process: (.*) (.*).*\n.*\n.*\nLocation: (.*)\nLast modified: (.*)\nLast accessed: (.*)\n")
+                m = p.findall(output_data['rows'][0][0])
+                m = map(list, m)
+                output_data = {'rows':m, 'columns':["PID","Name","Location","Last modified", "Last accessed"]}
                 return output_data
 
             # All other plugins
