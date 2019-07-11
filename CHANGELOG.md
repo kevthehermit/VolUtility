@@ -1,7 +1,10 @@
 # Change Log
 
 ## [Unreleased](https://github.com/kisec/VolUtility/tree/HEAD)
-[Full Changelog](https://github.com/kisec/VolUtility/compare/v1.2.1...HEAD)
+[Full Changelog](https://github.com/kisec/VolUtility/compare/v1.2.2...HEAD)
+
+## [v1.2.2](https://github.com/kisec/VolUtility/tree/v1.2.2) (2019-7-11)
+[Full Changelog](https://github.com/kisec/VolUtility/compare/v1.2.1...v1.2.2)
 
 ## [v1.2.1](https://github.com/kisec/VolUtility/tree/v1.2.1) (2018-12-26)
 [Full Changelog](https://github.com/kisec/VolUtility/compare/v1.2...v1.2.1)

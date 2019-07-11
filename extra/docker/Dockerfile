@@ -5,7 +5,7 @@ MAINTAINER kisec (https://github.com/kisec/VolUtility)
 ENV YARA_VERSION        3.4.0
 ENV SSDEEP_VERSION      2.13
 ENV VOLATILITY_VERSION  2.6.1
-ENV VOLUTILITY_VERSION  1.2.1
+ENV VOLUTILITY_VERSION  1.2.2
 
 # Switch to user root
 USER root

@@ -7,7 +7,7 @@ fi
 export YARA_VERSION=3.4.0
 export SSDEEP_VERSION=2.13
 export VOLATILITY_VERSION=2.6.1
-export VOLUTILITY_VERSION=1.2.1
+export VOLUTILITY_VERSION=1.2.2
 
 # Install OS Dependancies
 apt update
