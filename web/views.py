@@ -1182,6 +1182,8 @@ def ajax_handler(request, command):
             session_id = request.POST['session_id']
             session = db.get_session(session_id)
             mem_path = session['session_path']
+            if " " in mem_path:
+                mem_path = '"' + mem_path + '"'
             if 'start_offset' and 'end_offset' in request.POST:
                 try:
                     start_offset = int(request.POST['start_offset'], 0)
