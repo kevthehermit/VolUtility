@@ -1,4 +1,6 @@
 # VolUtility
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fkevthehermit%2FVolUtility.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fkevthehermit%2FVolUtility?ref=badge_shield)
+
 Web Interface for Volatility Memory Analysis framework
 
 
@@ -25,3 +27,7 @@ https://github.com/kevthehermit/VolUtility/wiki
  - Alissa Torres for teaching me memory via SANS FOR526 - https://twitter.com/sibertor
  - Using volatility as a library - http://dsocon.blogspot.co.uk/2012/08/using-volatility-framework-as-library.html
  - James Habben's origional eVolve concept - https://github.com/JamesHabben/evolve
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fkevthehermit%2FVolUtility.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fkevthehermit%2FVolUtility?ref=badge_large)
