@@ -417,6 +417,13 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
                                     pid=pid,
                                     plugin_options=plugin_options
                                     )
+        if plugin_name in ("vadinfo", "vadtree", "vadwalk", "vaddump"):
+            for x in range(len(plugin_return[0]["rows"])):
+                plugin_return[0]["rows"][x][1] = hex(int(plugin_return[0]["rows"][x][1]))
+                plugin_return[0]["rows"][x][8] = hex(int(plugin_return[0]["rows"][x][8]))
+                plugin_return[0]["rows"][x][9] = hex(int(plugin_return[0]["rows"][x][9]))
+                plugin_return[0]["rows"][x][17] = hex(int(plugin_return[0]["rows"][x][17]))
+                plugin_return[0]["rows"][x][18] = hex(int(plugin_return[0]["rows"][x][18]))
 
         results = plugin_return[0]
         dump_dir = plugin_return[1]
