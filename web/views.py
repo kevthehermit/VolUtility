@@ -561,6 +561,24 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
 
                 results = new_results
 
+            if plugin_row['plugin_name'] in ['screenshot']:
+                new_results = {'rows': [], 'columns': ['Name', 'StoredFile']}
+                base_output = results['rows'][0][0]
+                base_output = base_output.replace("<pre>\n","")
+                base_output = base_output.replace("\n</pre>","")
+
+                dump_files = re.findall("Wrote /tmp/.*?/(.*?)\n", base_output)
+                for filename in dump_files:
+                    file_data = open(os.path.join(dump_dir, filename), 'rb').read()
+                    sha256 = hashlib.sha256(file_data).hexdigest()
+                    file_id = db.create_file(file_data, session_id, sha256, filename)
+                    row_file = '<a class="text-success" href="#" ' \
+                        'onclick="ajaxHandler(\'filedetails\', {\'file_id\':\'' + \
+                        str(file_id) + '\'}, false ); return false">' \
+                        'File Details</a>'
+                    new_results['rows'].append([filename, row_file])
+
+                results = new_results
             # ToDo
             '''
             if plugin_row['plugin_name'] in ['malfind']:
