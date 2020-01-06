@@ -5,7 +5,7 @@ from datetime import datetime
 from web.common import *
 import multiprocessing
 import tempfile
-from common import parse_config, checksum_md5
+from common import parse_config, checksum_filehash
 from web.modules import __extensions__
 from bson.objectid import ObjectId
 
@@ -65,8 +65,10 @@ def session_creation(request, mem_image, session_id):
         # Update the status
         new_session['status'] = 'Calculating MD5'
         db.update_session(session_id, new_session)
-        md5_hash = checksum_md5(new_session['session_path'])
+        md5_hash, sha1_hash, sha256_hash = checksum_filehash(new_session['session_path'])
         new_session['file_hash'] = md5_hash
+        new_session['file_hash_sha1'] = sha1_hash
+        new_session['file_hash_sha256'] = sha256_hash
 
     # Get a list of plugins we can use. and prepopulate the list.
     if 'profile' in request.POST:

@@ -70,12 +70,16 @@ def temp_dumpdir():
     shutil.rmtree(temp_dir)
 
 
-def checksum_md5(file_path):
+def checksum_filehash(file_path):
     md5 = hashlib.md5()
+    sha1 = hashlib.sha1()
+    sha256 = hashlib.sha256()
     with open(file_path, 'rb') as f:
         for chunk in iter(lambda: f.read(8192), b''):
             md5.update(chunk)
-    return md5.hexdigest()
+            sha1.update(chunk)
+            sha256.update(chunk)
+    return (md5.hexdigest(), sha1.hexdigest(), sha256.hexdigest())
 
 def parse_config():
     config_dict = {}
