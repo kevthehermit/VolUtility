@@ -27,11 +27,10 @@ RUN apt-get update && apt-get install -yq \
  bsdmainutils \
  sudo
 
-
 # Install Mongo
 RUN \
-apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927 && \
-echo "deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.2 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-3.2.list && \
+apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv E52529D4 && \
+echo "deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/4.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-4.0.list && \
 apt-get update && \
 apt-get install -yq mongodb-org
 
@@ -68,11 +67,13 @@ RUN cd ~/tmp_build &&\
 RUN pip install pydeep
 
 # Get the maxmind database for ip lookup
-RUN cd ~/tmp_build && \
- curl -sSL http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz > GeoLite2-City.mmdb.gz && \
- gzip -d GeoLite2-City.mmdb.gz && \
- mkdir /usr/share/GeoIP/ && \
- mv GeoLite2-City.mmdb /usr/share/GeoIP/
+RUN mkdir /usr/share/GeoIP/
+COPY GeoLite2-City.mmdb /usr/share/GeoIP/
+# RUN cd ~/tmp_build && \
+#  curl -sSL http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz > GeoLite2-City.mmdb.gz && \
+#  gzip -d GeoLite2-City.mmdb.gz && \
+#  mkdir /usr/share/GeoIP/ && \
+#  mv GeoLite2-City.mmdb /usr/share/GeoIP/
 
 # Install and Build libpff
 RUN cd ~/tmp_build && \
