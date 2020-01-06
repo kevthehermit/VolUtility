@@ -421,11 +421,12 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
                                     )
         if plugin_name in ("vadinfo", "vadtree", "vadwalk", "vaddump"):
             for x in range(len(plugin_return[0]["rows"])):
-                plugin_return[0]["rows"][x][1] = hex(int(plugin_return[0]["rows"][x][1]))
-                plugin_return[0]["rows"][x][8] = hex(int(plugin_return[0]["rows"][x][8]))
-                plugin_return[0]["rows"][x][9] = hex(int(plugin_return[0]["rows"][x][9]))
-                plugin_return[0]["rows"][x][17] = hex(int(plugin_return[0]["rows"][x][17]))
-                plugin_return[0]["rows"][x][18] = hex(int(plugin_return[0]["rows"][x][18]))
+                plugin_return[0]["rows"][x][1] = "0x"+"{:016x}".format(int(plugin_return[0]["rows"][x][1]))
+                plugin_return[0]["rows"][x][2] = "0x"+"{:016x}".format(int(plugin_return[0]["rows"][x][2]))
+                plugin_return[0]["rows"][x][3] = "0x"+"{:016x}".format(int(plugin_return[0]["rows"][x][3]))
+                plugin_return[0]["rows"][x][8] = "0x"+"{:016x}".format(int(plugin_return[0]["rows"][x][8]))
+                plugin_return[0]["rows"][x][9] = "0x"+"{:016x}".format(int(plugin_return[0]["rows"][x][9]))
+                plugin_return[0]["rows"][x][17] = "0x"+"{:016x}".format(int(plugin_return[0]["rows"][x][17]))
 
         results = plugin_return[0]
         dump_dir = plugin_return[1]
