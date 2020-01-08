@@ -5,8 +5,9 @@ from datetime import datetime
 from web.common import *
 import multiprocessing
 import tempfile
-from common import parse_config, checksum_md5
+from common import parse_config, checksum_filehash
 from web.modules import __extensions__
+from bson.objectid import ObjectId
 
 config = parse_config()
 logger = logging.getLogger(__name__)
@@ -64,8 +65,10 @@ def session_creation(request, mem_image, session_id):
         # Update the status
         new_session['status'] = 'Calculating MD5'
         db.update_session(session_id, new_session)
-        md5_hash = checksum_md5(new_session['session_path'])
+        md5_hash, sha1_hash, sha256_hash = checksum_filehash(new_session['session_path'])
         new_session['file_hash'] = md5_hash
+        new_session['file_hash_sha1'] = sha1_hash
+        new_session['file_hash_sha256'] = sha256_hash
 
     # Get a list of plugins we can use. and prepopulate the list.
     if 'profile' in request.POST:
@@ -197,11 +200,14 @@ def main_page(request, error_line=None):
         error_line = 'Unable to find a volatility version'
         logger.error(error_line)
 
-
     if 'auth' in config:
+        display_logout = True
+        if config['auth']['enable'].lower() == 'false':
+            display_logout = False
         if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
             return render(request, 'index.html', {'reqauth': True,
-                                                  'error_line': error_line
+                                                  'error_line': error_line,
+                                                  'display_logout': False,
                                                   })
 
 
@@ -242,7 +248,8 @@ def main_page(request, error_line=None):
                                           'profile_list': profile_list,
                                           'plugin_dirs': plugin_dirs,
                                           'error_line': error_line,
-                                          'reqauth': False
+                                          'reqauth': False,
+                                          'display_logout': display_logout
                                           })
 
 def session_page(request, session_id):
@@ -260,10 +267,16 @@ def session_page(request, session_id):
     includes = []
 
     # Check Vol Version
-    if float(vol_interface.vol_version) < 2.5:
-        error_line = 'UNSUPPORTED VOLATILITY VERSION. REQUIRES 2.5 FOUND {0}'.format(vol_interface.vol_version)
+    try:
+        vol_ver = vol_interface.vol_version.split('.')
+        if int(vol_ver[1]) < 5:
+            error_line = 'UNSUPPORTED VOLATILITY VERSION. REQUIRES 2.5 FOUND {0}'.format(vol_interface.vol_version)
+    except Exception as error:
+        error_line = 'Unable to find a volatility version'
+        logger.error(error_line)
 
     # Get the session
+    session_id = session_id if isinstance(session_id, ObjectId) else ObjectId(session_id)
     session_details = db.get_session(session_id)
     comments = db.get_commentbysession(session_id)
     extra_search = db.search_files({'file_meta': 'ExtraFile', 'session_id': session_id})
@@ -406,6 +419,14 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
                                     pid=pid,
                                     plugin_options=plugin_options
                                     )
+        if plugin_name in ("vadinfo", "vadtree", "vadwalk", "vaddump"):
+            for x in range(len(plugin_return[0]["rows"])):
+                plugin_return[0]["rows"][x][1] = "0x"+"{:016x}".format(int(plugin_return[0]["rows"][x][1]))
+                plugin_return[0]["rows"][x][2] = "0x"+"{:016x}".format(int(plugin_return[0]["rows"][x][2]))
+                plugin_return[0]["rows"][x][3] = "0x"+"{:016x}".format(int(plugin_return[0]["rows"][x][3]))
+                plugin_return[0]["rows"][x][8] = "0x"+"{:016x}".format(int(plugin_return[0]["rows"][x][8]))
+                plugin_return[0]["rows"][x][9] = "0x"+"{:016x}".format(int(plugin_return[0]["rows"][x][9]))
+                plugin_return[0]["rows"][x][17] = "0x"+"{:016x}".format(int(plugin_return[0]["rows"][x][17]))
 
         results = plugin_return[0]
         dump_dir = plugin_return[1]
@@ -543,6 +564,24 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
 
                 results = new_results
 
+            if plugin_row['plugin_name'] in ['screenshot']:
+                new_results = {'rows': [], 'columns': ['Name', 'StoredFile']}
+                base_output = results['rows'][0][0]
+                base_output = base_output.replace("<pre>\n","")
+                base_output = base_output.replace("\n</pre>","")
+
+                dump_files = re.findall("Wrote /tmp/.*?/(.*?)\n", base_output)
+                for filename in dump_files:
+                    file_data = open(os.path.join(dump_dir, filename), 'rb').read()
+                    sha256 = hashlib.sha256(file_data).hexdigest()
+                    file_id = db.create_file(file_data, session_id, sha256, filename)
+                    row_file = '<a class="text-success" href="#" ' \
+                        'onclick="ajaxHandler(\'filedetails\', {\'file_id\':\'' + \
+                        str(file_id) + '\'}, false ); return false">' \
+                        'File Details</a>'
+                    new_results['rows'].append([filename, row_file])
+
+                results = new_results
             # ToDo
             '''
             if plugin_row['plugin_name'] in ['malfind']:
@@ -623,6 +662,8 @@ def run_plugin(session_id, plugin_id, pid=None, plugin_options=None):
             imageinfo_text = results['rows'][0][1]
             image_info = {}
             for line in imageinfo_text.split('\n'):
+                if ":" not in line:
+                    continue
                 try:
                     key, value = line.split(' : ')
                     image_info[key.strip()] = value.strip()
@@ -658,22 +699,21 @@ def file_download(request, query_type, object_id):
     :param object_id:
     :return:
     """
-
     if 'auth' in config:
         if config['auth']['enable'].lower() == 'true' and not request.user.is_authenticated:
             return HttpResponse('Auth Required.')
 
     if query_type == 'file':
         file_object = db.get_filebyid(object_id)
-        file_name = '{0}.bin'.format(file_object.filename)
+        file_name = u'{0}'.format(file_object.filename)
         response = StreamingHttpResponse((chunk for chunk in file_object), content_type='application/octet-stream')
-        response['Content-Disposition'] = 'attachment; filename="{0}"'.format(file_name)
+        response['Content-Disposition'] = u'attachment; filename="{0}"'.format(file_name)
         return response
 
     if query_type == 'plugin':
         plugin_object = db.get_pluginbyid(object_id)
 
-        file_name = '{0}.csv'.format(plugin_object['plugin_name'])
+        file_name = u'{0}.csv'.format(plugin_object['plugin_name'])
         plugin_data = plugin_object['plugin_output']
 
         file_data = ""
@@ -681,12 +721,12 @@ def file_download(request, query_type, object_id):
         file_data += "\n"
         for row in plugin_data['rows']:
             for item in row:
-                file_data += "{0},".format(item)
+                file_data += u"{0},".format(item)
             file_data.rstrip(',')
             file_data += "\n"
 
         response = HttpResponse(file_data, content_type='application/octet-stream')
-        response['Content-Disposition'] = 'attachment; filename="{0}"'.format(file_name)
+        response['Content-Disposition'] = u'attachment; filename="{0}"'.format(file_name)
         return response
 
 
@@ -701,9 +741,10 @@ def addfiles(request):
         return HttpResponseServerError
 
     session_id = request.POST['session_id']
-
+    session_id = session_id if isinstance(session_id, ObjectId) else ObjectId(session_id)
     for upload in request.FILES.getlist('files[]'):
-        logger.debug('Storing File: {0}'.format(upload.name))
+        upload.name = upload.name if isinstance(upload.name, unicode) else (upload.name).decode('utf8')
+        logger.debug(u'Storing File: {0}'.format(upload.name))
         file_data = upload.read()
         sha256 = hashlib.sha256(file_data).hexdigest()
 
@@ -711,7 +752,7 @@ def addfiles(request):
         db.create_file(file_data, session_id, sha256, upload.name, pid=None, file_meta='ExtraFile')
 
     # Return the new list
-    extra_search = db.search_files({'file_meta': 'ExtraFile', 'sess_id': session_id})
+    extra_search = db.search_files({'file_meta': 'ExtraFile', 'session_id': session_id})
     extra_files = []
     for upload in extra_search:
         extra_files.append({'filename': upload.filename, 'file_id': upload._id})
@@ -737,7 +778,7 @@ def ajax_handler(request, command):
         extension.set_config(config)
         extension.run()
         if extension.render_type == 'file':
-            template_name = '{0}/template.html'.format(extension.extension_name.lower())
+            template_name = u'{0}/template.html'.format(extension.extension_name.lower())
             rendered_data = render(extension.request, template_name, extension.render_data)
             if rendered_data.status_code == 200:
                 return_data = rendered_data.content
@@ -834,13 +875,13 @@ def ajax_handler(request, command):
 
             if os.path.exists(volrc_file):
                 with open(volrc_file, 'a') as out:
-                    output = '{0}{1}'.format(seperator, plugin_dir)
+                    output = u'{0}{1}'.format(seperator, plugin_dir)
                     out.write(output)
                 return HttpResponse(' No Plugin Path Provided')
             else:
                 # Create new file.
                 with open(volrc_file, 'w') as out:
-                    output = '[DEFAULT]\nPLUGINS = {0}'.format(plugin_dir)
+                    output = u'[DEFAULT]\nPLUGINS = {0}'.format(plugin_dir)
                     out.write(output)
                 return HttpResponse(' No Plugin Path Provided')
         else:
@@ -867,7 +908,7 @@ def ajax_handler(request, command):
             for extension in __extensions__:
                 if __extensions__[extension]['obj'].extension_type == 'filedetails':
                     extension_name = __extensions__[extension]['obj'].extension_name
-                    template_name = '{0}/template.html'.format(extension_name.lower())
+                    template_name = u'{0}/template.html'.format(extension_name.lower())
                     try:
                         includes.append([template_name, extension_name])
 
@@ -878,7 +919,7 @@ def ajax_handler(request, command):
                         ext.display()
                         response_dict[extension_name] = ext.render_data[extension_name]
                     except Exception as e:
-                        logger.error('Error getting data from extension: {0} - {1}'.format(extension_name, e))
+                        logger.error(u'Error getting data from extension: {0} - {1}'.format(extension_name, e))
                         pass
 
             return render(request, 'file_details.html', response_dict)
@@ -1169,6 +1210,8 @@ def ajax_handler(request, command):
             session_id = request.POST['session_id']
             session = db.get_session(session_id)
             mem_path = session['session_path']
+            if " " in mem_path:
+                mem_path = '"' + mem_path + '"'
             if 'start_offset' and 'end_offset' in request.POST:
                 try:
                     start_offset = int(request.POST['start_offset'], 0)
@@ -1202,8 +1245,9 @@ def ajax_handler(request, command):
     if command == 'addcomment':
         html_resp = ''
         if 'session_id' and 'comment_text' in request.POST:
-            session_id = request.POST['session_id']
+            session_id = ObjectId(request.POST['session_id'])
             comment_text = request.POST['comment_text']
+            comment_text = comment_text if isinstance(comment_text, unicode) else comment_text.decode('utf8')
             comment_data = {'session_id': session_id,
                             'comment_text': comment_text,
                             'date_added': datetime.now()}
@@ -1212,7 +1256,8 @@ def ajax_handler(request, command):
             # now return all the comments for the ajax update
 
             for comment in db.get_commentbysession(session_id):
-                html_resp += '<pre>{0}</pre>'.format(comment['comment_text'])
+                comment['comment_text'] = comment['comment_text'].replace("<", "&lt;").replace(">", "&gt;")
+                html_resp += u'<pre>{0}</pre>'.format(comment['comment_text'])
 
         return HttpResponse(html_resp)
 
@@ -1243,7 +1288,7 @@ def ajax_handler(request, command):
                 results = {'columns': ['Plugin Name', 'View Results'], 'rows': []}
                 rows = db.search_plugins(search_text, session_id=session_id)
                 for row in rows:
-                    results['rows'].append([row['plugin_name'], '<a href="#" onclick="ajaxHandler(\'pluginresults\', \{{\'plugin_id\':\'{0}\'}}, false ); return false">View Output</a>'.format(row['_id'])])
+                    results['rows'].append([row['plugin_name'], '<a href="#" onclick="datatablesAjax(\'{0}\'); return false">View Output</a>'.format(row['_id'])])
                 return render(request, 'plugin_output.html', {'plugin_results': results,
                                                               'bookmarks': [],
                                                               'plugin_id': 'None',
@@ -1251,7 +1296,19 @@ def ajax_handler(request, command):
                                                               'resultcount': len(results['rows'])})
 
             if search_type == 'hash':
-                pass
+                results = {'columns': ['Filename', 'MD5', 'SHA256', 'Length', 'File Details'], 'rows': []}
+                rows = db.search_hashfiles(search_text, session_id=session_id)
+                for row in rows:
+                    results['rows'].append([row['filename'], row['md5'], row['sha256'], row['length'],
+                                            '<a class="text-success" href="#" '
+                                            'onclick="ajaxHandler(\'filedetails\', {\'file_id\':\'' +
+                                            str(row['_id']) + '\'}, false ); return false">'
+                                            'File Details</a>'])
+                return render(request, 'plugin_output.html', {'plugin_results': results,
+                                                              'bookmarks': [],
+                                                              'plugin_id': 'None',
+                                                              'plugin_name': 'Search Results',
+                                                              'resultcount': len(results['rows'])})
 
             if search_type == 'registry':
                 logger.debug('Registry Search')

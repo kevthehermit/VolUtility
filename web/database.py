@@ -149,7 +149,7 @@ class Database():
         if len(str(new_values)) > 12000000:
             print "Storing Large Document in GridFS"
             large_document = json.dumps(new_values['plugin_output'])
-            large_document_id = self.create_file(large_document, 'sess_id', 'sha256', 'filename', pid=None, file_meta=None)
+            large_document_id = self.create_file(large_document, 'session_id', 'sha256', 'filename', pid=None, file_meta=None)
             new_values['plugin_output'] = large_document_id
             new_values['largedoc'] = 'True'
 
@@ -160,6 +160,21 @@ class Database():
     ##
     # File System
     ##
+    def search_hashfiles(self, search_text, session_id=None):
+        results = []
+        rows = self.vol_files.find({"$or": [{"md5":{"$regex":search_text}},
+                                            {"sha256":{"$regex":search_text}}]})
+        for row in rows:
+            if session_id:
+                session_id = ObjectId(session_id)
+                if row.session_id == session_id:
+                    results.append({"_id": row._id,
+                                    "filename":row.filename,
+                                    "md5":row.md5,
+                                    "sha256":row.sha256,
+                                    "length": row.length})
+        return results
+
     def get_filebyid(self, file_id):
         file_id = ObjectId(file_id)
         file_object = self.vol_files.get(file_id)
@@ -180,9 +195,9 @@ class Database():
         return results
 
     def create_file(self, file_data, session_id, sha256, filename, pid=None, file_meta=None):
-        if len(session_id) == 24:
+        if not isinstance(session_id, ObjectId) and len(session_id) == 24:
             session_id = ObjectId(session_id)
-        file_id = self.vol_files.put(file_data, filename=filename, sess_id=session_id, sha256=sha256, pid=pid, file_meta=file_meta)
+        file_id = self.vol_files.put(file_data, filename=filename, session_id=session_id, sha256=sha256, pid=pid, file_meta=file_meta)
         return file_id
 
     def drop_file(self, file_id):
@@ -223,7 +238,7 @@ class Database():
         # Drop Files
         results = self.vol_files.find({'session_id': session_id})
         for row in results:
-            self.vol_files.delete(row['file_id'])
+            self.vol_files.delete(row._id)
         # Drop DataStore
         self.vol_datastore.delete_many({'session_id': session_id})
         # Drop Notes
