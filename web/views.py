@@ -1256,6 +1256,7 @@ def ajax_handler(request, command):
             # now return all the comments for the ajax update
 
             for comment in db.get_commentbysession(session_id):
+                comment['comment_text'] = comment['comment_text'].replace("<", "&lt;").replace(">", "&gt;")
                 html_resp += u'<pre>{0}</pre>'.format(comment['comment_text'])
 
         return HttpResponse(html_resp)
