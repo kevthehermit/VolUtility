@@ -8,3 +8,4 @@ python-registry
 virustotal-api
 yara-python
 git+https://github.com/smarnach/pyexiftool.git#egg=pyexiftool
+dnspython>=2.6.0rc1 # not directly required, pinned by Snyk to avoid a vulnerability
